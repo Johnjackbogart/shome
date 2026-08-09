@@ -8,6 +8,8 @@
   },
   "scripts": {
     "generate": "drizzle-kit generate",
+    "sql": "node scripts/sql.mjs",
+    "studio": "drizzle-kit studio",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

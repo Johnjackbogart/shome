@@ -42,6 +42,17 @@ For a real Postgres instead of PGlite: `docker compose up -d` and uncomment
 > kill) and is unrecoverable — delete `apps/web/.data` and restart. It's
 > throwaway dev data; real deployments use Postgres.
 
+### Peeking at the dev database
+
+**Stop the dev server first** — PGlite is single-process, and a second process
+opening the same data dir corrupts it.
+
+```sh
+npm run db:sql -- "select tablename from pg_tables where schemaname='public'"
+npm run db:sql -- "select id, email, username from \"user\""
+npm run db:studio    # Drizzle Studio GUI over the same data
+```
+
 ### Scripts
 
 - `npm run dev` — Next.js dev server

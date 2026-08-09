@@ -2,6 +2,7 @@
   "name": "shome",
   "private": true,
   "version": "0.1.0",
+  "license": "AGPL-3.0-only",
   "type": "module",
   "workspaces": [
     "packages/*",
@@ -17,7 +18,9 @@
     "typecheck:watch": "tsc -p tsconfig.dev.json --watch --preserveWatchOutput",
     "lint": "biome check .",
     "format": "biome format --write .",
-    "db:generate": "npm run generate -w packages/db"
+    "db:generate": "npm run generate -w packages/db",
+    "db:sql": "npm run sql -w packages/db --",
+    "db:studio": "npm run studio -w packages/db"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.7",
