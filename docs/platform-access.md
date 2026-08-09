@@ -71,6 +71,64 @@ Compliant ingestion strategies worth building instead:
 Scraping login-walled content violates every one of these platforms' ToS and
 is explicitly not on the roadmap.
 
+## ToS deep-dive: automating access to *your own* data
+
+The intuitive position — "it's my account, I should be able to automate
+pulling my own posts/timeline" — is rejected by all four platforms' terms,
+and three of them pre-empt the logged-in-to-my-own-account argument by name:
+
+### What the terms actually say
+
+- **X** (Terms of Service): *"crawling or scraping the Services in any form,
+  for any purpose without our prior written consent is expressly prohibited."*
+  Access is limited to "published interfaces" (the paid API), and the terms
+  set liquidated damages of **$15,000 per 1,000,000 posts accessed in any
+  24-hour period**.
+- **Facebook** (Meta Terms, §3.2(3)): *"You may not access or collect data
+  from our Products using automated means … without our prior permission"* —
+  applying *"regardless of whether such automated access or collection is
+  undertaken while logged-in to a Facebook account."*
+- **Instagram** (Terms of Use): no *"accessing or collecting information in an
+  automated way without our express permission, regardless of whether such
+  automated access or collection is undertaken while logged-in to an
+  Instagram account."*
+- **LinkedIn** (User Agreement §8.2): members may not *"develop, support or
+  use software, devices, scripts, robots or any other means or processes
+  (such as crawlers, **browser plugins and add-ons** or any other technology)
+  to scrape or copy the Services"*, nor use *"bots or other unauthorized
+  automated methods to access the Services"* (§8.2(13)). Note that browser
+  extensions are named explicitly.
+
+### Legal nuances
+
+- Data-portability **rights** are real — GDPR Art. 20 (EU), CCPA/CPRA access
+  rights (California) — but they are fulfilled through the platform's own
+  export channels; they do not authorize personal bots against the service.
+- *hiQ v. LinkedIn* established that scraping **public** pages is not federal
+  hacking (CFAA), but logged-in automation is still a clean breach of
+  contract. For personal own-data automation, the realistic enforcement is
+  **account suspension**, not litigation.
+
+### Sanctioned ways to get your own content
+
+| Platform  | Official channel                                                                 |
+| --------- | -------------------------------------------------------------------------------- |
+| X         | Settings → "Download an archive of your data"; or the metered API ("owned reads" ~$0.001/resource) |
+| Facebook  | "Download Your Information" / "Transfer Your Information" (JSON export)           |
+| Instagram | Same Meta export tools; Business/Creator accounts can use the official API for their own media |
+| LinkedIn  | "Get a copy of your data" export; EU members: DMA Member Data Portability APIs    |
+
+### Implication for shome
+
+Every export above is machine-readable JSON/CSV. **Archive importers** give
+users "automated access to my own data" with one manual click per platform
+per refresh — fully ToS-clean, no credentials stored, no ban risk. That is
+the planned approach; running browser automation server-side on users'
+behalf is not (it would put every user's account and shome itself in breach).
+Users who choose to run local browser automation against their own accounts
+do so on their own machines and their own risk; shome's role is limited to
+accepting whatever they push into their own ingest endpoint.
+
 ## Sources
 
 - [Postproxy: X (Twitter) API pricing 2026](https://postproxy.dev/blog/x-api-pricing-2026/)
@@ -85,3 +143,12 @@ is explicitly not on the roadmap.
 - [Microsoft Learn: Getting access to LinkedIn APIs](https://learn.microsoft.com/en-us/linkedin/shared/authentication/getting-access)
 - [Microsoft Learn: LinkedIn Member Changelog API (data portability)](https://learn.microsoft.com/en-us/linkedin/dma/member-data-portability/shared/member-changelog-api)
 - [ppc.land: LinkedIn Member Post Analytics API](https://ppc.land/linkedin-enables-third-party-analytics-access-with-new-member-post-api/)
+
+ToS deep-dive sources:
+
+- [Meta Terms of Service](https://www.facebook.com/legal/terms) (§3.2, fetched 2026-08-09)
+- [LinkedIn User Agreement](https://www.linkedin.com/legal/user-agreement) (§8.2, fetched 2026-08-09)
+- [TechCrunch: X bans crawling and scraping in its terms](https://techcrunch.com/2023/09/08/x-updates-its-terms-to-ban-crawling-and-scraping)
+- [opentweet: X automation rules 2026](https://opentweet.io/blog/twitter-automation-rules-2026)
+- [Instagram Terms of Use, court-filed copy (PDF)](https://www.lb7.uscourts.gov/documents/19-1861URL1Termsofuse.pdf)
+- [TLDRLegal: Instagram Terms of Use explained](https://www.tldrlegal.com/license/instagram-terms-of-use)
