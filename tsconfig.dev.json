@@ -1,0 +1,20 @@
+{
+  // Dev-watch overlay: one tsc process across all workspaces (used by `npm run dev:ts`).
+  // Settings are the union of the per-package configs (DOM for web, node types for server),
+  // so a rare environment mismatch can slip through here — `npm run typecheck` runs each
+  // package under its own strict config and is the source of truth.
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "types": ["node"],
+    "jsx": "react-jsx"
+  },
+  "include": [
+    "packages/*/src/**/*.ts",
+    "packages/*/test/**/*.ts",
+    "apps/*/next-env.d.ts",
+    "apps/*/src/**/*.ts",
+    "apps/*/src/**/*.tsx",
+    "apps/*/test/**/*.ts"
+  ]
+}

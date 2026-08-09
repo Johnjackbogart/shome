@@ -1,0 +1,9 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    // DOM lib only for cross-runtime globals like AbortSignal; core stays dependency-free.
+    "lib": ["ES2023", "DOM"],
+    "types": []
+  },
+  "include": ["src", "test"]
+}

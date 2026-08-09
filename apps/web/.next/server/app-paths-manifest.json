@@ -1,0 +1,16 @@
+{
+  "/_global-error/page": "app/_global-error/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/api/auth/[...all]/route": "app/api/auth/[...all]/route.js",
+  "/api/connections/[id]/route": "app/api/connections/[id]/route.js",
+  "/api/connections/route": "app/api/connections/route.js",
+  "/api/feed/route": "app/api/feed/route.js",
+  "/api/profile/route": "app/api/profile/route.js",
+  "/api/refresh/route": "app/api/refresh/route.js",
+  "/api/sources/[id]/refresh/route": "app/api/sources/[id]/refresh/route.js",
+  "/api/sources/[id]/route": "app/api/sources/[id]/route.js",
+  "/api/sources/route": "app/api/sources/route.js",
+  "/p/[handle]/content/route": "app/p/[handle]/content/route.js",
+  "/p/[handle]/page": "app/p/[handle]/page.js",
+  "/page": "app/page.js"
+}

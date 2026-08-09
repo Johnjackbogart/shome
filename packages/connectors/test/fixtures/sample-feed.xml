@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:media="http://search.yahoo.com/mrss/" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Example Blog</title>
+    <link>https://blog.example.com</link>
+    <description>a test feed</description>
+    <item>
+      <title>First Post</title>
+      <link>https://blog.example.com/first</link>
+      <guid isPermaLink="false">post-1</guid>
+      <pubDate>Mon, 03 Aug 2026 12:00:00 GMT</pubDate>
+      <dc:creator>Jordan Writer</dc:creator>
+      <description>A short summary of the first post.</description>
+      <content:encoded><![CDATA[<p>Full <strong>rich</strong> body.</p><script>alert('never rendered')</script>]]></content:encoded>
+      <enclosure url="https://blog.example.com/cover.png" type="image/png" length="1234"/>
+      <media:content url="https://blog.example.com/cover.png" medium="image"/>
+      <media:content url="https://blog.example.com/extra.jpg" type="image/jpeg"/>
+    </item>
+    <item>
+      <title>Second Post</title>
+      <link>https://blog.example.com/second</link>
+      <description>No guid and no date on this one.</description>
+    </item>
+  </channel>
+</rss>

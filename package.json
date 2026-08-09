@@ -1,0 +1,29 @@
+{
+  "name": "shome",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w apps/web",
+    "dev:ts": "concurrently -n next,tsc -c green,yellow \"npm:dev\" \"npm:typecheck:watch\"",
+    "build": "npm run build -w apps/web",
+    "start": "npm run start -w apps/web",
+    "test": "vitest run",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "typecheck:watch": "tsc -p tsconfig.dev.json --watch --preserveWatchOutput",
+    "lint": "biome check .",
+    "format": "biome format --write .",
+    "db:generate": "npm run generate -w packages/db"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.7",
+    "@types/node": "^26.2.0",
+    "concurrently": "^10.0.4",
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.10"
+  }
+}

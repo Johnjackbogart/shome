@@ -1,0 +1,1 @@
+ALTER TABLE "connections" ALTER COLUMN "credentials" SET DATA TYPE text;

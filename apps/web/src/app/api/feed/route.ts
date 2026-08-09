@@ -1,0 +1,65 @@
+import type { SourceKind } from "@shome/core";
+import { items, sources, subscriptions } from "@shome/db";
+import { and, eq, ilike, or, type SQL, sql } from "drizzle-orm";
+import { NextResponse } from "next/server";
+import type { FeedItemView } from "@/lib/types";
+import { jsonError, UUID_RE } from "@/server/api";
+import { getSessionOrNull } from "@/server/auth";
+import { getDb } from "@/server/db";
+
+const KINDS: SourceKind[] = ["rss", "bluesky", "mastodon", "youtube"];
+
+export async function GET(req: Request) {
+  const session = await getSessionOrNull();
+  if (!session) return jsonError(401, "not signed in");
+  const db = await getDb();
+
+  const params = new URL(req.url).searchParams;
+  const limitRaw = Number(params.get("limit") ?? "50");
+  const limit = Number.isFinite(limitRaw) ? Math.min(Math.max(Math.trunc(limitRaw), 1), 200) : 50;
+  const q = params.get("q")?.trim() || undefined;
+  const kind = params.get("kind") || undefined;
+  const sourceId = params.get("sourceId") || undefined;
+  if (kind && !KINDS.includes(kind as SourceKind)) return jsonError(400, "unknown kind");
+  if (sourceId && !UUID_RE.test(sourceId)) return jsonError(400, "invalid sourceId");
+
+  const filters: SQL[] = [eq(subscriptions.userId, session.user.id)];
+  if (kind) filters.push(eq(sources.kind, kind as SourceKind));
+  if (sourceId) filters.push(eq(items.sourceId, sourceId));
+  if (q) {
+    const pattern = `%${q.replace(/[\\%_]/g, (ch) => `\\${ch}`)}%`;
+    const match = or(ilike(items.title, pattern), ilike(items.text, pattern));
+    if (match) filters.push(match);
+  }
+
+  const rows = await db
+    .select({
+      item: items,
+      sourceKind: sources.kind,
+      sourceTitle: sources.title,
+    })
+    .from(items)
+    .innerJoin(subscriptions, eq(items.sourceId, subscriptions.sourceId))
+    .innerJoin(sources, eq(items.sourceId, sources.id))
+    .where(and(...filters))
+    .orderBy(sql`coalesce(${items.publishedAt}, ${items.fetchedAt}) desc`)
+    .limit(limit);
+
+  const views: FeedItemView[] = rows.map(({ item, sourceKind, sourceTitle }) => ({
+    id: item.id,
+    sourceId: item.sourceId,
+    sourceKind,
+    sourceTitle,
+    url: item.url,
+    title: item.title,
+    text: item.text,
+    html: item.html,
+    authorName: item.authorName,
+    authorHandle: item.authorHandle,
+    authorAvatarUrl: item.authorAvatarUrl,
+    media: item.media,
+    publishedAt: item.publishedAt?.toISOString() ?? null,
+    fetchedAt: item.fetchedAt.toISOString(),
+  }));
+  return NextResponse.json({ items: views });
+}

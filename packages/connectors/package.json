@@ -1,0 +1,17 @@
+{
+  "name": "@shome/connectors",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@atproto/api": "^0.20.38",
+    "@shome/core": "*",
+    "rss-parser": "^3.13.0"
+  }
+}
