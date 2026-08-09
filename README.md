@@ -37,6 +37,11 @@ npm run dev                     # http://localhost:3000 — uses embedded PGlite
 For a real Postgres instead of PGlite: `docker compose up -d` and uncomment
 `DATABASE_URL` in `apps/web/.env`.
 
+> Troubleshooting: if the server starts 500ing with `RuntimeError: Aborted()`
+> in the logs, the embedded dev database was killed mid-write (crash/hard
+> kill) and is unrecoverable — delete `apps/web/.data` and restart. It's
+> throwaway dev data; real deployments use Postgres.
+
 ### Scripts
 
 - `npm run dev` — Next.js dev server

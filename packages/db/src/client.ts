@@ -58,6 +58,11 @@ export interface DatabaseHandle {
   db: Db;
   /** Applies pending migrations; call (and await) before serving queries. Idempotent. */
   migrate: () => Promise<void>;
+  /**
+   * Flushes and closes the underlying client. Call on shutdown — a PGlite data
+   * dir killed mid-write can be left unreadable (recovery: delete the dir).
+   */
+  close: () => Promise<void>;
 }
 
 /**
@@ -76,6 +81,7 @@ export function createDatabase(opts: OpenDatabaseOptions = {}): DatabaseHandle {
         (migrating ??= migratePg(db, {
           migrationsFolder: resolveMigrationsFolder(),
         })),
+      close: () => pool.end(),
     };
   }
   const dir =
@@ -89,6 +95,7 @@ export function createDatabase(opts: OpenDatabaseOptions = {}): DatabaseHandle {
       (migrating ??= migratePglite(db, {
         migrationsFolder: resolveMigrationsFolder(),
       })),
+    close: () => client.close(),
   };
 }
 

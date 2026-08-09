@@ -6,9 +6,29 @@ import { createDatabase, type Db } from "@shome/db";
 interface Handle {
   db: Db;
   ready: Promise<void>;
+  close: () => Promise<void>;
 }
 
-const g = globalThis as typeof globalThis & { __shomeDb?: Handle };
+const g = globalThis as typeof globalThis & {
+  __shomeDb?: Handle;
+  __shomeDbSignals?: boolean;
+};
+
+function registerGracefulClose() {
+  if (g.__shomeDbSignals) return;
+  g.__shomeDbSignals = true;
+  // A PGlite data dir killed mid-write is left unreadable, so flush + close on
+  // the signals a normal stop sends (a hard kill still can't be helped —
+  // recovery is deleting apps/web/.data, see README).
+  for (const signal of ["SIGINT", "SIGTERM"] as const) {
+    process.once(signal, () => {
+      const current = g.__shomeDb;
+      const finish = () => process.exit(signal === "SIGINT" ? 130 : 143);
+      if (!current) return finish();
+      void current.close().then(finish, finish);
+    });
+  }
+}
 
 function handle(): Handle {
   if (!g.__shomeDb) {
@@ -19,7 +39,8 @@ function handle(): Handle {
     ready.catch(() => {
       if (g.__shomeDb?.ready === ready) g.__shomeDb = undefined;
     });
-    g.__shomeDb = { db: created.db, ready };
+    g.__shomeDb = { db: created.db, ready, close: created.close };
+    registerGracefulClose();
   }
   return g.__shomeDb;
 }

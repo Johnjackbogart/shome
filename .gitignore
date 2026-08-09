@@ -6,3 +6,5 @@ dist/
 !.env.example
 *.log
 .DS_Store
+apps/web/.next/
+apps/web/.data/
