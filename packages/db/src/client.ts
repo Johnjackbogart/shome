@@ -35,8 +35,10 @@ function resolveMigrationsFolder(): string {
   let dir = process.cwd();
   for (let i = 0; i < 8; i++) {
     for (const rel of [path.join("packages", "db", "migrations"), "migrations"]) {
-      const candidate = path.join(dir, rel);
-      if (existsSync(candidate)) return candidate;
+      // This intentionally probes deployment-specific paths. Migration SQL is
+      // explicitly included in Next's output trace in apps/web/next.config.ts.
+      const candidate = path.join(/* turbopackIgnore: true */ dir, rel);
+      if (existsSync(/* turbopackIgnore: true */ candidate)) return candidate;
     }
     const parent = path.dirname(dir);
     if (parent === dir) break;
