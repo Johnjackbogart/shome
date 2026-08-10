@@ -1,0 +1,40 @@
+import { authClient } from "./auth-client";
+import { API_URL } from "./config";
+
+export class ApiError extends Error {
+  constructor(
+    public status: number,
+    message: string,
+  ) {
+    super(message);
+  }
+}
+
+async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const headers: Record<string, string> = {
+    ...((init?.headers as Record<string, string>) ?? {}),
+  };
+  if (init?.body !== undefined) headers["content-type"] = "application/json";
+  // Better Auth's Expo client keeps the session cookie in SecureStore; native
+  // fetch has no cookie jar, so forward it on every API call.
+  const cookie = authClient.getCookie();
+  if (cookie) headers.cookie = cookie;
+  const res = await fetch(`${API_URL}${path}`, { ...init, headers });
+  const data = (await res.json().catch(() => null)) as {
+    error?: string;
+  } | null;
+  if (!res.ok) throw new ApiError(res.status, data?.error ?? `HTTP ${res.status}`);
+  return data as T;
+}
+
+export const api = {
+  get: <T>(path: string) => request<T>(path),
+  post: <T>(path: string, body?: unknown) =>
+    request<T>(path, {
+      method: "POST",
+      body: body === undefined ? undefined : JSON.stringify(body),
+    }),
+  put: <T>(path: string, body: unknown) =>
+    request<T>(path, { method: "PUT", body: JSON.stringify(body) }),
+  del: <T>(path: string) => request<T>(path, { method: "DELETE" }),
+};

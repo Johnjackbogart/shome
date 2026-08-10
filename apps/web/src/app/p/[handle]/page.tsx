@@ -34,10 +34,13 @@ export default async function ProfilePage(ctx: { params: Promise<{ handle: strin
           shome
         </a>
       </header>
-      {/* Fully sandboxed (opaque origin, no scripts): the page below is user-authored HTML. */}
+      {/* Sandboxed (opaque origin, no scripts): the page below is user-authored HTML.
+          allow-popups lets its links (forced to target=_blank at sanitize time) open in
+          a real tab — escaping the sandbox, since framed/sandboxed navigation is refused
+          by most sites via X-Frame-Options. */}
       <iframe
         className="w-full flex-1 border-0 bg-white"
-        sandbox=""
+        sandbox="allow-popups allow-popups-to-escape-sandbox"
         src={`/p/${owner.username}/content`}
         title={`@${owner.username}'s page`}
       />

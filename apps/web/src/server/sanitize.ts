@@ -38,7 +38,9 @@ export function sanitizeItemHtml(html: string): string {
       "hr",
     ],
     allowedAttributes: {
-      a: ["href", "title"],
+      // target/rel must be allowlisted or the transformTags additions below are
+      // stripped again; the transform overwrites any author-supplied values.
+      a: ["href", "title", "target", "rel"],
       img: ["src", "alt", "title"],
     },
     allowedSchemes: ["http", "https", "mailto"],
@@ -111,13 +113,22 @@ export function sanitizeProfileHtml(html: string): string {
     allowVulnerableTags: true,
     allowedAttributes: {
       "*": ["class", "id", "style", "title"],
-      a: ["href", "title", "class", "id", "style"],
+      // target/rel allowlisted so the transformTags additions survive filtering.
+      a: ["href", "title", "class", "id", "style", "target", "rel"],
       img: ["src", "alt", "width", "height", "class", "id", "style"],
       td: ["colspan", "rowspan", "class", "id", "style"],
       th: ["colspan", "rowspan", "class", "id", "style"],
     },
     allowedSchemes: ["http", "https", "mailto"],
     allowedSchemesByTag: { img: ["http", "https", "data"] },
+    transformTags: {
+      // Links must escape the sandboxed iframe: framed navigation is blocked by
+      // most sites' X-Frame-Options, so force a new top-level tab instead.
+      a: sanitizeHtml.simpleTransform("a", {
+        rel: "noopener noreferrer",
+        target: "_blank",
+      }),
+    },
     disallowedTagsMode: "discard",
   });
 }

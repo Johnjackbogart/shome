@@ -10,11 +10,39 @@ packages/core        pure domain logic (no IO, no framework)
 packages/db          Drizzle schema + migrations, Postgres/PGlite dual driver
 packages/connectors  platform connectors implementing core's Connector contract
 apps/web             Next.js 16 (App Router): UI + API route handlers + auth
+apps/mobile          Expo (expo-router): iOS/Android client of apps/web's API
 ```
 
 Workspace packages ship TypeScript source (`exports` → `src/index.ts`); Next
-compiles them via `transpilePackages`, tests run them directly — no build step
-anywhere except `next build`.
+compiles them via `transpilePackages`, Metro compiles them in the Expo app,
+tests run them directly — no build step anywhere except `next build`.
+
+## Mobile app (`apps/mobile`)
+
+A thin client over the same HTTP API the web UI uses — no direct database or
+connector access; all ingestion, sanitization, and credential handling stays
+server-side. Pieces:
+
+- **Auth**: Better Auth's Expo plugin. The server adds `expo()` +
+  `trustedOrigins: ["shome://"]`; the app's client
+  (`src/lib/auth-client.ts`) stores the session cookie in `expo-secure-store`
+  (OS keychain), and `src/lib/api.ts` forwards it as a `Cookie` header on
+  every API call — native fetch has no cookie jar.
+- **Shared contract**: the API view types (`FeedItemView`, `SourceView`, …)
+  moved to `packages/core/src/api-views.ts`; web re-exports them from
+  `@/lib/types`, mobile imports them from `@shome/core` directly.
+- **Styling**: NativeWind 4 (Tailwind classes compiled to RN styles). Note the
+  version split: web is Tailwind v4 CSS-first, mobile pins `tailwindcss` v3 in
+  its own workspace because NativeWind 4 requires it.
+- **Server discovery**: in dev the app derives the API origin from the Metro
+  host (`exp://…:8081` → `http://…:3000`), so simulators and physical devices
+  on the LAN both reach `npm run dev` with zero config; `EXPO_PUBLIC_API_URL`
+  overrides for deployed servers.
+- **Scope**: feed (pull-to-refresh + server refresh), sources
+  (add/refresh/remove for the credential-free modes; credentialed modes are
+  managed on web), account tab with sign-out and a browser link to the
+  public profile page. Item HTML is flattened to text for native rendering —
+  the sanitized-HTML/iframe pipeline stays a web concern.
 
 ## Domain model
 

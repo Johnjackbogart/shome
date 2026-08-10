@@ -1,3 +1,4 @@
+import { expo } from "@better-auth/expo";
 import { account, session, user, verification } from "@shome/db";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
@@ -11,7 +12,11 @@ export const auth = betterAuth({
     schema: { user, session, account, verification },
   }),
   emailAndPassword: { enabled: true },
+  // The mobile app authenticates against these same endpoints; its requests
+  // originate from the app scheme rather than an http origin.
+  trustedOrigins: ["shome://"],
   plugins: [
+    expo(),
     username({
       minUsernameLength: 3,
       maxUsernameLength: 30,

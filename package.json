@@ -10,6 +10,7 @@
   ],
   "scripts": {
     "dev": "npm run dev -w apps/web",
+    "dev:mobile": "npm run start -w apps/mobile",
     "dev:ts": "concurrently -n next,tsc -c green,yellow \"npm:dev\" \"npm:typecheck:watch\"",
     "build": "npm run build -w apps/web",
     "start": "npm run start -w apps/web",

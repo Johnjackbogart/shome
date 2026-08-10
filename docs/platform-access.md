@@ -118,6 +118,31 @@ and three of them pre-empt the logged-in-to-my-own-account argument by name:
 | Instagram | Same Meta export tools; Business/Creator accounts can use the official API for their own media |
 | LinkedIn  | "Get a copy of your data" export; EU members: DMA Member Data Portability APIs    |
 
+### Aside: how does Google index X posts, then?
+
+Because Google is on the consent side of the "without our prior written
+consent" clause — scraping at X is *permissioned*, not absent:
+
+1. **Explicit crawler whitelisting.** `x.com/robots.txt` (checked 2026-08-09)
+   opens with a dedicated `# Google Search Engine Robot` section allowing
+   Googlebot into profiles, statuses, hashtags, and search pages while carving
+   out likes/followers/analytics. Other user-agents get far more restrictive
+   rules. robots.txt is the operational form of "prior written consent."
+2. **Commercial data deals.** Realtime tweets in Google's search carousels
+   historically came from the 2015 Google–Twitter "firehose" agreement — a
+   paid, direct API stream, not HTML scraping. When X briefly login-walled
+   public tweets (July 2023), tweets largely fell out of Google until access
+   was restored: indexing exists exactly to the extent X permits it.
+3. **Crawler-friendly public permalinks.** Tweet URLs server-render for
+   logged-out agents X chooses to serve, so they can be indexed and drive
+   traffic back.
+
+The asymmetry is intentional: the ToS defaults everyone to "no," then X
+grants exceptions to parties that bring traffic (Google) or pay (API
+customers). Consent is available at Google's negotiating scale, not an
+individual's — which is why shome's channels remain exports, the metered
+API, and user-triggered saves.
+
 ### Implication for shome
 
 Every export above is machine-readable JSON/CSV. **Archive importers** give

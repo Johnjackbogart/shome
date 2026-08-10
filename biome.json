@@ -14,9 +14,28 @@
     }
   },
   "files": {
-    "includes": ["**", "!**/migrations", "!**/.next", "!**/.data", "!**/next-env.d.ts"]
+    "includes": [
+      "**",
+      "!**/migrations",
+      "!**/.next",
+      "!**/.data",
+      "!**/next-env.d.ts",
+      "!apps/mobile/.expo",
+      "!apps/mobile/expo-env.d.ts",
+      "!apps/mobile/dist"
+    ]
   },
   "overrides": [
+    {
+      "includes": ["apps/mobile/src/global.css"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noUnknownAtRules": "off"
+          }
+        }
+      }
+    },
     {
       "includes": ["apps/web/src/components/**"],
       "linter": {

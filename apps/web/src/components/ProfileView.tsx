@@ -89,7 +89,7 @@ export function ProfileView({ handle }: { handle: string | null }) {
           <iframe
             key={version}
             className="min-h-[26rem] w-full rounded-xl border border-zinc-800 bg-white"
-            sandbox=""
+            sandbox="allow-popups allow-popups-to-escape-sandbox"
             src={`/p/${handle}/content?v=${version}`}
             title="preview"
           />

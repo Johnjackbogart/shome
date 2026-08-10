@@ -25,6 +25,7 @@ Multi-user platform built as a TypeScript monorepo:
 | `packages/db`         | Drizzle ORM schema + migrations; Postgres in prod, embedded PGlite for zero-setup dev       |
 | `packages/connectors` | RSS/Atom, Bluesky, Mastodon, YouTube connectors                                             |
 | `apps/web`            | Next.js app: React UI + API route handlers, Better Auth, sanitized profile pages            |
+| `apps/mobile`         | Expo app (iOS/Android): same accounts and API as the web app, NativeWind styling            |
 
 ### Quickstart
 
@@ -53,9 +54,21 @@ npm run db:sql -- "select id, email, username from \"user\""
 npm run db:studio    # Drizzle Studio GUI over the same data
 ```
 
+### Mobile (Expo)
+
+```sh
+npm run dev          # the mobile app talks to this server — keep it running
+npm run dev:mobile   # Metro dev server; press i / a, or scan the QR in Expo Go
+```
+
+On a simulator/emulator the app finds the web server automatically (it targets
+port 3000 on the machine running Metro). For a deployed server set
+`EXPO_PUBLIC_API_URL` in `apps/mobile/.env`.
+
 ### Scripts
 
 - `npm run dev` — Next.js dev server
+- `npm run dev:mobile` — Expo dev server for the iOS/Android app
 - `npm run dev:ts` — dev server + a `tsc --watch` typechecker across all workspaces
 - `npm test` / `npm run typecheck` / `npm run lint` — Vitest, per-package tsc, Biome
 - `npm run db:generate` — regenerate SQL migrations after editing `packages/db/src/schema.ts`

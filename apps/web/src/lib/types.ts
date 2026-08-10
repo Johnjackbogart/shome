@@ -1,48 +1,9 @@
-// Shared shapes between API routes and the client UI.
-
-export interface PublicUser {
-  id: string;
-  email: string;
-  /** Better Auth username; null only if an account was created without one. */
-  handle: string | null;
-  displayName: string | null;
-}
-
-export interface SourceView {
-  id: string;
-  kind: string;
-  title: string | null;
-  config: Record<string, unknown>;
-  lastFetchedAt: string | null;
-  lastError: string | null;
-}
-
-export interface MediaView {
-  type: string;
-  url: string;
-  alt?: string;
-}
-
-export interface FeedItemView {
-  id: string;
-  sourceId: string;
-  sourceKind: string;
-  sourceTitle: string | null;
-  url: string | null;
-  title: string | null;
-  text: string | null;
-  html: string | null;
-  authorName: string | null;
-  authorHandle: string | null;
-  authorAvatarUrl: string | null;
-  media: MediaView[];
-  publishedAt: string | null;
-  fetchedAt: string;
-}
-
-export interface ConnectionView {
-  id: string;
-  provider: string;
-  label: string;
-  createdAt: string;
-}
+// Shared shapes between API routes and the client UIs (web + mobile).
+// Defined in @shome/core so the Expo app consumes the same contract.
+export type {
+  ConnectionView,
+  FeedItemView,
+  MediaView,
+  PublicUser,
+  SourceView,
+} from "@shome/core";
