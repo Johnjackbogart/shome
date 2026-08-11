@@ -1,13 +1,14 @@
 import type { SourceKind } from "@shome/core";
-import { items, sources, subscriptions } from "@shome/db";
-import { and, eq, ilike, or, type SQL, sql } from "drizzle-orm";
+import { items, posts, sources, subscriptions, user } from "@shome/db";
+import { and, desc, eq, ilike, or, type SQL, sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import type { FeedItemView } from "@/lib/types";
 import { jsonError, UUID_RE } from "@/server/api";
 import { getSessionOrNull } from "@/server/auth";
 import { getDb } from "@/server/db";
+import { postToFeedItem } from "@/server/posting";
 
-const KINDS: SourceKind[] = ["rss", "bluesky", "mastodon", "youtube"];
+const KINDS = ["rss", "bluesky", "mastodon", "youtube", "post"] as const;
 
 export async function GET(req: Request) {
   const session = await getSessionOrNull();
@@ -20,11 +21,12 @@ export async function GET(req: Request) {
   const q = params.get("q")?.trim() || undefined;
   const kind = params.get("kind") || undefined;
   const sourceId = params.get("sourceId") || undefined;
-  if (kind && !KINDS.includes(kind as SourceKind)) return jsonError(400, "unknown kind");
+  if (kind && !KINDS.includes(kind as (typeof KINDS)[number]))
+    return jsonError(400, "unknown kind");
   if (sourceId && !UUID_RE.test(sourceId)) return jsonError(400, "invalid sourceId");
 
   const filters: SQL[] = [eq(subscriptions.userId, session.user.id)];
-  if (kind) filters.push(eq(sources.kind, kind as SourceKind));
+  if (kind && kind !== "post") filters.push(eq(sources.kind, kind as SourceKind));
   if (sourceId) filters.push(eq(items.sourceId, sourceId));
   if (q) {
     const pattern = `%${q.replace(/[\\%_]/g, (ch) => `\\${ch}`)}%`;
@@ -32,20 +34,23 @@ export async function GET(req: Request) {
     if (match) filters.push(match);
   }
 
-  const rows = await db
-    .select({
-      item: items,
-      sourceKind: sources.kind,
-      sourceTitle: sources.title,
-    })
-    .from(items)
-    .innerJoin(subscriptions, eq(items.sourceId, subscriptions.sourceId))
-    .innerJoin(sources, eq(items.sourceId, sources.id))
-    .where(and(...filters))
-    .orderBy(sql`coalesce(${items.publishedAt}, ${items.fetchedAt}) desc`)
-    .limit(limit);
+  const rows =
+    kind === "post"
+      ? []
+      : await db
+          .select({
+            item: items,
+            sourceKind: sources.kind,
+            sourceTitle: sources.title,
+          })
+          .from(items)
+          .innerJoin(subscriptions, eq(items.sourceId, subscriptions.sourceId))
+          .innerJoin(sources, eq(items.sourceId, sources.id))
+          .where(and(...filters))
+          .orderBy(sql`coalesce(${items.publishedAt}, ${items.fetchedAt}) desc`)
+          .limit(limit);
 
-  const views: FeedItemView[] = rows.map(({ item, sourceKind, sourceTitle }) => ({
+  const sourceViews: FeedItemView[] = rows.map(({ item, sourceKind, sourceTitle }) => ({
     id: item.id,
     sourceId: item.sourceId,
     sourceKind,
@@ -61,5 +66,32 @@ export async function GET(req: Request) {
     publishedAt: item.publishedAt?.toISOString() ?? null,
     fetchedAt: item.fetchedAt.toISOString(),
   }));
+
+  const postRows =
+    sourceId || (kind && kind !== "post")
+      ? []
+      : await db
+          .select({ post: posts, name: user.name, username: user.username, image: user.image })
+          .from(posts)
+          .innerJoin(user, eq(posts.userId, user.id))
+          .where(
+            and(
+              eq(posts.userId, session.user.id),
+              ...(q ? [ilike(posts.text, `%${q.replace(/[\\%_]/g, (ch) => `\\${ch}`)}%`)] : []),
+            ),
+          )
+          .orderBy(desc(posts.createdAt))
+          .limit(limit);
+  const postViews = postRows.map(({ post, name, username, image }) =>
+    postToFeedItem(post, { name, username, image }),
+  );
+
+  const views = [...sourceViews, ...postViews]
+    .sort(
+      (a, b) =>
+        new Date(b.publishedAt ?? b.fetchedAt).getTime() -
+        new Date(a.publishedAt ?? a.fetchedAt).getTime(),
+    )
+    .slice(0, limit);
   return NextResponse.json({ items: views });
 }

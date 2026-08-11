@@ -11,7 +11,7 @@ import { getDb } from "@/server/db";
 // Providers that need stored credentials, and which fields they require.
 const REQUIRED_FIELDS: Record<string, string[]> = {
   bluesky: ["identifier", "appPassword"],
-  mastodon: ["accessToken"],
+  mastodon: ["server", "accessToken"],
   youtube: ["apiKey"],
 };
 
@@ -62,6 +62,22 @@ export async function POST(req: Request) {
     return jsonError(400, `missing credential fields: ${missing.join(", ")}`);
   }
 
+  const credentials = { ...body.data.credentials };
+  if (body.data.provider === "mastodon") {
+    const rawServer = credentials.server;
+    try {
+      const url = new URL(
+        typeof rawServer === "string" && rawServer.includes("://")
+          ? rawServer
+          : `https://${rawServer}`,
+      );
+      if (url.protocol !== "https:") return jsonError(400, "Mastodon server must use https");
+      credentials.server = url.origin;
+    } catch {
+      return jsonError(400, "Mastodon server must be a valid URL");
+    }
+  }
+
   try {
     const [row] = await db
       .insert(connections)
@@ -70,7 +86,7 @@ export async function POST(req: Request) {
         provider: body.data.provider,
         label: body.data.label ?? "default",
         // Stored as a compact JWE — plaintext never touches the database.
-        credentials: await encryptCredentials(body.data.credentials),
+        credentials: await encryptCredentials(credentials),
       })
       .returning({
         id: connections.id,

@@ -15,6 +15,13 @@
       "when": 1786283775780,
       "tag": "0001_rare_wolf_cub",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1786472836436,
+      "tag": "0002_complex_harry_osborn",
+      "breakpoints": true
     }
   ]
 }

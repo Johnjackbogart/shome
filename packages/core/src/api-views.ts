@@ -38,6 +38,13 @@ export interface FeedItemView {
   media: MediaView[];
   publishedAt: string | null;
   fetchedAt: string;
+  /** Links created when a first-party shome post was cross-posted. */
+  crossPosts?: CrossPostLink[];
+}
+
+export interface CrossPostLink {
+  provider: "bluesky" | "mastodon";
+  url: string;
 }
 
 export interface ConnectionView {

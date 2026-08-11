@@ -153,6 +153,25 @@ export const items = pgTable(
   ],
 );
 
+// First-party posts live separately from fetched `items`: they are authored in
+// shome, may be cross-posted to connected accounts, and are always owned by a
+// single user. Keeping them separate means a failed cross-post never prevents
+// the original post from appearing on the user's feed or profile.
+export const posts = pgTable(
+  "posts",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    text: text("text_content").notNull(),
+    blueskyUrl: text("bluesky_url"),
+    mastodonUrl: text("mastodon_url"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("posts_user_created_ix").on(t.userId, t.createdAt)],
+);
+
 export const feeds = pgTable("feeds", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: text("user_id")

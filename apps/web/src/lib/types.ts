@@ -2,6 +2,7 @@
 // Defined in @shome/core so the Expo app consumes the same contract.
 export type {
   ConnectionView,
+  CrossPostLink,
   FeedItemView,
   MediaView,
   PublicUser,

@@ -137,8 +137,7 @@ export function SourcesView() {
       <div>
         <h2 className="mb-3 text-xl font-bold">Connections</h2>
         <p className="mb-3 text-sm text-zinc-400">
-          Linked credentials, for sources that need them (Bluesky timeline, Mastodon home, YouTube
-          API key).
+          Linked credentials, for sources that need them — and for posting to Bluesky or Mastodon.
         </p>
         <AddConnectionForm
           onAdded={() => {
@@ -390,6 +389,7 @@ function AddConnectionForm({
   const [label, setLabel] = useState("");
   const [identifier, setIdentifier] = useState("");
   const [appPassword, setAppPassword] = useState("");
+  const [mastodonServer, setMastodonServer] = useState("");
   const [accessToken, setAccessToken] = useState("");
   const [apiKey, setApiKey] = useState("");
   const [busy, setBusy] = useState(false);
@@ -402,7 +402,7 @@ function AddConnectionForm({
         provider === "bluesky"
           ? { identifier, appPassword }
           : provider === "mastodon"
-            ? { accessToken }
+            ? { server: mastodonServer, accessToken }
             : { apiKey };
       await api.post("/api/connections", {
         provider,
@@ -412,6 +412,7 @@ function AddConnectionForm({
       setLabel("");
       setIdentifier("");
       setAppPassword("");
+      setMastodonServer("");
       setAccessToken("");
       setApiKey("");
       onAdded();
@@ -462,14 +463,23 @@ function AddConnectionForm({
         </div>
       )}
       {provider === "mastodon" && (
-        <input
-          className="input"
-          type="password"
-          value={accessToken}
-          onChange={(e) => setAccessToken(e.target.value)}
-          placeholder="access token"
-          required
-        />
+        <div className="flex flex-wrap gap-2">
+          <input
+            className="input min-w-36 flex-1"
+            value={mastodonServer}
+            onChange={(e) => setMastodonServer(e.target.value)}
+            placeholder="https://mastodon.social"
+            required
+          />
+          <input
+            className="input min-w-36 flex-1"
+            type="password"
+            value={accessToken}
+            onChange={(e) => setAccessToken(e.target.value)}
+            placeholder="access token"
+            required
+          />
+        </div>
       )}
       {provider === "youtube" && (
         <input

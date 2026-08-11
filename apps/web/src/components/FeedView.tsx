@@ -3,12 +3,13 @@
 import { type FormEvent, useCallback, useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { timeAgo, truncate } from "@/lib/format";
-import type { FeedItemView } from "@/lib/types";
+import type { ConnectionView, FeedItemView } from "@/lib/types";
 
-const KINDS = ["rss", "bluesky", "mastodon", "youtube"];
+const KINDS = ["post", "rss", "bluesky", "mastodon", "youtube"];
 
 // Static map so Tailwind's scanner sees every class (no template-built names).
 const KIND_COLORS: Record<string, string> = {
+  post: "text-emerald-300",
   rss: "text-orange-300",
   bluesky: "text-sky-300",
   mastodon: "text-violet-300",
@@ -60,6 +61,14 @@ export function FeedView() {
 
   return (
     <section>
+      <PostComposer
+        onPosted={(post) => {
+          setItems((current) => [post, ...(current ?? [])]);
+          setKind("");
+          setQ("");
+          setAppliedQ("");
+        }}
+      />
       <div className="mb-5 flex flex-wrap items-center gap-2">
         <form className="min-w-48 flex-1" onSubmit={search}>
           <input
@@ -89,7 +98,9 @@ export function FeedView() {
       ) : items.length === 0 ? (
         <div className="card py-12 text-center">
           <p>Nothing here yet.</p>
-          <p className="text-zinc-400">Add sources in the Sources tab, then refresh.</p>
+          <p className="text-zinc-400">
+            Write your first post above, or add a source in the Sources tab.
+          </p>
         </div>
       ) : (
         <div className="flex flex-col gap-3">
@@ -105,6 +116,7 @@ export function FeedView() {
 function FeedItem({ item }: { item: FeedItemView }) {
   const images = item.media.filter((m) => m.type === "image");
   const other = item.media.filter((m) => m.type !== "image");
+  const crossPosts = item.crossPosts ?? [];
   return (
     <article className="card">
       <header className="mb-2 flex items-center gap-2.5">
@@ -172,7 +184,7 @@ function FeedItem({ item }: { item: FeedItemView }) {
         </div>
       )}
 
-      {(other.length > 0 || item.url) && (
+      {(other.length > 0 || item.url || crossPosts.length > 0) && (
         <footer className="mt-2.5 flex items-center gap-3 text-sm">
           {other.map((m) => (
             <a
@@ -195,8 +207,180 @@ function FeedItem({ item }: { item: FeedItemView }) {
               open ↗
             </a>
           )}
+          {crossPosts.map((crossPost) => (
+            <a
+              key={crossPost.provider}
+              className="text-zinc-400 hover:text-zinc-100"
+              href={crossPost.url}
+              target="_blank"
+              rel="noreferrer"
+            >
+              {crossPost.provider} ↗
+            </a>
+          ))}
         </footer>
       )}
     </article>
+  );
+}
+
+type Delivery = {
+  provider: "bluesky" | "mastodon";
+  ok: boolean;
+  url?: string;
+  error?: string;
+};
+
+function PostComposer({ onPosted }: { onPosted: (post: FeedItemView) => void }) {
+  const [text, setText] = useState("");
+  const [connections, setConnections] = useState<ConnectionView[]>([]);
+  const [blueskyConnectionId, setBlueskyConnectionId] = useState("");
+  const [mastodonConnectionId, setMastodonConnectionId] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+
+  useEffect(() => {
+    api
+      .get<{ connections: ConnectionView[] }>("/api/connections")
+      .then((res) => setConnections(res.connections))
+      .catch((err) => setError(err instanceof Error ? err.message : String(err)));
+  }, []);
+
+  const blueskyConnections = connections.filter((connection) => connection.provider === "bluesky");
+  const mastodonConnections = connections.filter(
+    (connection) => connection.provider === "mastodon",
+  );
+  const blueskyLength = [...text].length;
+  const blueskyTooLong = Boolean(blueskyConnectionId) && blueskyLength > 300;
+
+  async function submit(event: FormEvent) {
+    event.preventDefault();
+    setBusy(true);
+    setError(null);
+    setNotice(null);
+    try {
+      const res = await api.post<{ post: FeedItemView; deliveries: Delivery[] }>("/api/posts", {
+        text,
+        blueskyConnectionId: blueskyConnectionId || undefined,
+        mastodonConnectionId: mastodonConnectionId || undefined,
+      });
+      setText("");
+      onPosted(res.post);
+      if (res.deliveries.length === 0) {
+        setNotice("posted to your shome feed");
+      } else {
+        const succeeded = res.deliveries
+          .filter((delivery) => delivery.ok)
+          .map((delivery) => delivery.provider);
+        const failed = res.deliveries.filter((delivery) => !delivery.ok);
+        setNotice(
+          [
+            "posted to your shome feed",
+            succeeded.length > 0 ? `shared to ${succeeded.join(" + ")}` : null,
+            ...failed.map(
+              (delivery) => `${delivery.provider}: ${delivery.error ?? "could not post"}`,
+            ),
+          ]
+            .filter(Boolean)
+            .join(" · "),
+        );
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <form className="card mb-5 flex flex-col gap-3" onSubmit={submit}>
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="text-lg font-bold">Write a post</h2>
+        <span className="text-xs text-zinc-500">shows on your public profile</span>
+      </div>
+      <textarea
+        className="input min-h-28 w-full resize-y"
+        value={text}
+        onChange={(event) => setText(event.target.value)}
+        maxLength={5_000}
+        placeholder="What’s on your mind?"
+        aria-label="Post text"
+      />
+
+      <div className="flex flex-col gap-2 text-sm sm:flex-row sm:flex-wrap sm:items-center">
+        <label className="flex items-center gap-2 text-zinc-200">
+          <input
+            type="checkbox"
+            checked={Boolean(blueskyConnectionId)}
+            disabled={blueskyConnections.length === 0}
+            onChange={(event) =>
+              setBlueskyConnectionId(event.target.checked ? (blueskyConnections[0]?.id ?? "") : "")
+            }
+          />
+          Post to Bluesky
+        </label>
+        {blueskyConnectionId && blueskyConnections.length > 1 && (
+          <select
+            className="input py-1 text-sm"
+            value={blueskyConnectionId}
+            onChange={(event) => setBlueskyConnectionId(event.target.value)}
+            aria-label="Bluesky connection"
+          >
+            {blueskyConnections.map((connection) => (
+              <option key={connection.id} value={connection.id}>
+                {connection.label}
+              </option>
+            ))}
+          </select>
+        )}
+        <label className="flex items-center gap-2 text-zinc-200">
+          <input
+            type="checkbox"
+            checked={Boolean(mastodonConnectionId)}
+            disabled={mastodonConnections.length === 0}
+            onChange={(event) =>
+              setMastodonConnectionId(
+                event.target.checked ? (mastodonConnections[0]?.id ?? "") : "",
+              )
+            }
+          />
+          Post to Mastodon
+        </label>
+        {mastodonConnectionId && mastodonConnections.length > 1 && (
+          <select
+            className="input py-1 text-sm"
+            value={mastodonConnectionId}
+            onChange={(event) => setMastodonConnectionId(event.target.value)}
+            aria-label="Mastodon connection"
+          >
+            {mastodonConnections.map((connection) => (
+              <option key={connection.id} value={connection.id}>
+                {connection.label}
+              </option>
+            ))}
+          </select>
+        )}
+        {(blueskyConnections.length === 0 || mastodonConnections.length === 0) && (
+          <span className="text-xs text-zinc-500">Link accounts in Sources to cross-post.</span>
+        )}
+      </div>
+      {blueskyConnectionId && (
+        <p className={blueskyTooLong ? "text-xs text-red-400" : "text-xs text-zinc-500"}>
+          Bluesky: {blueskyLength}/300 characters
+        </p>
+      )}
+      <div className="flex items-center gap-3">
+        <button
+          type="submit"
+          className="btn"
+          disabled={busy || text.trim().length === 0 || blueskyTooLong}
+        >
+          {busy ? "posting…" : "post"}
+        </button>
+        {notice && <p className="text-sm text-emerald-400">{notice}</p>}
+      </div>
+      {error && <p className="text-sm text-red-400">{error}</p>}
+    </form>
   );
 }

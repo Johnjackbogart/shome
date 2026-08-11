@@ -22,8 +22,12 @@ const STARTER = `<style>
 
 export function ProfileView({ handle }: { handle: string | null }) {
   const [html, setHtml] = useState<string | null>(null);
+  const [prompt, setPrompt] = useState("");
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [generated, setGenerated] = useState(false);
+  const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [version, setVersion] = useState(0);
 
@@ -48,6 +52,41 @@ export function ProfileView({ handle }: { handle: string | null }) {
     }
   }
 
+  async function copyVibePrompt() {
+    const direction = prompt.trim() || "A distinctive personal portfolio that feels like me.";
+    const request = `Create a self-contained portfolio page for shome.
+
+Creative direction: ${direction}
+
+Return only the HTML and inline CSS for the page body. Make it responsive, accessible, and polished. Do not use JavaScript, external scripts, iframes, or remote CSS. Use semantic sections, and include a short intro, selected work, and contact links. This will render inside a sandboxed iframe, so keep all styling in a <style> tag.`;
+    try {
+      await navigator.clipboard.writeText(request);
+      setCopied(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "could not copy the prompt");
+    }
+  }
+
+  async function generatePortfolio() {
+    setGenerating(true);
+    setError(null);
+    setGenerated(false);
+    try {
+      const res = await api.post<{ html: string }>("/api/profile/generate", {
+        prompt,
+        currentHtml: html ?? undefined,
+      });
+      setHtml(res.html);
+      setSaved(false);
+      setCopied(false);
+      setGenerated(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setGenerating(false);
+    }
+  }
+
   return (
     <section>
       <div className="mb-3 flex flex-wrap items-center gap-3">
@@ -64,7 +103,12 @@ export function ProfileView({ handle }: { handle: string | null }) {
             view public page ↗
           </a>
         )}
-        <button type="button" className="btn" onClick={save} disabled={busy || html === null}>
+        <button
+          type="button"
+          className="btn"
+          onClick={save}
+          disabled={busy || generating || html === null}
+        >
           {busy ? "saving…" : "save"}
         </button>
       </div>
@@ -73,6 +117,44 @@ export function ProfileView({ handle }: { handle: string | null }) {
         sandbox (no scripts, for now), served at your public page.
       </p>
       {error && <p className="mb-2 text-sm text-red-400">{error}</p>}
+
+      <div className="card mb-4">
+        <label className="mb-1.5 block font-semibold" htmlFor="portfolio-prompt">
+          Vibe-code your portfolio
+        </label>
+        <p className="mb-2 text-sm text-zinc-400">
+          Describe the look, projects, and feeling you want. OpenAI will create an editable HTML +
+          CSS draft; review it below, then save when it feels right.
+        </p>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <input
+            id="portfolio-prompt"
+            className="input min-w-0 flex-1"
+            value={prompt}
+            onChange={(event) => {
+              setPrompt(event.target.value);
+              setCopied(false);
+            }}
+            placeholder="e.g. playful creative director portfolio, bright cobalt, editorial type"
+          />
+          <button
+            type="button"
+            className="btn"
+            onClick={() => void generatePortfolio()}
+            disabled={generating || prompt.trim().length < 2}
+          >
+            {generating ? "creating…" : "generate with OpenAI"}
+          </button>
+          <button type="button" className="btn-ghost" onClick={() => void copyVibePrompt()}>
+            {copied ? "prompt copied ✓" : "copy prompt"}
+          </button>
+        </div>
+        {generated && (
+          <p className="mt-2 text-sm text-emerald-400">
+            Draft ready — review it, then save to publish.
+          </p>
+        )}
+      </div>
 
       <div className="mb-3 grid min-h-[26rem] grid-cols-1 gap-4 lg:grid-cols-2">
         <textarea

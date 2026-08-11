@@ -14,5 +14,6 @@ export type Connection = typeof schema.connections.$inferSelect;
 export type Source = typeof schema.sources.$inferSelect;
 export type Subscription = typeof schema.subscriptions.$inferSelect;
 export type Item = typeof schema.items.$inferSelect;
+export type Post = typeof schema.posts.$inferSelect;
 export type Feed = typeof schema.feeds.$inferSelect;
 export type Profile = typeof schema.profiles.$inferSelect;

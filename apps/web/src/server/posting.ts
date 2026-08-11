@@ -1,0 +1,200 @@
+import { AtpAgent } from "@atproto/api";
+import type { CrossPostLink, FeedItemView } from "@shome/core";
+import { connections, type Db, type Post, posts } from "@shome/db";
+import { and, eq } from "drizzle-orm";
+import { decryptCredentials } from "./crypto";
+import { assertPublicHttpUrl } from "./netguard";
+
+type Provider = "bluesky" | "mastodon";
+
+export interface DeliveryResult {
+  provider: Provider;
+  ok: boolean;
+  url?: string;
+  error?: string;
+}
+
+function getString(credentials: Record<string, unknown>, field: string): string | null {
+  const value = credentials[field];
+  return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
+}
+
+function readableError(err: unknown): string {
+  if (err instanceof Error && err.message) return err.message.slice(0, 240);
+  return "the platform did not accept this post";
+}
+
+function blueskyPostUrl(uri: string): string {
+  const [did, collection, rkey] = uri.replace(/^at:\/\//, "").split("/");
+  if (!did || collection !== "app.bsky.feed.post" || !rkey) {
+    throw new Error("Bluesky returned an unexpected post reference");
+  }
+  return `https://bsky.app/profile/${did}/post/${rkey}`;
+}
+
+async function publishBluesky(credentials: Record<string, unknown>, text: string): Promise<string> {
+  // The public API permits 300 Unicode characters in a post. This keeps the
+  // local post intact while returning a clear per-platform delivery failure.
+  if ([...text].length > 300) throw new Error("Bluesky posts are limited to 300 characters");
+
+  const identifier = getString(credentials, "identifier");
+  const appPassword = getString(credentials, "appPassword");
+  if (!identifier || !appPassword) {
+    throw new Error("this Bluesky connection needs an identifier and app password");
+  }
+  // Connections currently target the hosted Bluesky service. Deliberately do
+  // not accept a credential-supplied service URL here: this request sends an
+  // app password and must never be redirectable toward an arbitrary host.
+  const agent = new AtpAgent({ service: "https://bsky.social" });
+  await agent.login({ identifier, password: appPassword });
+  const created = await agent.post({ text });
+  return blueskyPostUrl(created.uri);
+}
+
+function mastodonOrigin(raw: string): string {
+  let url: URL;
+  try {
+    url = new URL(raw);
+  } catch {
+    throw new Error("this Mastodon connection needs a valid server URL");
+  }
+  if (url.protocol !== "https:") throw new Error("Mastodon server URLs must use https");
+  return url.origin;
+}
+
+async function publishMastodon(
+  credentials: Record<string, unknown>,
+  text: string,
+): Promise<string> {
+  const accessToken = getString(credentials, "accessToken");
+  const server = getString(credentials, "server");
+  if (!accessToken || !server) {
+    throw new Error("this Mastodon connection needs a server URL and access token");
+  }
+  const origin = mastodonOrigin(server);
+  // Credentials are user supplied, so guard legacy rows too (not only new
+  // connection submissions) before sending an Authorization header.
+  await assertPublicHttpUrl(origin);
+  const res = await fetch(`${origin}/api/v1/statuses`, {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${accessToken}`,
+      "content-type": "application/x-www-form-urlencoded;charset=UTF-8",
+      accept: "application/json",
+    },
+    body: new URLSearchParams({ status: text }),
+    signal: AbortSignal.timeout(20_000),
+  });
+  if (!res.ok) throw new Error(`Mastodon rejected this post (HTTP ${res.status})`);
+  const data = (await res.json()) as { url?: unknown };
+  if (typeof data.url !== "string" || data.url.length === 0) {
+    throw new Error("Mastodon did not return a post URL");
+  }
+  return data.url;
+}
+
+async function deliver(
+  db: Db,
+  userId: string,
+  provider: Provider,
+  connectionId: string,
+  text: string,
+): Promise<DeliveryResult> {
+  try {
+    const [connection] = await db
+      .select({ credentials: connections.credentials })
+      .from(connections)
+      .where(
+        and(
+          eq(connections.id, connectionId),
+          eq(connections.userId, userId),
+          eq(connections.provider, provider),
+        ),
+      )
+      .limit(1);
+    if (!connection) return { provider, ok: false, error: "linked connection is unavailable" };
+
+    const credentials = await decryptCredentials(connection.credentials);
+    const url =
+      provider === "bluesky"
+        ? await publishBluesky(credentials, text)
+        : await publishMastodon(credentials, text);
+    return { provider, ok: true, url };
+  } catch (err) {
+    return { provider, ok: false, error: readableError(err) };
+  }
+}
+
+export function crossPostLinks(post: Pick<Post, "blueskyUrl" | "mastodonUrl">): CrossPostLink[] {
+  const links: CrossPostLink[] = [];
+  if (post.blueskyUrl) links.push({ provider: "bluesky", url: post.blueskyUrl });
+  if (post.mastodonUrl) links.push({ provider: "mastodon", url: post.mastodonUrl });
+  return links;
+}
+
+export function postToFeedItem(
+  post: Post,
+  author: { name: string | null; username: string | null; image: string | null },
+): FeedItemView {
+  return {
+    id: post.id,
+    // First-party posts do not have a fetched source; this stable sentinel
+    // keeps the existing feed card contract without pretending otherwise.
+    sourceId: `post:${post.id}`,
+    sourceKind: "post",
+    sourceTitle: "my post",
+    url: null,
+    title: null,
+    text: post.text,
+    html: null,
+    authorName: author.name || author.username || "me",
+    authorHandle: author.username,
+    authorAvatarUrl: author.image,
+    media: [],
+    publishedAt: post.createdAt.toISOString(),
+    fetchedAt: post.createdAt.toISOString(),
+    crossPosts: crossPostLinks(post),
+  };
+}
+
+export async function createPost(
+  db: Db,
+  input: {
+    userId: string;
+    text: string;
+    blueskyConnectionId?: string;
+    mastodonConnectionId?: string;
+  },
+): Promise<{ post: Post; deliveries: DeliveryResult[] }> {
+  const [created] = await db
+    .insert(posts)
+    .values({ userId: input.userId, text: input.text })
+    .returning();
+  if (!created) throw new Error("could not save post");
+
+  const deliveries = await Promise.all(
+    [
+      input.blueskyConnectionId
+        ? deliver(db, input.userId, "bluesky", input.blueskyConnectionId, input.text)
+        : null,
+      input.mastodonConnectionId
+        ? deliver(db, input.userId, "mastodon", input.mastodonConnectionId, input.text)
+        : null,
+    ].filter((delivery): delivery is Promise<DeliveryResult> => delivery !== null),
+  );
+
+  const blueskyUrl = deliveries.find(
+    (delivery) => delivery.provider === "bluesky" && delivery.ok,
+  )?.url;
+  const mastodonUrl = deliveries.find(
+    (delivery) => delivery.provider === "mastodon" && delivery.ok,
+  )?.url;
+  if (!blueskyUrl && !mastodonUrl) return { post: created, deliveries };
+
+  const [updated] = await db
+    .update(posts)
+    .set({ blueskyUrl: blueskyUrl ?? null, mastodonUrl: mastodonUrl ?? null })
+    .where(eq(posts.id, created.id))
+    .returning();
+  return { post: updated ?? created, deliveries };
+}
