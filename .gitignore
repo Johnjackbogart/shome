@@ -8,5 +8,6 @@ dist/
 .DS_Store
 apps/web/.next/
 apps/web/.data/
+apps/web/.data*/
 
 *.tsbuildinfo
