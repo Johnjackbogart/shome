@@ -1,3 +1,4 @@
+import { Platform } from "react-native";
 import { authClient } from "./auth-client";
 import { API_URL } from "./config";
 
@@ -16,10 +17,19 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   };
   if (init?.body !== undefined) headers["content-type"] = "application/json";
   // Better Auth's Expo client keeps the session cookie in SecureStore; native
-  // fetch has no cookie jar, so forward it on every API call.
-  const cookie = authClient.getCookie();
-  if (cookie) headers.cookie = cookie;
-  const res = await fetch(`${API_URL}${path}`, { ...init, headers });
+  // fetch has no cookie jar, so forward it on every API call. On web the
+  // browser has its own jar and forbids setting `cookie` by hand — the API is a
+  // different origin there, so opt into sending credentials instead.
+  const isWeb = Platform.OS === "web";
+  if (!isWeb) {
+    const cookie = authClient.getCookie();
+    if (cookie) headers.cookie = cookie;
+  }
+  const res = await fetch(`${API_URL}${path}`, {
+    ...init,
+    headers,
+    ...(isWeb ? { credentials: "include" as const } : {}),
+  });
   const data = (await res.json().catch(() => null)) as {
     error?: string;
   } | null;

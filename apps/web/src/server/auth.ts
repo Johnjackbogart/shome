@@ -4,6 +4,7 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { username } from "better-auth/plugins";
 import { headers } from "next/headers";
+import { isAllowedOrigin } from "@/lib/origins";
 import { db, getDb } from "./db";
 
 export const auth = betterAuth({
@@ -12,9 +13,14 @@ export const auth = betterAuth({
     schema: { user, session, account, verification },
   }),
   emailAndPassword: { enabled: true },
-  // The mobile app authenticates against these same endpoints; its requests
-  // originate from the app scheme rather than an http origin.
-  trustedOrigins: ["shome://"],
+  // The mobile app authenticates against these same endpoints. On native its
+  // requests originate from the app scheme; under `expo start --web` they come
+  // from the Metro dev server, which Better Auth's origin check would otherwise
+  // reject before CORS ever mattered.
+  trustedOrigins: (request) => {
+    const origin = request?.headers.get("origin");
+    return origin && isAllowedOrigin(origin) ? ["shome://", origin] : ["shome://"];
+  },
   plugins: [
     expo(),
     username({
