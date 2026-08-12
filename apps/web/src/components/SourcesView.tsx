@@ -88,9 +88,9 @@ export function SourcesView() {
         {error && <p className="mb-2 text-sm text-red-400">{error}</p>}
 
         {sources === null ? (
-          <p className="text-zinc-400">loading…</p>
+          <p className="text-slate-400">loading…</p>
         ) : sources.length === 0 ? (
-          <p className="text-zinc-400">No sources yet — add one above.</p>
+          <p className="text-slate-400">No sources yet — add one above.</p>
         ) : (
           <ul className="mt-3 flex flex-col gap-2">
             {sources.map((source) => (
@@ -103,7 +103,7 @@ export function SourcesView() {
                   <span className="font-semibold [overflow-wrap:anywhere]">
                     {source.title ?? describeConfig(source)}
                   </span>
-                  <span className="text-xs text-zinc-400">
+                  <span className="text-xs text-slate-400">
                     {source.lastFetchedAt
                       ? `fetched ${timeAgo(source.lastFetchedAt)}`
                       : "never fetched"}
@@ -136,7 +136,7 @@ export function SourcesView() {
 
       <div>
         <h2 className="mb-3 text-xl font-bold">Connections</h2>
-        <p className="mb-3 text-sm text-zinc-400">
+        <p className="mb-3 text-sm text-slate-400">
           Linked credentials, for sources that need them — and for posting to Bluesky or Mastodon.
         </p>
         <AddConnectionForm
@@ -366,7 +366,7 @@ function AddSourceForm({
             ))}
           </select>
           {needsConnection && eligibleConnections.length === 0 && (
-            <span className="text-sm text-zinc-400">add a {kind} connection first →</span>
+            <span className="text-sm text-slate-400">add a {kind} connection first →</span>
           )}
         </div>
       )}

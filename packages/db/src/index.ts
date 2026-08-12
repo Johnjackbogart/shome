@@ -17,3 +17,4 @@ export type Item = typeof schema.items.$inferSelect;
 export type Post = typeof schema.posts.$inferSelect;
 export type Feed = typeof schema.feeds.$inferSelect;
 export type Profile = typeof schema.profiles.$inferSelect;
+export type InterestSignup = typeof schema.interestSignups.$inferSelect;

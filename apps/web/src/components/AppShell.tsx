@@ -1,7 +1,8 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { AuthForm } from "@/components/AuthForm";
+import { ComingSoonForm } from "@/components/ComingSoonForm";
 import { FeedView } from "@/components/FeedView";
 import { ProfileView } from "@/components/ProfileView";
 import { SourcesView } from "@/components/SourcesView";
@@ -16,45 +17,81 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "profile", label: "My page" },
 ];
 
-export function AppShell({ initialUser }: { initialUser: PublicUser | null }) {
-  const [user, setUser] = useState(initialUser);
-  const [tab, setTab] = useState<Tab>("feed");
+const TAB_COPY: Record<Tab, { eyebrow: string; title: string; description: string }> = {
+  feed: {
+    eyebrow: "Your daily mix",
+    title: "Keep up on your own terms.",
+    description: "A quieter place for the people and ideas you care about.",
+  },
+  sources: {
+    eyebrow: "Shape your feed",
+    title: "Bring in the voices you value.",
+    description: "Add the sources and connections that make your feed feel like home.",
+  },
+  profile: {
+    eyebrow: "Your corner of the web",
+    title: "Make a page that feels like you.",
+    description: "Create a small, personal place to share your work and ideas.",
+  },
+};
 
-  if (!user) {
+export function AppShell({ initialUser }: { initialUser: PublicUser | null }) {
+  const router = useRouter();
+  const [tab, setTab] = useState<Tab>("feed");
+  const pageCopy = TAB_COPY[tab];
+
+  if (!initialUser) {
     return (
       <main className="relative isolate min-h-dvh overflow-hidden bg-[#070a18] text-slate-100">
         <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_12%_14%,rgba(99,102,241,0.23),transparent_28%),radial-gradient(circle_at_91%_88%,rgba(244,114,182,0.12),transparent_24%)]" />
         <div className="pointer-events-none absolute top-[-14rem] left-[31%] -z-10 h-[33rem] w-[33rem] rounded-full bg-indigo-500/10 blur-[120px]" />
 
         <div className="mx-auto grid min-h-dvh max-w-[1600px] lg:grid-cols-[minmax(0,1.15fr)_minmax(29rem,0.85fr)]">
-          <section className="relative flex min-h-[48rem] flex-col border-b border-white/10 px-6 py-7 sm:px-10 sm:py-9 lg:min-h-dvh lg:border-r lg:border-b-0 lg:px-14 lg:py-12 xl:px-20">
-            <a href="/" className="flex w-fit items-center gap-2.5 font-semibold tracking-tight" aria-label="shome home">
+          <section className="relative flex min-h-[48rem] flex-col items-center border-b border-white/10 px-6 py-7 text-center sm:px-10 sm:py-9 lg:min-h-dvh lg:border-r lg:border-b-0 lg:px-14 lg:py-12 xl:px-20">
+            <a
+              href="/"
+              className="flex w-fit items-center gap-2.5 font-semibold tracking-tight"
+              aria-label="shome home"
+            >
               <span className="grid size-8 place-items-center rounded-xl bg-indigo-300 text-sm font-black text-slate-950 shadow-[0_0_32px_rgba(165,180,252,0.35)]">
                 s
               </span>
               <span className="text-lg">shome</span>
             </a>
 
-            <div className="my-auto max-w-2xl pt-20 pb-10 lg:pt-28">
-              <p className="mb-6 flex items-center gap-2 text-xs font-semibold tracking-[0.16em] text-indigo-200 uppercase">
+            <div className="my-auto w-full max-w-2xl pt-20 pb-10 lg:pt-28">
+              <p className="mb-6 flex items-center justify-center gap-2 text-xs font-semibold tracking-[0.16em] text-indigo-200 uppercase">
                 <span className="h-px w-7 bg-indigo-300/70" />
                 your media, made personal
               </p>
-              <h1 className="max-w-xl text-5xl leading-[0.98] font-semibold tracking-[-0.055em] text-balance sm:text-6xl xl:text-7xl">
+              <h1 className="mx-auto max-w-xl text-5xl leading-[0.98] font-semibold tracking-[-0.055em] text-balance sm:text-6xl xl:text-7xl">
                 A better way to <span className="text-indigo-300">keep up.</span>
               </h1>
-              <p className="mt-7 max-w-lg text-base leading-7 text-slate-400 sm:text-lg">
-                Bring the people and ideas you care about into one intentional space—without the noise.
+              <p className="mx-auto mt-7 max-w-lg text-base leading-7 text-slate-400 sm:text-lg">
+                Bring the people and ideas you care about into one intentional space—without the
+                noise.
               </p>
 
-              <div className="mt-12 grid max-w-xl gap-5 sm:grid-cols-3">
-                <Feature number="01" title="One calm feed" description="All the voices you follow, gathered in one place." />
-                <Feature number="02" title="Your rules" description="Shape a feed around your own curiosity." />
-                <Feature number="03" title="A page for you" description="Share your work with a profile that feels like home." />
+              <div className="mx-auto mt-12 grid max-w-xl gap-5 sm:grid-cols-3">
+                <Feature
+                  number="01"
+                  title="One calm feed"
+                  description="All the voices you follow, gathered in one place."
+                />
+                <Feature
+                  number="02"
+                  title="Your rules"
+                  description="Shape a feed around your own curiosity."
+                />
+                <Feature
+                  number="03"
+                  title="A page for you"
+                  description="Share your work with a profile that feels like home."
+                />
               </div>
             </div>
 
-            <div className="relative mt-auto max-w-xl overflow-hidden rounded-2xl border border-white/10 bg-slate-950/40 p-4 shadow-2xl shadow-black/20 backdrop-blur-sm sm:p-5">
+            <div className="relative mt-auto w-full max-w-xl overflow-hidden rounded-2xl border border-white/10 bg-slate-950/40 p-4 shadow-2xl shadow-black/20 backdrop-blur-sm sm:p-5">
               <div className="absolute -top-14 right-3 size-32 rounded-full bg-indigo-400/15 blur-3xl" />
               <div className="relative flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -81,17 +118,26 @@ export function AppShell({ initialUser }: { initialUser: PublicUser | null }) {
             </div>
           </section>
 
-          <section className="flex items-center justify-center px-6 py-12 sm:px-10 lg:px-14 lg:py-16">
+          <section className="flex items-center justify-center px-6 py-12 text-center sm:px-10 lg:px-14 lg:py-16">
             <div className="w-full max-w-md">
               <div className="mb-9">
-                <p className="mb-3 text-xs font-semibold tracking-[0.15em] text-indigo-200 uppercase">Welcome in</p>
-                <h2 className="text-3xl font-semibold tracking-[-0.04em] text-white sm:text-4xl">Make yourself at home.</h2>
-                <p className="mt-3 text-sm leading-6 text-slate-400">Sign in to tune into the feed you made for yourself.</p>
+                <p className="mb-3 text-xs font-semibold tracking-[0.15em] text-indigo-200 uppercase">
+                  Coming soon
+                </p>
+                <h2 className="text-3xl font-semibold tracking-[-0.04em] text-white sm:text-4xl">
+                  A new kind of social home.
+                </h2>
+                <p className="mt-3 text-sm leading-6 text-slate-400">
+                  We’re putting the finishing touches on shome. Be first to hear when the doors
+                  open.
+                </p>
               </div>
               <div className="rounded-3xl border border-white/10 bg-white/[0.035] p-4 shadow-2xl shadow-black/30 backdrop-blur-xl sm:p-6">
-                <AuthForm onAuthed={setUser} />
+                <ComingSoonForm />
               </div>
-              <p className="mt-6 text-center text-xs text-slate-500">Your sources stay yours. Always.</p>
+              <p className="mt-6 text-center text-xs text-slate-500">
+                No feeds to chase. No noise to sort through.
+              </p>
             </div>
           </section>
         </div>
@@ -100,58 +146,88 @@ export function AppShell({ initialUser }: { initialUser: PublicUser | null }) {
   }
 
   return (
-    <div className="mx-auto max-w-4xl px-4 pb-16">
-      <header className="sticky top-0 z-10 mb-6 flex items-center gap-6 border-b border-zinc-800 bg-zinc-950/90 py-3 backdrop-blur">
-        <span className="text-lg font-extrabold tracking-tight">shome</span>
-        <nav className="flex gap-1">
-          {TABS.map((t) => (
+    <div className="relative isolate min-h-dvh overflow-hidden bg-[#070a18] text-slate-100">
+      <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_10%_4%,rgba(99,102,241,0.18),transparent_26%),radial-gradient(circle_at_88%_32%,rgba(244,114,182,0.1),transparent_22%)]" />
+      <div className="mx-auto max-w-6xl px-5 py-5 sm:px-10 sm:py-7 lg:px-14">
+        <header className="sticky top-4 z-10 mb-12 flex flex-wrap items-center gap-3 rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 shadow-xl shadow-black/20 backdrop-blur-xl sm:flex-nowrap sm:px-5">
+          <a href="/" className="flex items-center gap-2.5 font-semibold tracking-tight">
+            <span className="grid size-8 place-items-center rounded-xl bg-indigo-300 text-sm font-black text-slate-950 shadow-[0_0_24px_rgba(165,180,252,0.3)]">
+              s
+            </span>
+            <span className="text-lg">shome</span>
+          </a>
+          <nav className="order-3 flex w-full justify-center gap-1 rounded-xl bg-white/[0.035] p-1 sm:order-none sm:w-auto">
+            {TABS.map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                className={`cursor-pointer rounded-lg px-3 py-2 text-sm font-medium transition ${
+                  tab === t.id
+                    ? "bg-white text-slate-950 shadow-sm"
+                    : "text-slate-400 hover:text-white"
+                }`}
+                onClick={() => setTab(t.id)}
+              >
+                {t.label}
+              </button>
+            ))}
+          </nav>
+          <div className="ml-auto flex items-center gap-3">
+            {initialUser.handle ? (
+              <a
+                className="hidden text-sm text-indigo-200 hover:text-indigo-100 hover:underline sm:inline"
+                href={`/p/${initialUser.handle}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                @{initialUser.handle}
+              </a>
+            ) : (
+              <span className="hidden text-sm text-slate-400 sm:inline">{initialUser.email}</span>
+            )}
             <button
-              key={t.id}
               type="button"
-              className={`cursor-pointer rounded-full px-3 py-1 ${
-                tab === t.id ? "bg-zinc-800 text-zinc-100" : "text-zinc-400 hover:text-zinc-100"
-              }`}
-              onClick={() => setTab(t.id)}
+              className="btn-ghost"
+              onClick={async () => {
+                await authClient.signOut();
+                router.replace("/sign-in");
+              }}
             >
-              {t.label}
+              sign out
             </button>
-          ))}
-        </nav>
-        <div className="ml-auto flex items-center gap-4">
-          {user.handle ? (
-            <a
-              className="text-accent hover:underline"
-              href={`/p/${user.handle}`}
-              target="_blank"
-              rel="noreferrer"
-            >
-              @{user.handle}
-            </a>
-          ) : (
-            <span className="text-zinc-400">{user.email}</span>
-          )}
-          <button
-            type="button"
-            className="btn-ghost"
-            onClick={async () => {
-              await authClient.signOut();
-              setUser(null);
-            }}
-          >
-            sign out
-          </button>
-        </div>
-      </header>
-      <main>
-        {tab === "feed" && <FeedView />}
-        {tab === "sources" && <SourcesView />}
-        {tab === "profile" && <ProfileView handle={user.handle} />}
-      </main>
+          </div>
+        </header>
+        <main className="pb-16">
+          <section className="mb-9 max-w-2xl">
+            <p className="mb-3 flex items-center gap-2 text-xs font-semibold tracking-[0.15em] text-indigo-200 uppercase">
+              <span className="h-px w-7 bg-indigo-300/70" />
+              {pageCopy.eyebrow}
+            </p>
+            <h1 className="text-3xl font-semibold tracking-[-0.04em] text-white sm:text-4xl">
+              {pageCopy.title}
+            </h1>
+            <p className="mt-3 max-w-xl text-sm leading-6 text-slate-400 sm:text-base">
+              {pageCopy.description}
+            </p>
+          </section>
+          {tab === "feed" && <FeedView />}
+          {tab === "sources" && <SourcesView />}
+          {tab === "profile" && <ProfileView handle={initialUser.handle} />}
+        </main>
+      </div>
     </div>
   );
 }
 
-function Feature({ number, title, description }: { number: string; title: string; description: string }) {
+function Feature({
+  number,
+  title,
+  description,
+}: {
+  number: string;
+  title: string;
+  description: string;
+}) {
   return (
     <div className="border-t border-white/10 pt-4">
       <p className="text-[0.65rem] font-semibold tracking-[0.16em] text-indigo-300/80">{number}</p>

@@ -112,7 +112,7 @@ Return only the HTML and inline CSS for the page body. Make it responsive, acces
           {busy ? "saving…" : "save"}
         </button>
       </div>
-      <p className="mb-4 text-sm text-zinc-400">
+      <p className="mb-4 text-sm text-slate-400">
         Write any HTML + CSS — vibe-code it, paste it from an LLM, whatever. It renders in a locked
         sandbox (no scripts, for now), served at your public page.
       </p>
@@ -122,7 +122,7 @@ Return only the HTML and inline CSS for the page body. Make it responsive, acces
         <label className="mb-1.5 block font-semibold" htmlFor="portfolio-prompt">
           Vibe-code your portfolio
         </label>
-        <p className="mb-2 text-sm text-zinc-400">
+        <p className="mb-2 text-sm text-slate-400">
           Describe the look, projects, and feeling you want. OpenAI will create an editable HTML +
           CSS draft; review it below, then save when it feels right.
         </p>
@@ -170,14 +170,14 @@ Return only the HTML and inline CSS for the page body. Make it responsive, acces
         {handle ? (
           <iframe
             key={version}
-            className="min-h-[26rem] w-full rounded-xl border border-zinc-800 bg-white"
+            className="min-h-[26rem] w-full rounded-2xl border border-white/10 bg-white"
             sandbox="allow-popups allow-popups-to-escape-sandbox"
             src={`/p/${handle}/content?v=${version}`}
             title="preview"
           />
         ) : (
           <div className="card flex items-center justify-center">
-            <p className="text-zinc-400">save once to see your preview</p>
+            <p className="text-slate-400">save once to see your preview</p>
           </div>
         )}
       </div>

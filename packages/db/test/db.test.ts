@@ -1,6 +1,14 @@
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { beforeAll, describe, expect, it } from "vitest";
-import { type Db, items, openDatabase, sources, subscriptions, user } from "../src/index";
+import {
+  type Db,
+  interestSignups,
+  items,
+  openDatabase,
+  sources,
+  subscriptions,
+  user,
+} from "../src/index";
 
 // Boots an in-memory PGlite database and runs the real migrations against it,
 // so this test fails if the generated migrations drift from the schema.
@@ -75,5 +83,27 @@ describe("schema + migrations", () => {
     const rows = await db.select().from(items).where(eq(items.sourceId, source.id));
     expect(rows).toHaveLength(1);
     expect(rows[0]?.title).toBe("first");
+  });
+
+  it("stores waitlist and newsletter interest once per email", async () => {
+    const email = "early@example.com";
+    await db.insert(interestSignups).values({ email, waitlist: true, newsletter: false });
+    await db
+      .insert(interestSignups)
+      .values({ email, waitlist: false, newsletter: true })
+      .onConflictDoUpdate({
+        target: interestSignups.email,
+        set: {
+          waitlist: sql`${interestSignups.waitlist} OR excluded.waitlist`,
+          newsletter: sql`${interestSignups.newsletter} OR excluded.newsletter`,
+          updatedAt: new Date(),
+        },
+      });
+
+    const [signup] = await db
+      .select()
+      .from(interestSignups)
+      .where(eq(interestSignups.email, email));
+    expect(signup).toMatchObject({ email, waitlist: true, newsletter: true });
   });
 });

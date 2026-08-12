@@ -94,11 +94,11 @@ export function FeedView() {
       {error && <p className="mb-3 text-sm text-red-400">{error}</p>}
 
       {items === null ? (
-        <p className="text-zinc-400">loading…</p>
+        <p className="text-slate-400">loading…</p>
       ) : items.length === 0 ? (
         <div className="card py-12 text-center">
           <p>Nothing here yet.</p>
-          <p className="text-zinc-400">
+          <p className="text-slate-400">
             Write your first post above, or add a source in the Sources tab.
           </p>
         </div>
@@ -122,7 +122,7 @@ function FeedItem({ item }: { item: FeedItemView }) {
       <header className="mb-2 flex items-center gap-2.5">
         {item.authorAvatarUrl && (
           <img
-            className="h-9 w-9 rounded-full bg-zinc-800 object-cover"
+            className="h-9 w-9 rounded-full bg-slate-800 object-cover"
             src={item.authorAvatarUrl}
             alt=""
             loading="lazy"
@@ -132,10 +132,10 @@ function FeedItem({ item }: { item: FeedItemView }) {
           <span className="font-semibold">
             {item.authorName ?? item.sourceTitle ?? item.sourceKind}
             {item.authorHandle && (
-              <span className="font-normal text-zinc-400"> @{item.authorHandle}</span>
+              <span className="font-normal text-slate-400"> @{item.authorHandle}</span>
             )}
           </span>
-          <span className="flex flex-wrap items-center gap-1.5 text-xs text-zinc-400">
+          <span className="flex flex-wrap items-center gap-1.5 text-xs text-slate-400">
             <span className={`badge ${KIND_COLORS[item.sourceKind] ?? ""}`}>{item.sourceKind}</span>
             {item.sourceTitle ? <span>{item.sourceTitle} ·</span> : null}
             <span>{timeAgo(item.publishedAt ?? item.fetchedAt)}</span>
@@ -147,7 +147,7 @@ function FeedItem({ item }: { item: FeedItemView }) {
         <h3 className="mt-0.5 mb-1 text-[1.05rem] font-semibold">
           {item.url ? (
             <a
-              className="text-zinc-100 hover:underline"
+              className="text-slate-100 hover:text-indigo-100 hover:underline"
               href={item.url}
               target="_blank"
               rel="noreferrer"
@@ -189,7 +189,7 @@ function FeedItem({ item }: { item: FeedItemView }) {
           {other.map((m) => (
             <a
               key={m.url}
-              className="rounded-full border border-zinc-700 px-2.5 py-0.5 text-zinc-100"
+              className="rounded-full border border-white/10 bg-white/[0.02] px-2.5 py-0.5 text-slate-100"
               href={m.url}
               target="_blank"
               rel="noreferrer"
@@ -199,7 +199,7 @@ function FeedItem({ item }: { item: FeedItemView }) {
           ))}
           {item.url && (
             <a
-              className="text-zinc-400 hover:text-zinc-100"
+              className="text-slate-400 hover:text-indigo-100"
               href={item.url}
               target="_blank"
               rel="noreferrer"
@@ -210,7 +210,7 @@ function FeedItem({ item }: { item: FeedItemView }) {
           {crossPosts.map((crossPost) => (
             <a
               key={crossPost.provider}
-              className="text-zinc-400 hover:text-zinc-100"
+              className="text-slate-400 hover:text-indigo-100"
               href={crossPost.url}
               target="_blank"
               rel="noreferrer"
@@ -297,7 +297,7 @@ function PostComposer({ onPosted }: { onPosted: (post: FeedItemView) => void }) 
     <form className="card mb-5 flex flex-col gap-3" onSubmit={submit}>
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-lg font-bold">Write a post</h2>
-        <span className="text-xs text-zinc-500">shows on your public profile</span>
+        <span className="text-xs text-slate-500">shows on your public profile</span>
       </div>
       <textarea
         className="input min-h-28 w-full resize-y"
@@ -309,7 +309,7 @@ function PostComposer({ onPosted }: { onPosted: (post: FeedItemView) => void }) 
       />
 
       <div className="flex flex-col gap-2 text-sm sm:flex-row sm:flex-wrap sm:items-center">
-        <label className="flex items-center gap-2 text-zinc-200">
+        <label className="flex items-center gap-2 text-slate-200">
           <input
             type="checkbox"
             checked={Boolean(blueskyConnectionId)}
@@ -334,7 +334,7 @@ function PostComposer({ onPosted }: { onPosted: (post: FeedItemView) => void }) 
             ))}
           </select>
         )}
-        <label className="flex items-center gap-2 text-zinc-200">
+        <label className="flex items-center gap-2 text-slate-200">
           <input
             type="checkbox"
             checked={Boolean(mastodonConnectionId)}
@@ -362,11 +362,11 @@ function PostComposer({ onPosted }: { onPosted: (post: FeedItemView) => void }) 
           </select>
         )}
         {(blueskyConnections.length === 0 || mastodonConnections.length === 0) && (
-          <span className="text-xs text-zinc-500">Link accounts in Sources to cross-post.</span>
+          <span className="text-xs text-slate-500">Link accounts in Sources to cross-post.</span>
         )}
       </div>
       {blueskyConnectionId && (
-        <p className={blueskyTooLong ? "text-xs text-red-400" : "text-xs text-zinc-500"}>
+        <p className={blueskyTooLong ? "text-xs text-rose-300" : "text-xs text-slate-500"}>
           Bluesky: {blueskyLength}/300 characters
         </p>
       )}

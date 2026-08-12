@@ -191,3 +191,13 @@ export const profiles = pgTable("profiles", {
   html: text("html").notNull().default(""),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+// Launch interest is intentionally separate from accounts: visitors can join
+// the waitlist or newsletter before shome is publicly available.
+export const interestSignups = pgTable("interest_signups", {
+  email: text("email").primaryKey(),
+  waitlist: boolean("waitlist").notNull().default(false),
+  newsletter: boolean("newsletter").notNull().default(false),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
