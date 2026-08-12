@@ -97,7 +97,11 @@ export default function SourcesScreen() {
         contentContainerClassName="px-5 pb-8"
         keyboardShouldPersistTaps="handled"
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onPullRefresh} tintColor={COLORS.accent} />
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onPullRefresh}
+            tintColor={COLORS.accent}
+          />
         }
         ListHeaderComponent={
           <View>
@@ -318,11 +322,7 @@ function AddSourceForm({
         />
       )}
 
-      <Pressable
-        onPress={submit}
-        disabled={busy}
-        className={`mt-1 self-start ${UI.primaryButton}`}
-      >
+      <Pressable onPress={submit} disabled={busy} className={`mt-1 self-start ${UI.primaryButton}`}>
         {busy ? (
           <ActivityIndicator size="small" color={COLORS.background} />
         ) : (

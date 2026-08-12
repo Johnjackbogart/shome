@@ -150,7 +150,9 @@ export default function SignInScreen() {
               )}
             </Pressable>
           </View>
-          <Text className="mt-6 text-center text-xs text-slate-500">Your sources stay yours. Always.</Text>
+          <Text className="mt-6 text-center text-xs text-slate-500">
+            Your sources stay yours. Always.
+          </Text>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>

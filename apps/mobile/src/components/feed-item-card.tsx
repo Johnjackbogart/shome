@@ -35,12 +35,12 @@ export function FeedItemCard({ item }: { item: FeedItemView }) {
             {item.sourceTitle}
           </Text>
         )}
-        <Text className="text-xs text-slate-500">{timeAgo(item.publishedAt ?? item.fetchedAt)}</Text>
+        <Text className="text-xs text-slate-500">
+          {timeAgo(item.publishedAt ?? item.fetchedAt)}
+        </Text>
       </View>
 
-      {item.title && (
-        <Text className="mb-1 text-base font-semibold text-white">{item.title}</Text>
-      )}
+      {item.title && <Text className="mb-1 text-base font-semibold text-white">{item.title}</Text>}
       {author && <Text className="mb-1 text-xs text-slate-400">{author}</Text>}
       {body ? (
         <Text className="text-sm leading-5 text-slate-300" numberOfLines={8}>

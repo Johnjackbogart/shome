@@ -77,7 +77,11 @@ export default function FeedScreen() {
           renderItem={({ item }) => <FeedItemCard item={item} />}
           contentContainerClassName="px-5 pb-8"
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onPullRefresh} tintColor={COLORS.accent} />
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onPullRefresh}
+              tintColor={COLORS.accent}
+            />
           }
           ListEmptyComponent={
             <View className={`${UI.card} mt-12 items-center`}>

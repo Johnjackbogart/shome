@@ -20,7 +20,9 @@ export default function RootLayout() {
   return (
     <ThemeProvider value={DarkTheme}>
       <StatusBar style="light" />
-      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: COLORS.background } }}>
+      <Stack
+        screenOptions={{ headerShown: false, contentStyle: { backgroundColor: COLORS.background } }}
+      >
         <Stack.Protected guard={session !== null}>
           <Stack.Screen name="(tabs)" />
         </Stack.Protected>
