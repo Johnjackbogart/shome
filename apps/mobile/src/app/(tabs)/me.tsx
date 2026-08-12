@@ -3,6 +3,7 @@ import { Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { authClient } from "@/lib/auth-client";
 import { API_URL } from "@/lib/config";
+import { UI } from "@/lib/ui";
 
 export default function MeScreen() {
   const { data: session } = authClient.useSession();
@@ -12,33 +13,39 @@ export default function MeScreen() {
   const handle = user?.username ?? null;
 
   return (
-    <SafeAreaView className="flex-1 bg-zinc-950" edges={["top"]}>
-      <View className="flex-1 px-4">
-        <Text className="pb-4 pt-1 text-2xl font-bold text-zinc-100">Me</Text>
+    <SafeAreaView className={UI.screen} edges={["top"]}>
+      <View className={UI.screenContent}>
+        <Text className={`pb-2 pt-2 ${UI.eyebrow}`}>Your corner of the web</Text>
+        <Text className="pb-5 text-3xl font-semibold text-white">Me</Text>
 
-        <View className="gap-1 rounded-2xl border border-zinc-800 bg-zinc-900 p-4">
-          <Text className="text-lg font-semibold text-zinc-100">{user?.name ?? "…"}</Text>
-          {handle && <Text className="text-sm text-accent">@{handle}</Text>}
-          <Text className="text-sm text-zinc-400">{user?.email}</Text>
+        <View className={`${UI.card} gap-1`}>
+          <View className="mb-2 size-11 items-center justify-center rounded-full bg-indigo-300">
+            <Text className="text-base font-bold text-slate-950">
+              {(user?.name ?? user?.email ?? "s").slice(0, 1).toUpperCase()}
+            </Text>
+          </View>
+          <Text className="text-lg font-semibold text-white">{user?.name ?? "…"}</Text>
+          {handle && <Text className="text-sm font-medium text-indigo-200">@{handle}</Text>}
+          <Text className="text-sm text-slate-400">{user?.email}</Text>
         </View>
 
         {handle && (
           <Pressable
             onPress={() => WebBrowser.openBrowserAsync(`${API_URL}/p/${handle}`)}
-            className="mt-3 items-center rounded-xl border border-zinc-800 px-4 py-3 active:opacity-70"
+            className={`mt-3 ${UI.ghostButton}`}
           >
-            <Text className="text-accent">view my page</Text>
+            <Text className="font-medium text-indigo-200">View my page</Text>
           </Pressable>
         )}
 
         <Pressable
           onPress={() => void authClient.signOut()}
-          className="mt-3 items-center rounded-xl border border-zinc-800 px-4 py-3 active:opacity-70"
+          className="mt-3 items-center rounded-xl border border-rose-300/15 bg-rose-300/5 px-4 py-3 active:opacity-70"
         >
-          <Text className="text-red-400">sign out</Text>
+          <Text className="font-medium text-rose-300">Sign out</Text>
         </Pressable>
 
-        <Text className="mt-6 text-xs text-zinc-500">server: {API_URL}</Text>
+        <Text className="mt-6 text-xs text-slate-500">server: {API_URL}</Text>
       </View>
     </SafeAreaView>
   );

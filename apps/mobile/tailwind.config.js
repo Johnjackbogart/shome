@@ -6,7 +6,7 @@ module.exports = {
     extend: {
       colors: {
         // Matches the web app's @theme accent (apps/web/src/app/globals.css).
-        accent: "#7aa5ff",
+        accent: "#c4b5fd",
       },
     },
   },

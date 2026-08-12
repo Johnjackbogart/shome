@@ -4,14 +4,15 @@ import { DarkTheme, Stack, ThemeProvider } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { ActivityIndicator, View } from "react-native";
 import { authClient } from "@/lib/auth-client";
+import { COLORS, UI } from "@/lib/ui";
 
 export default function RootLayout() {
   const { data: session, isPending } = authClient.useSession();
 
   if (isPending) {
     return (
-      <View className="flex-1 items-center justify-center bg-zinc-950">
-        <ActivityIndicator color="#7aa5ff" />
+      <View className={`${UI.screen} items-center justify-center`}>
+        <ActivityIndicator color={COLORS.accent} />
       </View>
     );
   }
@@ -19,7 +20,7 @@ export default function RootLayout() {
   return (
     <ThemeProvider value={DarkTheme}>
       <StatusBar style="light" />
-      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: "#09090b" } }}>
+      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: COLORS.background } }}>
         <Stack.Protected guard={session !== null}>
           <Stack.Screen name="(tabs)" />
         </Stack.Protected>

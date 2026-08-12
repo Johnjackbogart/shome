@@ -4,6 +4,7 @@ import { ActivityIndicator, FlatList, Pressable, RefreshControl, Text, View } fr
 import { SafeAreaView } from "react-native-safe-area-context";
 import { FeedItemCard } from "@/components/feed-item-card";
 import { api } from "@/lib/api";
+import { COLORS, UI } from "@/lib/ui";
 
 export default function FeedScreen() {
   const [items, setItems] = useState<FeedItemView[] | null>(null);
@@ -44,41 +45,47 @@ export default function FeedScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-zinc-950" edges={["top"]}>
-      <View className="flex-row items-center justify-between px-4 pb-2 pt-1">
-        <Text className="text-2xl font-bold text-zinc-100">Feed</Text>
+    <SafeAreaView className={UI.screen} edges={["top"]}>
+      <View className="flex-row items-end justify-between px-5 pb-5 pt-2">
+        <View>
+          <Text className={UI.eyebrow}>Your daily mix</Text>
+          <Text className="mt-2 text-3xl font-semibold text-white">Your feed</Text>
+        </View>
         <Pressable
           onPress={fetchNew}
           disabled={fetching}
-          className="rounded-full border border-zinc-800 px-3 py-1.5 active:opacity-70"
+          className="rounded-xl border border-white/10 bg-white/5 px-3.5 py-2.5 active:opacity-70"
         >
           {fetching ? (
-            <ActivityIndicator size="small" color="#7aa5ff" />
+            <ActivityIndicator size="small" color={COLORS.accent} />
           ) : (
-            <Text className="text-sm text-accent">fetch new</Text>
+            <Text className="text-sm font-medium text-indigo-200">Fetch new</Text>
           )}
         </Pressable>
       </View>
 
-      {error && <Text className="px-4 pb-2 text-sm text-red-400">{error}</Text>}
+      {error && <Text className="px-5 pb-2 text-sm text-rose-300">{error}</Text>}
 
       {items === null ? (
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator color="#7aa5ff" />
+          <ActivityIndicator color={COLORS.accent} />
         </View>
       ) : (
         <FlatList
           data={items}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => <FeedItemCard item={item} />}
-          contentContainerClassName="px-4 pb-6"
+          contentContainerClassName="px-5 pb-8"
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onPullRefresh} tintColor="#7aa5ff" />
+            <RefreshControl refreshing={refreshing} onRefresh={onPullRefresh} tintColor={COLORS.accent} />
           }
           ListEmptyComponent={
-            <Text className="mt-16 text-center text-zinc-400">
-              Nothing here yet — add a source in the Sources tab.
-            </Text>
+            <View className={`${UI.card} mt-12 items-center`}>
+              <Text className="text-base font-medium text-white">Nothing here yet.</Text>
+              <Text className="mt-2 text-center text-sm leading-5 text-slate-400">
+                Add a source in the Sources tab to make this space yours.
+              </Text>
+            </View>
           }
         />
       )}

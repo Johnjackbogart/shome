@@ -12,6 +12,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { api } from "@/lib/api";
 import { timeAgo } from "@/lib/format";
+import { COLORS, UI } from "@/lib/ui";
 
 type Kind = "rss" | "bluesky" | "mastodon" | "youtube";
 
@@ -89,18 +90,19 @@ export default function SourcesScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-zinc-950" edges={["top"]}>
+    <SafeAreaView className={UI.screen} edges={["top"]}>
       <FlatList
         data={sources ?? []}
         keyExtractor={(source) => source.id}
-        contentContainerClassName="px-4 pb-6"
+        contentContainerClassName="px-5 pb-8"
         keyboardShouldPersistTaps="handled"
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onPullRefresh} tintColor="#7aa5ff" />
+          <RefreshControl refreshing={refreshing} onRefresh={onPullRefresh} tintColor={COLORS.accent} />
         }
         ListHeaderComponent={
           <View>
-            <Text className="pb-2 pt-1 text-2xl font-bold text-zinc-100">Sources</Text>
+            <Text className={`pb-2 pt-2 ${UI.eyebrow}`}>Shape your feed</Text>
+            <Text className="pb-5 text-3xl font-semibold text-white">Sources</Text>
             <AddSourceForm
               onAdded={(msg) => {
                 setNotice(msg);
@@ -112,43 +114,45 @@ export default function SourcesScreen() {
                 setError(msg);
               }}
             />
-            {notice && <Text className="pb-2 text-sm text-emerald-400">{notice}</Text>}
-            {error && <Text className="pb-2 text-sm text-red-400">{error}</Text>}
+            {notice && <Text className="pb-2 text-sm text-emerald-300">{notice}</Text>}
+            {error && <Text className="pb-2 text-sm text-rose-300">{error}</Text>}
             {sources !== null && sources.length === 0 && (
-              <Text className="mt-4 text-zinc-400">No sources yet — add one above.</Text>
+              <Text className="mt-4 text-slate-400">No sources yet — add one above.</Text>
             )}
           </View>
         }
         renderItem={({ item: source }) => (
-          <View className="mb-2 rounded-2xl border border-zinc-800 bg-zinc-900 px-4 py-3">
+          <View className={`mb-3 px-4 py-4 ${UI.card}`}>
             <View className="flex-row flex-wrap items-center gap-2">
               <Text
-                className={`text-xs font-semibold uppercase ${KIND_COLORS[source.kind] ?? "text-zinc-400"}`}
+                className={`rounded-full bg-indigo-300/10 px-2 py-1 text-xs font-semibold uppercase ${
+                  KIND_COLORS[source.kind] ?? "text-slate-400"
+                }`}
               >
                 {source.kind}
               </Text>
-              <Text className="shrink font-semibold text-zinc-100" numberOfLines={1}>
+              <Text className="shrink font-semibold text-white" numberOfLines={1}>
                 {source.title ?? describeConfig(source)}
               </Text>
             </View>
-            <Text className="mt-0.5 text-xs text-zinc-500">
+            <Text className="mt-1 text-xs text-slate-500">
               {source.lastFetchedAt ? `fetched ${timeAgo(source.lastFetchedAt)}` : "never fetched"}
             </Text>
             {source.lastError && (
-              <Text className="mt-0.5 text-xs text-red-400">{source.lastError}</Text>
+              <Text className="mt-1 text-xs text-rose-300">{source.lastError}</Text>
             )}
-            <View className="mt-2 flex-row gap-2">
+            <View className="mt-3 flex-row gap-2">
               <Pressable
                 onPress={() => void refreshSource(source.id)}
-                className="rounded-full border border-zinc-800 px-3 py-1 active:opacity-70"
+                className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 active:opacity-70"
               >
-                <Text className="text-xs text-accent">refresh</Text>
+                <Text className="text-xs font-medium text-indigo-200">Refresh</Text>
               </Pressable>
               <Pressable
                 onPress={() => void removeSource(source.id)}
-                className="rounded-full border border-zinc-800 px-3 py-1 active:opacity-70"
+                className="rounded-xl border border-rose-300/15 bg-rose-300/5 px-3 py-2 active:opacity-70"
               >
-                <Text className="text-xs text-red-400">remove</Text>
+                <Text className="text-xs font-medium text-rose-300">Remove</Text>
               </Pressable>
             </View>
           </View>
@@ -207,19 +211,23 @@ function AddSourceForm({
     }
   }
 
-  const inputClass = "rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-zinc-100";
+  const inputClass = UI.input;
 
   return (
-    <View className="mb-3 gap-2 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-3">
+    <View className={`mb-4 gap-3 ${UI.card}`}>
       <View className="flex-row flex-wrap gap-2">
         {(Object.keys(KIND_LABELS) as Kind[]).map((k) => (
           <Pressable
             key={k}
             onPress={() => setKind(k)}
-            className={`rounded-full px-3 py-1.5 ${kind === k ? "bg-accent/20" : "border border-zinc-800"}`}
+            className={`rounded-xl px-3 py-2 ${
+              kind === k ? "bg-white" : "border border-white/10 bg-white/5"
+            }`}
           >
             <Text
-              className={kind === k ? "text-sm font-semibold text-accent" : "text-sm text-zinc-400"}
+              className={
+                kind === k ? "text-sm font-semibold text-slate-950" : "text-sm text-slate-400"
+              }
             >
               {KIND_LABELS[k]}
             </Text>
@@ -231,7 +239,7 @@ function AddSourceForm({
         <TextInput
           className={inputClass}
           placeholder="https://example.com/feed.xml"
-          placeholderTextColor="#71717a"
+          placeholderTextColor="#64748b"
           autoCapitalize="none"
           autoCorrect={false}
           keyboardType="url"
@@ -244,7 +252,7 @@ function AddSourceForm({
         <TextInput
           className={inputClass}
           placeholder="alice.bsky.social"
-          placeholderTextColor="#71717a"
+          placeholderTextColor="#64748b"
           autoCapitalize="none"
           autoCorrect={false}
           value={actor}
@@ -257,7 +265,7 @@ function AddSourceForm({
           <TextInput
             className={inputClass}
             placeholder="mastodon.social"
-            placeholderTextColor="#71717a"
+            placeholderTextColor="#64748b"
             autoCapitalize="none"
             autoCorrect={false}
             value={server}
@@ -268,13 +276,15 @@ function AddSourceForm({
               <Pressable
                 key={m}
                 onPress={() => setMastodonMode(m)}
-                className={`rounded-full px-3 py-1.5 ${mastodonMode === m ? "bg-accent/20" : "border border-zinc-800"}`}
+                className={`rounded-xl px-3 py-2 ${
+                  mastodonMode === m ? "bg-white" : "border border-white/10 bg-white/5"
+                }`}
               >
                 <Text
                   className={
                     mastodonMode === m
-                      ? "text-sm font-semibold text-accent"
-                      : "text-sm text-zinc-400"
+                      ? "text-sm font-semibold text-slate-950"
+                      : "text-sm text-slate-400"
                   }
                 >
                   {m === "hashtag" ? "hashtag" : "public timeline"}
@@ -286,7 +296,7 @@ function AddSourceForm({
             <TextInput
               className={inputClass}
               placeholder="photography"
-              placeholderTextColor="#71717a"
+              placeholderTextColor="#64748b"
               autoCapitalize="none"
               autoCorrect={false}
               value={hashtag}
@@ -300,7 +310,7 @@ function AddSourceForm({
         <TextInput
           className={inputClass}
           placeholder="@channelhandle or UC… channel id"
-          placeholderTextColor="#71717a"
+          placeholderTextColor="#64748b"
           autoCapitalize="none"
           autoCorrect={false}
           value={channel}
@@ -311,16 +321,16 @@ function AddSourceForm({
       <Pressable
         onPress={submit}
         disabled={busy}
-        className="mt-1 items-center self-start rounded-full bg-accent px-4 py-2 active:opacity-80"
+        className={`mt-1 self-start ${UI.primaryButton}`}
       >
         {busy ? (
-          <ActivityIndicator size="small" color="#09090b" />
+          <ActivityIndicator size="small" color={COLORS.background} />
         ) : (
-          <Text className="text-sm font-semibold text-zinc-950">add source</Text>
+          <Text className="text-sm font-semibold text-slate-950">Add source</Text>
         )}
       </Pressable>
 
-      <Text className="text-xs text-zinc-500">
+      <Text className="text-xs leading-5 text-slate-500">
         Sources that need credentials (Bluesky timeline, Mastodon home) are managed on the web app.
       </Text>
     </View>
