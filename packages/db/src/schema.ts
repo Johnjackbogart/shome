@@ -2,6 +2,7 @@ import type { FeedRules, MediaRef, SourceKind } from "@shome/core";
 import {
   boolean,
   index,
+  integer,
   jsonb,
   pgTable,
   primaryKey,
@@ -191,6 +192,28 @@ export const profiles = pgTable("profiles", {
   html: text("html").notNull().default(""),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+// A lightweight first-party catalog for profile storefronts. Purchases stay on
+// the creator's checkout provider; shome never stores payment or order data.
+export const products = pgTable(
+  "products",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    description: text("description"),
+    price: text("price"),
+    imageUrl: text("image_url"),
+    checkoutUrl: text("checkout_url").notNull(),
+    visible: boolean("visible").notNull().default(true),
+    sortOrder: integer("sort_order").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("products_user_visible_sort_ix").on(t.userId, t.visible, t.sortOrder)],
+);
 
 // Launch interest is intentionally separate from accounts: visitors can join
 // the waitlist or newsletter before shome is publicly available.

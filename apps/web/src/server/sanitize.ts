@@ -102,6 +102,7 @@ const PROFILE_TAGS = [
   "small",
   "sub",
   "sup",
+  "time",
   "style",
 ];
 
@@ -118,6 +119,7 @@ export function sanitizeProfileHtml(html: string): string {
       img: ["src", "alt", "width", "height", "class", "id", "style"],
       td: ["colspan", "rowspan", "class", "id", "style"],
       th: ["colspan", "rowspan", "class", "id", "style"],
+      time: ["datetime", "class", "id", "style"],
     },
     allowedSchemes: ["http", "https", "mailto"],
     allowedSchemesByTag: { img: ["http", "https", "data"] },

@@ -1,7 +1,7 @@
 import { profiles, user } from "@shome/db";
 import { eq } from "drizzle-orm";
 import { getDb } from "@/server/db";
-import { defaultProfileHtml, sanitizeProfileHtml } from "@/server/sanitize";
+import { PROFILE_CSP, renderProfileDocument } from "@/server/profile-page";
 
 export const dynamic = "force-dynamic";
 
@@ -12,30 +12,24 @@ export async function GET(_req: Request, ctx: { params: Promise<{ handle: string
   const { handle } = await ctx.params;
   const db = await getDb();
   const [row] = await db
-    .select({ html: profiles.html, username: user.username })
+    .select({ html: profiles.html, userId: user.id, username: user.username })
     .from(user)
     .leftJoin(profiles, eq(profiles.userId, user.id))
     .where(eq(user.username, handle.toLowerCase()))
     .limit(1);
   if (!row) return new Response("not found", { status: 404 });
 
-  const inner = row.html?.trim()
-    ? sanitizeProfileHtml(row.html)
-    : defaultProfileHtml(row.username ?? handle);
-  const doc = `<!doctype html>
-<html>
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-</head>
-<body>${inner}</body>
-</html>`;
+  const doc = await renderProfileDocument({
+    db,
+    userId: row.userId,
+    html: row.html,
+    handle: row.username ?? handle,
+  });
 
   return new Response(doc, {
     headers: {
       "content-type": "text/html; charset=utf-8",
-      "content-security-policy":
-        "default-src 'none'; style-src 'unsafe-inline'; img-src https: data:; media-src https:; font-src https: data:",
+      "content-security-policy": PROFILE_CSP,
       "x-content-type-options": "nosniff",
       "referrer-policy": "no-referrer",
     },

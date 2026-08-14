@@ -1,9 +1,10 @@
-import { posts, user } from "@shome/db";
+import { posts, profiles, user } from "@shome/db";
 import { desc, eq } from "drizzle-orm";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getDb } from "@/server/db";
 import { crossPostLinks } from "@/server/posting";
+import { hasProfileComponent } from "@/server/profile-components";
 
 export const dynamic = "force-dynamic";
 
@@ -23,12 +24,20 @@ export default async function ProfilePage(ctx: { params: Promise<{ handle: strin
     .where(eq(user.username, handle.toLowerCase()))
     .limit(1);
   if (!owner) notFound();
-  const profilePosts = await db
-    .select()
-    .from(posts)
-    .where(eq(posts.userId, owner.id))
-    .orderBy(desc(posts.createdAt))
-    .limit(100);
+  const [profile] = await db
+    .select({ html: profiles.html })
+    .from(profiles)
+    .where(eq(profiles.userId, owner.id))
+    .limit(1);
+  const pageEmbedsPosts = hasProfileComponent(profile?.html ?? "", "posts");
+  const profilePosts = pageEmbedsPosts
+    ? []
+    : await db
+        .select()
+        .from(posts)
+        .where(eq(posts.userId, owner.id))
+        .orderBy(desc(posts.createdAt))
+        .limit(100);
 
   return (
     <div className="flex min-h-dvh flex-col">
@@ -51,46 +60,48 @@ export default async function ProfilePage(ctx: { params: Promise<{ handle: strin
         src={`/p/${owner.username}/content`}
         title={`@${owner.username}'s page`}
       />
-      <section className="mx-auto w-full max-w-3xl px-4 py-12">
-        <h2 className="mb-4 text-2xl font-bold">Posts</h2>
-        {profilePosts.length === 0 ? (
-          <p className="text-zinc-400">No posts yet.</p>
-        ) : (
-          <div className="flex flex-col gap-3">
-            {profilePosts.map((post) => {
-              const links = crossPostLinks(post);
-              return (
-                <article
-                  key={post.id}
-                  className="rounded-xl border border-zinc-800 bg-zinc-900 p-4"
-                >
-                  <p className="whitespace-pre-wrap [overflow-wrap:anywhere]">{post.text}</p>
-                  <footer className="mt-3 flex flex-wrap items-center gap-3 text-sm text-zinc-400">
-                    <time dateTime={post.createdAt.toISOString()}>
-                      {post.createdAt.toLocaleDateString(undefined, {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
-                    </time>
-                    {links.map((link) => (
-                      <a
-                        key={link.provider}
-                        className="hover:text-zinc-100"
-                        href={link.url}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        {link.provider} ↗
-                      </a>
-                    ))}
-                  </footer>
-                </article>
-              );
-            })}
-          </div>
-        )}
-      </section>
+      {!pageEmbedsPosts && (
+        <section className="mx-auto w-full max-w-3xl px-4 py-12">
+          <h2 className="mb-4 text-2xl font-bold">Posts</h2>
+          {profilePosts.length === 0 ? (
+            <p className="text-zinc-400">No posts yet.</p>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {profilePosts.map((post) => {
+                const links = crossPostLinks(post);
+                return (
+                  <article
+                    key={post.id}
+                    className="rounded-xl border border-zinc-800 bg-zinc-900 p-4"
+                  >
+                    <p className="whitespace-pre-wrap [overflow-wrap:anywhere]">{post.text}</p>
+                    <footer className="mt-3 flex flex-wrap items-center gap-3 text-sm text-zinc-400">
+                      <time dateTime={post.createdAt.toISOString()}>
+                        {post.createdAt.toLocaleDateString(undefined, {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        })}
+                      </time>
+                      {links.map((link) => (
+                        <a
+                          key={link.provider}
+                          className="hover:text-zinc-100"
+                          href={link.url}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          {link.provider} ↗
+                        </a>
+                      ))}
+                    </footer>
+                  </article>
+                );
+              })}
+            </div>
+          )}
+        </section>
+      )}
     </div>
   );
 }

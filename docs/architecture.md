@@ -17,6 +17,28 @@ Workspace packages ship TypeScript source (`exports` → `src/index.ts`); Next
 compiles them via `transpilePackages`, Metro compiles them in the Expo app,
 tests run them directly — no build step anywhere except `next build`.
 
+## Web API boundary (`apps/web`)
+
+`src/app/api/` and `src/server/` both run only on the server, but they serve
+different roles:
+
+- **`src/app/api/**/route.ts`** is the public HTTP boundary. Next.js maps each
+  `route.ts` file to a URL under `/api` (for example,
+  [`api/feed/route.ts`](../apps/web/src/app/api/feed/route.ts) handles
+  `GET /api/feed`). These handlers authenticate requests, validate HTTP input,
+  and return responses for the web and mobile clients.
+- **`src/server/`** is private, reusable server implementation code. It has no
+  URL of its own; route handlers and server-rendered pages import it for work
+  such as database access, authentication, refreshes, encryption, and
+  sanitization. For example, [`server/refresh.ts`](../apps/web/src/server/refresh.ts)
+  contains source-refresh logic called by API routes.
+
+The potentially confusing [`server/api.ts`](../apps/web/src/server/api.ts) is
+also private: it provides shared API helpers such as JSON error and request-body
+parsing, rather than defining endpoints. See the
+[Next.js Route Handlers reference](https://nextjs.org/docs/app/api-reference/file-conventions/route)
+for the file-to-URL convention.
+
 ## Mobile app (`apps/mobile`)
 
 A thin client over the same HTTP API the web UI uses — no direct database or
@@ -65,6 +87,33 @@ server-side. Pieces:
   stages — scoring, user-authored sandboxed scripts — slot in behind the same
   interface later. v0 UI exposes live filtering; saved-feed routes are next.
 - **Profile** — the user's vibe-coded page: raw HTML/CSS stored as written.
+- **Product** — a creator-owned catalog item (title, description, price label,
+  image, external checkout URL, visibility, order). shome displays products but
+  does not handle payment, inventory, orders, customer data, tax, or refunds.
+
+## Profile builder and components
+
+Profiles stay code-first: creators author normal HTML/CSS, paste a generated
+draft, or use editor snippets. The source additionally supports a small,
+versioned component vocabulary. v1 components are attribute-free tags:
+
+- `<shome-posts />` renders the owner's first-party posts in that exact place.
+- `<shome-products />` renders the owner's visible product catalog and sends
+  visitors to each creator-provided external checkout URL.
+
+`server/profile-components.ts` is the registry seam. It recognizes only known
+component syntax, loads the owner-scoped data on the server, replaces a tag with
+trusted generated markup, then passes the entire result through profile
+sanitization. Component tags never execute arbitrary user code. Public profiles
+without `<shome-posts />` retain the legacy posts section below the iframe, so
+old pages remain unchanged.
+
+Future blog lists, galleries, provider-backed catalogs, games, and 3D viewers
+should be added as typed components at this seam. Native, reviewed interactive
+components come before any general scripting. If custom JavaScript is later
+allowed, it must run in a separate opt-in sandbox with a narrow message API,
+explicit permissions, resource quotas, and no default access to shome identity
+or creator data.
 
 ## Connector contract (`packages/core/src/connector.ts`)
 
@@ -152,3 +201,89 @@ Other measures:
 9. **Retention** — orphaned sources are deliberately kept when the last
    subscriber leaves (explicit product decision); revisit if storage becomes a
    concern.
+10. **Pinterest live connector** — add an OAuth-connected source for a user's
+    own boards and boards they follow. It must not promise Pinterest's
+    algorithmic home feed, which the API does not expose. Pinterest's developer
+    guidelines prohibit storing API-derived information, so this cannot use the
+    normal `fetch → items` ingestion path: retain only the encrypted connection
+    and user-supplied configuration, fetch Pins just-in-time for rendering, and
+    do not persist Pin payloads, media, raw responses, or refresh snapshots.
+    Require `boards:read` and `pins:read` by default; request the corresponding
+    secret-board scopes only when a user explicitly opts in. Preserve Pinterest
+    attribution and a permalink on every rendered Pin. Before implementation,
+    obtain Pinterest app approval and confirm the live-rendering design against
+    the current [Pinterest developer guidelines](https://policy.pinterest.com/en/developer-guidelines)
+    and [OAuth scope documentation](https://developers.pinterest.com/docs/getting-started/set-up-authentication-and-authorization/).
+
+## Connector expansion research
+
+The source roadmap distinguishes a genuine following feed from an
+authorized user's own content or activity. The latter is useful for profiles
+and outbound distribution, but must not be presented as a replacement for a
+platform's home feed. Re-check provider terms, app-review requirements, rate
+limits, data-retention rules, and scopes immediately before implementation.
+
+### First priority — durable feed value
+
+1. **RSS/Atom discovery** — allow a user to paste a website URL and discover
+   its feed automatically. This multiplies the value of the existing RSS
+   connector across blogs, newsletters, podcasts, communities, and release
+   notes without a service-specific integration.
+2. **YouTube subscriptions** — extend the existing channel connector with an
+   OAuth connection. The API can list the authenticated user's subscriptions;
+   shome can then aggregate recent uploads from those channels into a
+   chronological following feed. [YouTube subscription API](https://developers.google.com/youtube/v3/docs/subscriptions/list)
+3. **Reddit** — an OAuth connector can ingest the authenticated user's
+   `/best` listing, selected subreddits, and saved items. This is a true
+   social-feed candidate, subject to Reddit's API terms and an explicit data
+   retention review. [Reddit API documentation](https://www.reddit.com/dev/api/)
+4. **Tumblr** — ingest the authenticated user's Dashboard and selected blogs.
+   Tumblr's official client exposes an authenticated dashboard method, making
+   it another genuine following-feed candidate. [Tumblr API client](https://tumblr.github.io/tumblr.js/)
+5. **Twitch** — show a user's followed broadcasters that are currently live;
+   use the user-scoped `user:read:follows` authorization. Treat it as a live
+   events source, not an archive. [Twitch followed streams](https://dev.twitch.tv/docs/api/reference/#get-followed-streams)
+6. **GitHub** — add a work/technical feed for notifications, watched
+   repositories, releases, issues, and pull requests. Notification polling
+   supports `Last-Modified`/`304` for efficient incremental refreshes.
+   [GitHub notifications API](https://docs.github.com/en/rest/activity/notifications)
+
+### Second priority — creator-owned or scoped sources
+
+- **Pinterest** — implement the live connector described above; it is not a
+  persisted `items` source.
+- **TikTok** — show an authorized user's profile and public videos, using the
+  provider's display/embed model. It does not provide the user's Following or
+  For You feed. [TikTok Display API](https://developers.tiktok.com/doc/display-api-overview/)
+- **Snapchat** — consider only a creator/business public-profile integration:
+  the Public Profile API can retrieve public Stories by profile, but does not
+  provide a person's friends, private Stories, or home feed. [Snap Public Profile API](https://developers.snap.com/marketing-api/Public-Profile-API/ProfileAssetManagement)
+- **Threads** — run a short OAuth/app-review spike for own-content and
+  publishing support, but do not plan around a Following feed without a
+  documented, tested endpoint.
+- **Spotify** — optional private activity source for a user's recently played,
+  saved, and followed music/podcast items; request the narrowest scopes and do
+  not treat it as a social-content feed. [Spotify recently played API](https://developer.spotify.com/documentation/web-api/reference/get-recently-played)
+- **Strava** — optional own-activity source for profiles; its activity webhook
+  can replace polling once a user authorizes the app. [Strava API overview](https://developers.strava.com/docs/getting-started/)
+- **Slack** — offer only as an explicit workspace integration with source
+  selection and strong privacy controls. User tokens can access messages in
+  channels the user is permitted to read, but non-Marketplace apps have tight
+  history limits. [Slack conversation history](https://api.slack.com/methods/conversations.history)
+- **Telegram** — support selected channels only, via a bot that receives new
+  `channel_post` updates; it is not a personal Telegram timeline.
+  [Telegram Bot API](https://core.telegram.org/bots/api)
+
+### Do not build as personal-feed connectors
+
+- **Discord** — a normal user-data connector would require a prohibited
+  self-bot. A server-installed bot may be useful for an administrator-selected
+  channel, but is a workspace integration, not a user's Discord feed.
+  [Discord self-bot policy](https://support.discord.com/hc/en-us/articles/115002192352-Automated-User-Accounts-Self-Bots)
+- **Snapchat friends/Discover**, **WhatsApp personal**, and the following feeds
+  of **Facebook, Instagram, and LinkedIn** have no suitable standard API path.
+  Follow the compliant alternatives in [platform-access.md](platform-access.md):
+  official owned-content APIs, exports, embeds, or a user-triggered
+  "Save to shome" flow.
+- **X** remains a separate, opt-in bring-your-own-key connector because read
+  calls are metered; see [platform-access.md](platform-access.md).

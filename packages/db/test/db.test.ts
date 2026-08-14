@@ -5,6 +5,7 @@ import {
   interestSignups,
   items,
   openDatabase,
+  products,
   sources,
   subscriptions,
   user,
@@ -105,5 +106,18 @@ describe("schema + migrations", () => {
       .from(interestSignups)
       .where(eq(interestSignups.email, email));
     expect(signup).toMatchObject({ email, waitlist: true, newsletter: true });
+  });
+
+  it("stores a creator-owned product catalog", async () => {
+    const [product] = await db
+      .insert(products)
+      .values({
+        userId: "user_alice",
+        title: "Small print",
+        price: "$20 CAD",
+        checkoutUrl: "https://checkout.example.com/print",
+      })
+      .returning();
+    expect(product).toMatchObject({ title: "Small print", visible: true, sortOrder: 0 });
   });
 });
