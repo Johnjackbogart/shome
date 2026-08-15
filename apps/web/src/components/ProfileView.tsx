@@ -282,8 +282,7 @@ export function ProfileView({ handle }: { handle: string | null }) {
   // component + sanitize pipeline as the published page, so generated or
   // hand-typed HTML appears without saving first. `version` re-runs it when the
   // data behind a block changes (products, posts) but the draft text does not.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: `version` is a
-  // manual refetch trigger, so it is deliberately not read inside the effect.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: `version` is a manual refetch trigger, not read inside the effect.
   useEffect(() => {
     if (html === null) return;
     let cancelled = false;

@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, FlatList, Pressable, RefreshControl, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { FeedItemCard } from "@/components/feed-item-card";
+import { PostComposer } from "@/components/post-composer";
 import { api } from "@/lib/api";
 import { COLORS, UI } from "@/lib/ui";
 
@@ -76,6 +77,13 @@ export default function FeedScreen() {
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => <FeedItemCard item={item} />}
           contentContainerClassName="px-5 pb-8"
+          ListHeaderComponent={
+            <PostComposer
+              onPosted={(post) => {
+                setItems((current) => [post, ...(current ?? [])]);
+              }}
+            />
+          }
           refreshControl={
             <RefreshControl
               refreshing={refreshing}

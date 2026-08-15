@@ -1,6 +1,6 @@
 "use client";
 
-import { type FormEvent, useCallback, useEffect, useState } from "react";
+import { type ChangeEvent, type FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { api } from "@/lib/api";
 import { timeAgo, truncate } from "@/lib/format";
 import type { ConnectionView, FeedItemView } from "@/lib/types";
@@ -115,7 +115,8 @@ export function FeedView() {
 
 function FeedItem({ item }: { item: FeedItemView }) {
   const images = item.media.filter((m) => m.type === "image");
-  const other = item.media.filter((m) => m.type !== "image");
+  const videos = item.media.filter((m) => m.type === "video");
+  const other = item.media.filter((m) => m.type !== "image" && m.type !== "video");
   const crossPosts = item.crossPosts ?? [];
   return (
     <article className="card">
@@ -172,15 +173,54 @@ function FeedItem({ item }: { item: FeedItemView }) {
 
       {images.length > 0 && (
         <div className="mt-2.5 grid grid-cols-[repeat(auto-fit,minmax(140px,1fr))] gap-2">
-          {images.slice(0, 4).map((m) => (
-            <img
-              key={m.url}
-              className="max-h-80 w-full rounded-lg object-cover"
-              src={m.url}
-              alt={m.alt ?? ""}
-              loading="lazy"
-            />
-          ))}
+          {images.map((media) =>
+            media.status && media.status !== "ready" ? (
+              <MediaState key={media.url} status={media.status} type="photo" />
+            ) : (
+              <img
+                key={media.url}
+                className="max-h-80 w-full rounded-lg object-cover"
+                src={media.url}
+                alt={media.alt ?? ""}
+                loading="lazy"
+              />
+            ),
+          )}
+        </div>
+      )}
+
+      {videos.length > 0 && (
+        <div className="mt-2.5 grid gap-2">
+          {videos.map((media) => {
+            if (media.status && media.status !== "ready") {
+              return <MediaState key={media.url} status={media.status} type="video" />;
+            }
+            if (media.embedUrl) {
+              return (
+                <iframe
+                  key={media.url}
+                  className="aspect-video w-full rounded-lg border-0 bg-black"
+                  src={media.embedUrl}
+                  title="Post video"
+                  allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
+                  allowFullScreen
+                />
+              );
+            }
+            return (
+              // biome-ignore lint/a11y/useMediaCaption: caption uploads are not part of the current media contract.
+              <video
+                key={media.url}
+                className="max-h-[70vh] w-full rounded-lg bg-black object-contain"
+                controls
+                playsInline
+                preload="metadata"
+              >
+                <source src={media.url} />
+                Your browser does not support this video.
+              </video>
+            );
+          })}
         </div>
       )}
 
@@ -224,6 +264,20 @@ function FeedItem({ item }: { item: FeedItemView }) {
   );
 }
 
+function MediaState({ status, type }: { status: string; type: "photo" | "video" }) {
+  const message =
+    status === "failed"
+      ? `${type} processing failed`
+      : status === "uploading"
+        ? `${type} uploading…`
+        : `${type} processing…`;
+  return (
+    <div className="grid min-h-32 place-items-center rounded-lg border border-white/10 bg-black/30 px-4 text-sm text-slate-400">
+      {message}
+    </div>
+  );
+}
+
 type Delivery = {
   provider: "bluesky" | "mastodon";
   ok: boolean;
@@ -231,12 +285,234 @@ type Delivery = {
   error?: string;
 };
 
+type SelectedMedia = {
+  localId: string;
+  file: File;
+  attachmentId?: string;
+  status: "uploading" | "processing" | "ready" | "failed";
+};
+
+function videoDuration(file: File): Promise<number> {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const video = document.createElement("video");
+    const cleanup = () => {
+      URL.revokeObjectURL(url);
+      video.remove();
+    };
+    const timeout = window.setTimeout(() => {
+      cleanup();
+      reject(new Error(`could not read the duration of ${file.name}`));
+    }, 10_000);
+    video.preload = "metadata";
+    video.onloadedmetadata = () => {
+      window.clearTimeout(timeout);
+      const duration = video.duration;
+      cleanup();
+      Number.isFinite(duration)
+        ? resolve(duration)
+        : reject(new Error(`could not read ${file.name}`));
+    };
+    video.onerror = () => {
+      window.clearTimeout(timeout);
+      cleanup();
+      reject(new Error(`could not read the duration of ${file.name}`));
+    };
+    video.src = url;
+  });
+}
+
+type CameraMode = "photo" | "video";
+
+function CameraCapture({
+  mode,
+  onCaptured,
+  onClose,
+}: {
+  mode: CameraMode;
+  onCaptured: (file: File) => void;
+  onClose: () => void;
+}) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const saveRecordingRef = useRef(false);
+  const [stream, setStream] = useState<MediaStream | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [recording, setRecording] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    let activeStream: MediaStream | null = null;
+    void navigator.mediaDevices
+      .getUserMedia({
+        video: { facingMode: { ideal: "environment" } },
+        ...(mode === "video" ? { audio: true } : {}),
+      })
+      .then((nextStream) => {
+        activeStream = nextStream;
+        if (cancelled) {
+          nextStream.getTracks().forEach((track) => {
+            track.stop();
+          });
+          return;
+        }
+        setStream(nextStream);
+      })
+      .catch(() =>
+        setError("could not access the camera — check its browser permission and try again"),
+      );
+    return () => {
+      cancelled = true;
+      saveRecordingRef.current = false;
+      const recorder = recorderRef.current;
+      if (recorder?.state === "recording") recorder.stop();
+      activeStream?.getTracks().forEach((track) => {
+        track.stop();
+      });
+    };
+  }, [mode]);
+
+  useEffect(() => {
+    if (!stream || !videoRef.current) return;
+    videoRef.current.srcObject = stream;
+    void videoRef.current.play().catch(() => undefined);
+  }, [stream]);
+
+  useEffect(() => {
+    if (!recording) return;
+    const timeout = window.setTimeout(() => {
+      const recorder = recorderRef.current;
+      if (recorder?.state === "recording") {
+        saveRecordingRef.current = true;
+        recorder.stop();
+      }
+    }, 180_000);
+    return () => window.clearTimeout(timeout);
+  }, [recording]);
+
+  function takePhoto() {
+    const preview = videoRef.current;
+    if (!preview || preview.videoWidth === 0 || preview.videoHeight === 0) {
+      setError("the camera is still starting — please try again");
+      return;
+    }
+    const canvas = document.createElement("canvas");
+    canvas.width = preview.videoWidth;
+    canvas.height = preview.videoHeight;
+    const context = canvas.getContext("2d");
+    if (!context) {
+      setError("could not create a photo from this camera");
+      return;
+    }
+    context.drawImage(preview, 0, 0);
+    canvas.toBlob((blob) => {
+      if (!blob) {
+        setError("could not create a photo from this camera");
+        return;
+      }
+      onCaptured(new File([blob], `photo-${Date.now()}.jpg`, { type: "image/jpeg" }));
+    }, "image/jpeg");
+  }
+
+  function startRecording() {
+    if (!stream) {
+      setError("the camera is still starting — please try again");
+      return;
+    }
+    if (typeof MediaRecorder === "undefined") {
+      setError("this browser cannot record video — use the upload control instead");
+      return;
+    }
+    const mimeType = [
+      "video/webm;codecs=vp9,opus",
+      "video/webm;codecs=vp8,opus",
+      "video/webm",
+      "video/mp4",
+    ].find((type) => MediaRecorder.isTypeSupported(type));
+    const recorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
+    const chunks: Blob[] = [];
+    recorder.ondataavailable = (event) => {
+      if (event.data.size > 0) chunks.push(event.data);
+    };
+    recorder.onstop = () => {
+      setRecording(false);
+      if (!saveRecordingRef.current || chunks.length === 0) return;
+      const type = recorder.mimeType || chunks[0]?.type || "video/webm";
+      const extension = type.includes("mp4") ? "mp4" : "webm";
+      onCaptured(
+        new File([new Blob(chunks, { type })], `video-${Date.now()}.${extension}`, { type }),
+      );
+    };
+    saveRecordingRef.current = false;
+    recorderRef.current = recorder;
+    recorder.start();
+    setRecording(true);
+  }
+
+  function stopRecording() {
+    const recorder = recorderRef.current;
+    if (recorder?.state === "recording") {
+      saveRecordingRef.current = true;
+      recorder.stop();
+    }
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-label={mode === "photo" ? "Take a photo" : "Record a video"}
+    >
+      <div className="card w-full max-w-xl">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <h3 className="font-semibold">{mode === "photo" ? "Take a photo" : "Record a video"}</h3>
+          <button type="button" className="btn-ghost px-3 py-1.5" onClick={onClose}>
+            close
+          </button>
+        </div>
+        <video
+          ref={videoRef}
+          className="aspect-video w-full rounded-lg bg-black object-contain"
+          autoPlay
+          muted
+          playsInline
+        />
+        {error && <p className="mt-3 text-sm text-red-400">{error}</p>}
+        <div className="mt-3 flex items-center gap-3">
+          {mode === "photo" ? (
+            <button type="button" className="btn" disabled={!stream} onClick={takePhoto}>
+              take photo
+            </button>
+          ) : recording ? (
+            <button type="button" className="btn" onClick={stopRecording}>
+              stop recording
+            </button>
+          ) : (
+            <button type="button" className="btn" disabled={!stream} onClick={startRecording}>
+              start recording
+            </button>
+          )}
+          {mode === "video" && (
+            <span className="text-xs text-slate-500">
+              Video recordings stop automatically at 3 minutes.
+            </span>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function PostComposer({ onPosted }: { onPosted: (post: FeedItemView) => void }) {
   const [text, setText] = useState("");
+  const [selectedMedia, setSelectedMedia] = useState<SelectedMedia[]>([]);
+  const [cameraMode, setCameraMode] = useState<CameraMode | null>(null);
   const [connections, setConnections] = useState<ConnectionView[]>([]);
   const [blueskyConnectionId, setBlueskyConnectionId] = useState("");
   const [mastodonConnectionId, setMastodonConnectionId] = useState("");
   const [busy, setBusy] = useState(false);
+  const [mediaBusy, setMediaBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
@@ -253,6 +529,102 @@ function PostComposer({ onPosted }: { onPosted: (post: FeedItemView) => void }) 
   );
   const blueskyLength = [...text].length;
   const blueskyTooLong = Boolean(blueskyConnectionId) && blueskyLength > 300;
+  const mediaFiles = selectedMedia.map((media) => media.file);
+  const incompleteMedia = selectedMedia.some(
+    (media) => !media.attachmentId || media.status === "uploading",
+  );
+
+  function updateMedia(localId: string, next: Partial<SelectedMedia>) {
+    setSelectedMedia((current) =>
+      current.map((media) => (media.localId === localId ? { ...media, ...next } : media)),
+    );
+  }
+  const photoCaptureInput = useRef<HTMLInputElement>(null);
+  const videoCaptureInput = useRef<HTMLInputElement>(null);
+
+  async function selectFiles(files: File[]) {
+    if (files.length === 0) return;
+    if (files.some((file) => !file.type.startsWith("image/") && !file.type.startsWith("video/"))) {
+      setError("choose photo or video files only");
+      return;
+    }
+    const newlySelected = files.map((file) => ({
+      localId: crypto.randomUUID(),
+      file,
+      status: "uploading" as const,
+    }));
+    const next = [...selectedMedia, ...newlySelected];
+    if (next.filter((media) => media.file.type.startsWith("image/")).length > 10) {
+      setError("a post can include up to 10 photos");
+      return;
+    }
+    try {
+      const durations = await Promise.all(
+        files.filter((file) => file.type.startsWith("video/")).map(videoDuration),
+      );
+      if (durations.some((duration) => duration > 180)) {
+        setError("videos must be 3 minutes or shorter");
+        return;
+      }
+      setError(null);
+      setSelectedMedia(next);
+      setMediaBusy(true);
+      const created = await api.post<{
+        uploads: { id: string; type: "image" | "video"; uploadUrl: string }[];
+      }>("/api/media/uploads", {
+        uploads: files.map((file) => ({
+          name: file.name,
+          type: file.type.startsWith("image/") ? "image" : "video",
+          contentType: file.type,
+          byteSize: file.size,
+        })),
+      });
+      await Promise.all(
+        created.uploads.map(async (upload, index) => {
+          const selected = newlySelected[index];
+          if (!selected) return;
+          const form = new FormData();
+          form.set("file", selected.file);
+          const response = await fetch(upload.uploadUrl, { method: "POST", body: form });
+          if (!response.ok) {
+            const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+            throw new Error(payload?.error ?? `could not upload ${selected.file.name}`);
+          }
+          updateMedia(selected.localId, { attachmentId: upload.id, status: "processing" });
+          const completed = await api.post<{ status: SelectedMedia["status"] }>(
+            `/api/media/uploads/${upload.id}/complete`,
+          );
+          updateMedia(selected.localId, { attachmentId: upload.id, status: completed.status });
+        }),
+      );
+    } catch (mediaError) {
+      setSelectedMedia((current) =>
+        current.map((media) =>
+          media.status === "uploading" ? { ...media, status: "failed" } : media,
+        ),
+      );
+      setError(mediaError instanceof Error ? mediaError.message : "could not read selected media");
+    } finally {
+      setMediaBusy(false);
+    }
+  }
+
+  function selectMedia(event: ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(event.target.files ?? []);
+    // Let a person select more files later without their old selection being
+    // overwritten by the native control.
+    event.target.value = "";
+    void selectFiles(files);
+  }
+
+  function openCamera(mode: CameraMode) {
+    const mediaDevices = navigator.mediaDevices as Partial<MediaDevices> | undefined;
+    if (typeof mediaDevices?.getUserMedia === "function") {
+      setCameraMode(mode);
+      return;
+    }
+    (mode === "photo" ? photoCaptureInput : videoCaptureInput).current?.click();
+  }
 
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -264,8 +636,12 @@ function PostComposer({ onPosted }: { onPosted: (post: FeedItemView) => void }) 
         text,
         blueskyConnectionId: blueskyConnectionId || undefined,
         mastodonConnectionId: mastodonConnectionId || undefined,
+        attachmentIds: selectedMedia.flatMap((media) =>
+          media.attachmentId ? [media.attachmentId] : [],
+        ),
       });
       setText("");
+      setSelectedMedia([]);
       onPosted(res.post);
       if (res.deliveries.length === 0) {
         setNotice("posted to your shome feed");
@@ -307,6 +683,74 @@ function PostComposer({ onPosted }: { onPosted: (post: FeedItemView) => void }) 
         placeholder="What’s on your mind?"
         aria-label="Post text"
       />
+
+      <div className="flex flex-wrap items-center gap-3">
+        <label className="btn-ghost cursor-pointer">
+          <span>choose photos or videos</span>
+          <input
+            className="sr-only"
+            type="file"
+            accept="image/jpeg,image/png,image/gif,image/webp,image/avif,video/mp4,video/webm,video/quicktime"
+            multiple
+            disabled={mediaBusy}
+            onChange={(event) => void selectMedia(event)}
+          />
+        </label>
+        <button type="button" className="btn-ghost" onClick={() => openCamera("photo")}>
+          take a photo
+        </button>
+        <button type="button" className="btn-ghost" onClick={() => openCamera("video")}>
+          record a video
+        </button>
+        <input
+          ref={photoCaptureInput}
+          className="sr-only"
+          type="file"
+          accept="image/*"
+          capture="environment"
+          disabled={mediaBusy}
+          onChange={selectMedia}
+        />
+        <input
+          ref={videoCaptureInput}
+          className="sr-only"
+          type="file"
+          accept="video/mp4,video/webm,video/quicktime"
+          capture="environment"
+          disabled={mediaBusy}
+          onChange={selectMedia}
+        />
+        <span className="text-xs text-slate-500">
+          Up to 10 photos · MP4/WebM/MOV videos up to 3 min
+        </span>
+      </div>
+      {mediaFiles.length > 0 && (
+        <ul className="flex flex-wrap gap-2" aria-label="Selected attachments">
+          {selectedMedia.map(({ localId, file, status }) => (
+            <li
+              key={localId}
+              className="flex max-w-full items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] py-1 pr-1 pl-3 text-xs text-slate-300"
+            >
+              <span className="truncate">{file.name}</span>
+              <span className="shrink-0 text-slate-500">
+                {status === "ready" ? "ready" : status === "failed" ? "failed" : `${status}…`}
+              </span>
+              <button
+                type="button"
+                className="rounded-full px-1.5 py-0.5 text-slate-400 hover:bg-white/10 hover:text-white"
+                onClick={() =>
+                  setSelectedMedia((current) =>
+                    current.filter((media) => media.localId !== localId),
+                  )
+                }
+                aria-label={`Remove ${file.name}`}
+              >
+                ×
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
 
       <div className="flex flex-col gap-2 text-sm sm:flex-row sm:flex-wrap sm:items-center">
         <label className="flex items-center gap-2 text-slate-200">
@@ -370,17 +814,38 @@ function PostComposer({ onPosted }: { onPosted: (post: FeedItemView) => void }) 
           Bluesky: {blueskyLength}/300 characters
         </p>
       )}
+      {mediaFiles.length > 0 && (blueskyConnectionId || mastodonConnectionId) && (
+        <p className="text-xs text-slate-500">
+          Attachments publish to shome. Connected platforms currently receive text only.
+        </p>
+      )}
       <div className="flex items-center gap-3">
         <button
           type="submit"
           className="btn"
-          disabled={busy || text.trim().length === 0 || blueskyTooLong}
+          disabled={
+            busy ||
+            mediaBusy ||
+            incompleteMedia ||
+            (text.trim().length === 0 && mediaFiles.length === 0) ||
+            blueskyTooLong
+          }
         >
           {busy ? "posting…" : "post"}
         </button>
         {notice && <p className="text-sm text-emerald-400">{notice}</p>}
       </div>
       {error && <p className="text-sm text-red-400">{error}</p>}
+      {cameraMode && (
+        <CameraCapture
+          mode={cameraMode}
+          onCaptured={(file) => {
+            void selectFiles([file]);
+            setCameraMode(null);
+          }}
+          onClose={() => setCameraMode(null)}
+        />
+      )}
     </form>
   );
 }

@@ -29,6 +29,14 @@
       "expo-router",
       "expo-secure-store",
       [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow shome to access your photos and videos so you can attach them to posts.",
+          "cameraPermission": "Allow shome to use your camera so you can take photos and record videos for posts.",
+          "microphonePermission": "Allow shome to use your microphone when recording videos for posts."
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "backgroundColor": "#070a18",
