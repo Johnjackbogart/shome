@@ -36,6 +36,20 @@
       "when": 1786674053608,
       "tag": "0004_abandoned_hedge_knight",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1786722553733,
+      "tag": "0005_dizzy_hawkeye",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1786742772853,
+      "tag": "0006_misty_zemo",
+      "breakpoints": true
     }
   ]
 }

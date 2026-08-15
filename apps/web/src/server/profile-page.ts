@@ -8,7 +8,7 @@ import { defaultProfileHtml, sanitizeProfileHtml } from "./sanitize";
 // renders an unsaved draft through `srcdoc`, where there is no response to hang
 // headers off.
 export const PROFILE_CSP =
-  "default-src 'none'; style-src 'unsafe-inline'; img-src https: data:; media-src https:; font-src https: data:";
+  "default-src 'none'; style-src 'unsafe-inline'; img-src 'self' https: data:; media-src 'self' https:; font-src https: data:";
 
 /**
  * Builds the full profile document rendered inside the sandboxed iframe. Both

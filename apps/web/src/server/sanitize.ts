@@ -73,6 +73,7 @@ const PROFILE_TAGS = [
   "p",
   "a",
   "img",
+  "video",
   "ul",
   "ol",
   "li",
@@ -117,6 +118,7 @@ export function sanitizeProfileHtml(html: string): string {
       // target/rel allowlisted so the transformTags additions survive filtering.
       a: ["href", "title", "class", "id", "style", "target", "rel"],
       img: ["src", "alt", "width", "height", "class", "id", "style"],
+      video: ["src", "controls", "playsinline", "preload", "class", "id", "style"],
       td: ["colspan", "rowspan", "class", "id", "style"],
       th: ["colspan", "rowspan", "class", "id", "style"],
       time: ["datetime", "class", "id", "style"],

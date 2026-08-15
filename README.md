@@ -38,6 +38,18 @@ npm run dev                     # http://localhost:3000 — uses embedded PGlite
 For a real Postgres instead of PGlite: `docker compose up -d` and uncomment
 `DATABASE_URL` in `apps/web/.env`.
 
+First-party post photos and videos work with no extra local setup. The default
+`SHOME_MEDIA_PROVIDER=local` stores them at `apps/web/.data/uploads` and is
+ideal for development. Set `SHOME_UPLOAD_DIR` to use another writable location.
+
+For production video delivery, set `SHOME_MEDIA_PROVIDER=cloudflare` plus the
+Cloudflare variables in `.env.example`. The app then creates short-lived upload
+URLs: photos go directly to Cloudflare Images and videos to Cloudflare Stream,
+which enforces the three-minute limit and processes playback asynchronously.
+Register the public `/api/webhooks/cloudflare/stream` endpoint with Stream and
+set its signing secret. Media bytes never traverse the shome server in this
+mode. The local provider remains available for tests and local development.
+
 > Troubleshooting: if the server starts 500ing with `RuntimeError: Aborted()`
 > in the logs, the embedded dev database was killed mid-write (crash/hard
 > kill) and is unrecoverable — delete `apps/web/.data` and restart. It's

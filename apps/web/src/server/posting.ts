@@ -1,7 +1,7 @@
 import { AtpAgent } from "@atproto/api";
 import type { CrossPostLink, FeedItemView } from "@shome/core";
-import { connections, type Db, type Post, posts } from "@shome/db";
-import { and, eq } from "drizzle-orm";
+import { connections, type Db, type Post, type PostMedia, postMedia, posts } from "@shome/db";
+import { and, asc, eq, inArray } from "drizzle-orm";
 import { decryptCredentials } from "./crypto";
 import { assertPublicHttpUrl } from "./netguard";
 
@@ -13,6 +13,21 @@ export interface DeliveryResult {
   url?: string;
   error?: string;
 }
+
+export type NewPostMedia = Pick<
+  PostMedia,
+  | "id"
+  | "type"
+  | "contentType"
+  | "byteSize"
+  | "durationMs"
+  | "originalName"
+  | "provider"
+  | "providerAssetId"
+  | "status"
+  | "playbackUrl"
+  | "thumbnailUrl"
+>;
 
 function getString(credentials: Record<string, unknown>, field: string): string | null {
   const value = credentials[field];
@@ -135,6 +150,7 @@ export function crossPostLinks(post: Pick<Post, "blueskyUrl" | "mastodonUrl">): 
 export function postToFeedItem(
   post: Post,
   author: { name: string | null; username: string | null; image: string | null },
+  media: readonly PostMedia[] = [],
 ): FeedItemView {
   return {
     id: post.id,
@@ -150,11 +166,53 @@ export function postToFeedItem(
     authorName: author.name || author.username || "me",
     authorHandle: author.username,
     authorAvatarUrl: author.image,
-    media: [],
+    media: media.map(postMediaToMediaView),
     publishedAt: post.createdAt.toISOString(),
     fetchedAt: post.createdAt.toISOString(),
     crossPosts: crossPostLinks(post),
   };
+}
+
+export function postMediaUrl(id: string): string {
+  return `/api/media/${id}`;
+}
+
+export function postMediaToMediaView(
+  media: Pick<
+    PostMedia,
+    "id" | "type" | "provider" | "providerAssetId" | "status" | "playbackUrl" | "thumbnailUrl"
+  >,
+) {
+  const cloudflareVideoId =
+    media.provider === "cloudflare_stream" && media.type === "video" ? media.providerAssetId : null;
+  return {
+    type: media.type,
+    url: media.playbackUrl ?? postMediaUrl(media.id),
+    embedUrl: cloudflareVideoId
+      ? `https://iframe.videodelivery.net/${encodeURIComponent(cloudflareVideoId)}`
+      : undefined,
+    thumbnailUrl: media.thumbnailUrl ?? undefined,
+    status: media.status,
+  };
+}
+
+export async function mediaByPostId(
+  db: Db,
+  postIds: readonly string[],
+): Promise<Map<string, PostMedia[]>> {
+  const grouped = new Map<string, PostMedia[]>();
+  if (postIds.length === 0) return grouped;
+  const attachments = await db
+    .select()
+    .from(postMedia)
+    .where(inArray(postMedia.postId, [...postIds]))
+    .orderBy(asc(postMedia.createdAt));
+  for (const attachment of attachments) {
+    const current = grouped.get(attachment.postId) ?? [];
+    current.push(attachment);
+    grouped.set(attachment.postId, current);
+  }
+  return grouped;
 }
 
 export async function createPost(
@@ -164,24 +222,40 @@ export async function createPost(
     text: string;
     blueskyConnectionId?: string;
     mastodonConnectionId?: string;
+    media?: NewPostMedia[];
   },
-): Promise<{ post: Post; deliveries: DeliveryResult[] }> {
-  const [created] = await db
-    .insert(posts)
-    .values({ userId: input.userId, text: input.text })
-    .returning();
+): Promise<{ post: Post; media: PostMedia[]; deliveries: DeliveryResult[] }> {
+  const { created, attachedMedia } = await db.transaction(async (tx) => {
+    const [post] = await tx
+      .insert(posts)
+      .values({ userId: input.userId, text: input.text })
+      .returning();
+    if (!post) throw new Error("could not save post");
+    const attachedMedia = input.media?.length
+      ? await tx
+          .insert(postMedia)
+          .values(input.media.map((media) => ({ ...media, postId: post.id })))
+          .returning()
+      : [];
+    return { created: post, attachedMedia };
+  });
   if (!created) throw new Error("could not save post");
 
-  const deliveries = await Promise.all(
-    [
-      input.blueskyConnectionId
-        ? deliver(db, input.userId, "bluesky", input.blueskyConnectionId, input.text)
-        : null,
-      input.mastodonConnectionId
-        ? deliver(db, input.userId, "mastodon", input.mastodonConnectionId, input.text)
-        : null,
-    ].filter((delivery): delivery is Promise<DeliveryResult> => delivery !== null),
-  );
+  // Platform integrations currently have text-only publish contracts. Media is
+  // still safely published to shome; an empty media-only post must not turn
+  // into an invalid empty delivery attempt on an external platform.
+  const deliveries = input.text
+    ? await Promise.all(
+        [
+          input.blueskyConnectionId
+            ? deliver(db, input.userId, "bluesky", input.blueskyConnectionId, input.text)
+            : null,
+          input.mastodonConnectionId
+            ? deliver(db, input.userId, "mastodon", input.mastodonConnectionId, input.text)
+            : null,
+        ].filter((delivery): delivery is Promise<DeliveryResult> => delivery !== null),
+      )
+    : [];
 
   const blueskyUrl = deliveries.find(
     (delivery) => delivery.provider === "bluesky" && delivery.ok,
@@ -189,12 +263,12 @@ export async function createPost(
   const mastodonUrl = deliveries.find(
     (delivery) => delivery.provider === "mastodon" && delivery.ok,
   )?.url;
-  if (!blueskyUrl && !mastodonUrl) return { post: created, deliveries };
+  if (!blueskyUrl && !mastodonUrl) return { post: created, media: attachedMedia, deliveries };
 
   const [updated] = await db
     .update(posts)
     .set({ blueskyUrl: blueskyUrl ?? null, mastodonUrl: mastodonUrl ?? null })
     .where(eq(posts.id, created.id))
     .returning();
-  return { post: updated ?? created, deliveries };
+  return { post: updated ?? created, media: attachedMedia, deliveries };
 }

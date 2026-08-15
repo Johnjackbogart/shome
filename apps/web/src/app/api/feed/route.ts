@@ -6,7 +6,7 @@ import type { FeedItemView } from "@/lib/types";
 import { jsonError, UUID_RE } from "@/server/api";
 import { getSessionOrNull } from "@/server/auth";
 import { getDb } from "@/server/db";
-import { postToFeedItem } from "@/server/posting";
+import { mediaByPostId, postToFeedItem } from "@/server/posting";
 
 const KINDS = ["rss", "bluesky", "mastodon", "youtube", "post"] as const;
 
@@ -82,8 +82,12 @@ export async function GET(req: Request) {
           )
           .orderBy(desc(posts.createdAt))
           .limit(limit);
+  const attachments = await mediaByPostId(
+    db,
+    postRows.map(({ post }) => post.id),
+  );
   const postViews = postRows.map(({ post, name, username, image }) =>
-    postToFeedItem(post, { name, username, image }),
+    postToFeedItem(post, { name, username, image }, attachments.get(post.id)),
   );
 
   const views = [...sourceViews, ...postViews]

@@ -173,6 +173,66 @@ export const posts = pgTable(
   (t) => [index("posts_user_created_ix").on(t.userId, t.createdAt)],
 );
 
+export type MediaProvider = "local" | "cloudflare_images" | "cloudflare_stream";
+export type MediaStatus = "uploading" | "processing" | "ready" | "failed";
+
+// Uploaded media is kept as a first-class child of a post rather than being
+// folded into its text. The file itself lives in the configured media store;
+// this table is the durable ownership, type, and playback-metadata record.
+export const postMedia = pgTable(
+  "post_media",
+  {
+    id: uuid("id").primaryKey(),
+    postId: uuid("post_id")
+      .notNull()
+      .references(() => posts.id, { onDelete: "cascade" }),
+    type: text("type").notNull().$type<"image" | "video">(),
+    contentType: text("content_type").notNull(),
+    byteSize: integer("byte_size").notNull(),
+    // Present only for video. Keeping milliseconds makes the three-minute
+    // server-side limit exact without depending on the browser's metadata.
+    durationMs: integer("duration_ms"),
+    originalName: text("original_name").notNull(),
+    provider: text("provider").notNull().$type<MediaProvider>().default("local"),
+    providerAssetId: text("provider_asset_id"),
+    status: text("status").notNull().$type<MediaStatus>().default("ready"),
+    playbackUrl: text("playback_url"),
+    thumbnailUrl: text("thumbnail_url"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("post_media_post_created_ix").on(t.postId, t.createdAt)],
+);
+
+// An upload exists before it belongs to a post. This lets a browser send bytes
+// directly to a media provider, while the app keeps ownership and processing
+// state server-side until the user chooses to publish the post.
+export const mediaUploads = pgTable(
+  "media_uploads",
+  {
+    id: uuid("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    type: text("type").notNull().$type<"image" | "video">(),
+    contentType: text("content_type").notNull(),
+    byteSize: integer("byte_size").notNull(),
+    durationMs: integer("duration_ms"),
+    originalName: text("original_name").notNull(),
+    provider: text("provider").notNull().$type<MediaProvider>(),
+    providerAssetId: text("provider_asset_id").notNull(),
+    status: text("status").notNull().$type<MediaStatus>().default("uploading"),
+    playbackUrl: text("playback_url"),
+    thumbnailUrl: text("thumbnail_url"),
+    expiresAt: timestamp("expires_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("media_uploads_provider_asset_ux").on(t.provider, t.providerAssetId),
+    index("media_uploads_user_status_created_ix").on(t.userId, t.status, t.createdAt),
+  ],
+);
+
 export const feeds = pgTable("feeds", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: text("user_id")

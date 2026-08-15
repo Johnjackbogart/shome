@@ -143,6 +143,20 @@ bundlers rewrite `import.meta.url`; deployments that don't ship the repo layout
 (e.g. `output: standalone`) must set the env var or use
 `outputFileTracingIncludes`.
 
+First-party photos and videos use a two-stage model. A temporary
+`media_uploads` record establishes ownership before a post exists; once a user
+publishes, its asset is copied into `post_media` and appears in the same
+chronological feed as text and connector items.
+
+`SHOME_MEDIA_PROVIDER=local` is the zero-setup development adapter. It stores
+media bytes in `apps/web/.data/uploads` (`SHOME_UPLOAD_DIR` overrides this) and
+supports HTTP range requests for local video playback. `SHOME_MEDIA_PROVIDER=cloudflare`
+issues browser-direct URLs instead: images upload to Cloudflare Images and
+videos upload to Cloudflare Stream with a server-enforced 180-second maximum.
+The app stores provider IDs and processing status, not production media bytes.
+Stream's signed webhook updates pending and published video rows when encoding
+finishes; the feed uses its player URL, preserving the source orientation.
+
 ## Security model
 
 Two distinct trust boundaries for user-influenced HTML

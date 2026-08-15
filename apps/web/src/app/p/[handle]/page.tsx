@@ -1,9 +1,9 @@
-import { posts, profiles, user } from "@shome/db";
-import { desc, eq } from "drizzle-orm";
+import { postMedia, posts, profiles, user } from "@shome/db";
+import { asc, desc, eq, inArray } from "drizzle-orm";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getDb } from "@/server/db";
-import { crossPostLinks } from "@/server/posting";
+import { crossPostLinks, postMediaUrl } from "@/server/posting";
 import { hasProfileComponent } from "@/server/profile-components";
 
 export const dynamic = "force-dynamic";
@@ -38,6 +38,24 @@ export default async function ProfilePage(ctx: { params: Promise<{ handle: strin
         .where(eq(posts.userId, owner.id))
         .orderBy(desc(posts.createdAt))
         .limit(100);
+  const media = profilePosts.length
+    ? await db
+        .select()
+        .from(postMedia)
+        .where(
+          inArray(
+            postMedia.postId,
+            profilePosts.map((post) => post.id),
+          ),
+        )
+        .orderBy(asc(postMedia.createdAt))
+    : [];
+  const mediaByPost = new Map<string, typeof media>();
+  for (const attachment of media) {
+    const current = mediaByPost.get(attachment.postId) ?? [];
+    current.push(attachment);
+    mediaByPost.set(attachment.postId, current);
+  }
 
   return (
     <div className="flex min-h-dvh flex-col">
@@ -69,12 +87,51 @@ export default async function ProfilePage(ctx: { params: Promise<{ handle: strin
             <div className="flex flex-col gap-3">
               {profilePosts.map((post) => {
                 const links = crossPostLinks(post);
+                const attachments = mediaByPost.get(post.id) ?? [];
                 return (
                   <article
                     key={post.id}
                     className="rounded-xl border border-zinc-800 bg-zinc-900 p-4"
                   >
                     <p className="whitespace-pre-wrap [overflow-wrap:anywhere]">{post.text}</p>
+                    {attachments.length > 0 && (
+                      <div className="mt-3 grid gap-2">
+                        {attachments.map((attachment) =>
+                          attachment.type === "image" ? (
+                            // biome-ignore lint/performance/noImgElement: post photos use a dynamic app route without fixed dimensions.
+                            <img
+                              key={attachment.id}
+                              className="max-h-[70vh] w-full rounded-lg object-cover"
+                              src={postMediaUrl(attachment.id)}
+                              alt=""
+                              loading="lazy"
+                            />
+                          ) : attachment.provider === "cloudflare_stream" &&
+                            attachment.providerAssetId ? (
+                            <iframe
+                              key={attachment.id}
+                              className="aspect-video w-full rounded-lg border-0 bg-black"
+                              src={`https://iframe.videodelivery.net/${encodeURIComponent(attachment.providerAssetId)}`}
+                              title="Post video"
+                              allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
+                              allowFullScreen
+                            />
+                          ) : (
+                            // biome-ignore lint/a11y/useMediaCaption: caption uploads are not part of the current media contract.
+                            <video
+                              key={attachment.id}
+                              className="max-h-[70vh] w-full rounded-lg bg-black object-contain"
+                              controls
+                              playsInline
+                              preload="metadata"
+                            >
+                              <source src={postMediaUrl(attachment.id)} />
+                              Your browser does not support this video.
+                            </video>
+                          ),
+                        )}
+                      </div>
+                    )}
                     <footer className="mt-3 flex flex-wrap items-center gap-3 text-sm text-zinc-400">
                       <time dateTime={post.createdAt.toISOString()}>
                         {post.createdAt.toLocaleDateString(undefined, {

@@ -21,6 +21,10 @@ export interface MediaView {
   type: string;
   url: string;
   alt?: string;
+  /** Optional provider player for formats a browser cannot play natively (for example HLS). */
+  embedUrl?: string;
+  thumbnailUrl?: string;
+  status?: "uploading" | "processing" | "ready" | "failed";
 }
 
 export interface FeedItemView {

@@ -1,6 +1,7 @@
-import { posts, products, type Db } from "@shome/db";
-import { asc, desc, eq } from "drizzle-orm";
+import { type Db, postMedia, posts, products } from "@shome/db";
+import { asc, desc, eq, inArray } from "drizzle-orm";
 import sanitizeHtml from "sanitize-html";
+import { postMediaUrl } from "./posting";
 
 type ComponentName = "posts" | "products";
 
@@ -42,10 +43,42 @@ async function renderPosts(db: Db, userId: string): Promise<string> {
     .where(eq(posts.userId, userId))
     .orderBy(desc(posts.createdAt))
     .limit(50);
+  const attachments = profilePosts.length
+    ? await db
+        .select()
+        .from(postMedia)
+        .where(
+          inArray(
+            postMedia.postId,
+            profilePosts.map((post) => post.id),
+          ),
+        )
+        .orderBy(asc(postMedia.createdAt))
+    : [];
+  const mediaByPost = new Map<string, typeof attachments>();
+  for (const attachment of attachments) {
+    const current = mediaByPost.get(attachment.postId) ?? [];
+    current.push(attachment);
+    mediaByPost.set(attachment.postId, current);
+  }
 
   const content = profilePosts.length
     ? profilePosts
         .map((post) => {
+          const media = (mediaByPost.get(post.id) ?? [])
+            .map((attachment) => {
+              const url = escapeHtml(postMediaUrl(attachment.id));
+              const cloudflareEmbedUrl =
+                attachment.provider === "cloudflare_stream" && attachment.providerAssetId
+                  ? `https://iframe.videodelivery.net/${encodeURIComponent(attachment.providerAssetId)}`
+                  : null;
+              return attachment.type === "image"
+                ? `<img class="shome-post__image" src="${url}" alt="">`
+                : cloudflareEmbedUrl
+                  ? `<a class="shome-post__video-link" href="${escapeHtml(cloudflareEmbedUrl)}">Watch video ↗</a>`
+                  : `<video class="shome-post__video" controls playsinline preload="metadata" src="${url}">Your browser does not support this video.</video>`;
+            })
+            .join("");
           const links = [
             post.blueskyUrl ? { label: "Bluesky", url: post.blueskyUrl } : null,
             post.mastodonUrl ? { label: "Mastodon", url: post.mastodonUrl } : null,
@@ -59,6 +92,7 @@ async function renderPosts(db: Db, userId: string): Promise<string> {
             .join("");
           return `<article class="shome-post">
   <p class="shome-post__text">${escapeTextWithBreaks(post.text)}</p>
+  ${media ? `<div class="shome-post__media">${media}</div>` : ""}
   <footer class="shome-post__footer"><time datetime="${post.createdAt.toISOString()}">${post.createdAt.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}</time>${links}</footer>
 </article>`;
         })
@@ -70,6 +104,11 @@ async function renderPosts(db: Db, userId: string): Promise<string> {
     .shome-posts { display: grid; gap: 1rem; }
     .shome-post { padding: 1.25rem; border: 1px solid currentColor; border-radius: .75rem; }
     .shome-post__text { margin: 0; white-space: normal; overflow-wrap: anywhere; }
+    .shome-post__media { display: grid; gap: .75rem; margin-top: 1rem; }
+    .shome-post__image, .shome-post__video { display: block; max-width: 100%; max-height: 70vh; border-radius: .5rem; background: #000; }
+    .shome-post__image { width: 100%; object-fit: cover; }
+    .shome-post__video { width: 100%; object-fit: contain; }
+    .shome-post__video-link { display: inline-block; }
     .shome-post__footer { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1rem; font-size: .875rem; opacity: .72; }
   </style>
   ${content}
@@ -82,7 +121,9 @@ async function renderProducts(db: Db, userId: string): Promise<string> {
     .from(products)
     .where(eq(products.userId, userId))
     .orderBy(asc(products.sortOrder), desc(products.createdAt));
-  const visibleProducts = catalog.filter((product) => product.visible && isSafeHttpUrl(product.checkoutUrl));
+  const visibleProducts = catalog.filter(
+    (product) => product.visible && isSafeHttpUrl(product.checkoutUrl),
+  );
   const content = visibleProducts.length
     ? visibleProducts
         .map((product) => {
@@ -134,7 +175,8 @@ export async function renderProfileComponents({
   let rendered = html;
   for (const name of componentNames) {
     if (!hasProfileComponent(rendered, name)) continue;
-    const markup = name === "posts" ? await renderPosts(db, userId) : await renderProducts(db, userId);
+    const markup =
+      name === "posts" ? await renderPosts(db, userId) : await renderProducts(db, userId);
     rendered = rendered.replace(componentPattern(name), () => markup);
   }
   return rendered;

@@ -4,7 +4,10 @@ import {
   type Db,
   interestSignups,
   items,
+  mediaUploads,
   openDatabase,
+  postMedia,
+  posts,
   products,
   sources,
   subscriptions,
@@ -61,6 +64,42 @@ describe("schema + migrations", () => {
     expect(rows).toHaveLength(1);
     expect(rows[0]?.title).toBe("hello");
     expect(rows[0]?.media).toEqual([{ type: "image", url: "https://example.com/x.png" }]);
+
+    const [post] = await db
+      .insert(posts)
+      .values({ userId: alice.id, text: "a post with a photo" })
+      .returning();
+    if (!post) throw new Error("unreachable");
+    const [attachment] = await db
+      .insert(postMedia)
+      .values({
+        id: "8c1fc5bc-7813-46bd-b351-569abcb9950f",
+        postId: post.id,
+        type: "image",
+        contentType: "image/jpeg",
+        byteSize: 42,
+        originalName: "photo.jpg",
+      })
+      .returning();
+    expect(attachment).toMatchObject({ postId: post.id, type: "image" });
+
+    const [upload] = await db
+      .insert(mediaUploads)
+      .values({
+        id: "20c33cef-abb9-48a1-9f7a-77cb56c2655e",
+        userId: alice.id,
+        type: "video",
+        contentType: "video/mp4",
+        byteSize: 123,
+        originalName: "clip.mp4",
+        provider: "cloudflare_stream",
+        providerAssetId: "cloudflare-video-123",
+      })
+      .returning();
+    expect(upload).toMatchObject({
+      status: "uploading",
+      provider: "cloudflare_stream",
+    });
   });
 
   it("dedupes items on (sourceId, externalId)", async () => {
