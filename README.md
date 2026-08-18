@@ -100,4 +100,5 @@ port 3000 on the machine running Metro). For a deployed server set
 ### Docs
 
 - [Architecture & decisions](docs/architecture.md)
+- [Discovery roadmap](docs/discovery.md)
 - [Closed-platform access research](docs/platform-access.md) — what's possible with X, Facebook, Instagram, LinkedIn
