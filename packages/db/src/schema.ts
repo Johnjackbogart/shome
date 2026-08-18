@@ -1,4 +1,5 @@
 import type { FeedRules, MediaRef, SourceKind } from "@shome/core";
+import { relations } from "drizzle-orm";
 import {
   boolean,
   index,
@@ -312,3 +313,131 @@ export const interestSignups = pgTable("interest_signups", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+// ---------------------------------------------------------------------------
+// Drizzle relational-query metadata
+// ---------------------------------------------------------------------------
+//
+// These declarations describe the application-level navigation between the
+// foreign keys above. They do not alter the database schema or migrations.
+
+export const userRelations = relations(user, ({ many, one }) => ({
+  sessions: many(session),
+  accounts: many(account),
+  connections: many(connections),
+  subscriptions: many(subscriptions),
+  posts: many(posts),
+  mediaUploads: many(mediaUploads),
+  feeds: many(feeds),
+  profile: one(profiles),
+  // `following` are relationship rows where this user initiated the follow;
+  // `followers` are rows where they are the target.
+  following: many(follows, { relationName: "follower" }),
+  followers: many(follows, { relationName: "following" }),
+  products: many(products),
+}));
+
+export const sessionRelations = relations(session, ({ one }) => ({
+  user: one(user, {
+    fields: [session.userId],
+    references: [user.id],
+  }),
+}));
+
+export const accountRelations = relations(account, ({ one }) => ({
+  user: one(user, {
+    fields: [account.userId],
+    references: [user.id],
+  }),
+}));
+
+export const connectionsRelations = relations(connections, ({ many, one }) => ({
+  user: one(user, {
+    fields: [connections.userId],
+    references: [user.id],
+  }),
+  subscriptions: many(subscriptions),
+}));
+
+export const sourcesRelations = relations(sources, ({ many }) => ({
+  subscriptions: many(subscriptions),
+  items: many(items),
+}));
+
+export const subscriptionsRelations = relations(subscriptions, ({ one }) => ({
+  user: one(user, {
+    fields: [subscriptions.userId],
+    references: [user.id],
+  }),
+  source: one(sources, {
+    fields: [subscriptions.sourceId],
+    references: [sources.id],
+  }),
+  connection: one(connections, {
+    fields: [subscriptions.connectionId],
+    references: [connections.id],
+  }),
+}));
+
+export const itemsRelations = relations(items, ({ one }) => ({
+  source: one(sources, {
+    fields: [items.sourceId],
+    references: [sources.id],
+  }),
+}));
+
+export const postsRelations = relations(posts, ({ many, one }) => ({
+  user: one(user, {
+    fields: [posts.userId],
+    references: [user.id],
+  }),
+  media: many(postMedia),
+}));
+
+export const postMediaRelations = relations(postMedia, ({ one }) => ({
+  post: one(posts, {
+    fields: [postMedia.postId],
+    references: [posts.id],
+  }),
+}));
+
+export const mediaUploadsRelations = relations(mediaUploads, ({ one }) => ({
+  user: one(user, {
+    fields: [mediaUploads.userId],
+    references: [user.id],
+  }),
+}));
+
+export const feedsRelations = relations(feeds, ({ one }) => ({
+  user: one(user, {
+    fields: [feeds.userId],
+    references: [user.id],
+  }),
+}));
+
+export const profilesRelations = relations(profiles, ({ one }) => ({
+  user: one(user, {
+    fields: [profiles.userId],
+    references: [user.id],
+  }),
+}));
+
+export const followsRelations = relations(follows, ({ one }) => ({
+  follower: one(user, {
+    fields: [follows.followerId],
+    references: [user.id],
+    relationName: "follower",
+  }),
+  following: one(user, {
+    fields: [follows.followingId],
+    references: [user.id],
+    relationName: "following",
+  }),
+}));
+
+export const productsRelations = relations(products, ({ one }) => ({
+  user: one(user, {
+    fields: [products.userId],
+    references: [user.id],
+  }),
+}));

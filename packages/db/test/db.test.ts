@@ -100,6 +100,19 @@ describe("schema + migrations", () => {
       status: "uploading",
       provider: "cloudflare_stream",
     });
+    if (!attachment || !upload) throw new Error("unreachable");
+
+    const userWithRelations = await db.query.user.findFirst({
+      where: eq(user.id, alice.id),
+      with: {
+        subscriptions: { with: { source: true } },
+        posts: { with: { media: true } },
+        mediaUploads: true,
+      },
+    });
+    expect(userWithRelations?.subscriptions[0]?.source.id).toBe(source.id);
+    expect(userWithRelations?.posts[0]?.media[0]?.id).toBe(attachment.id);
+    expect(userWithRelations?.mediaUploads[0]?.id).toBe(upload.id);
   });
 
   it("dedupes items on (sourceId, externalId)", async () => {
