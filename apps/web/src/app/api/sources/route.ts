@@ -1,26 +1,15 @@
 import { getConnector } from "@shome/connectors";
 import { ConnectorConfigError } from "@shome/core";
-import { connections, type Source, sources, subscriptions } from "@shome/db";
+import { connections, sources, subscriptions } from "@shome/db";
 import { and, desc, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import type { SourceView } from "#/lib/types";
 import { jsonError, parseBody, UUID_RE } from "#/server/api";
 import { getSessionOrNull } from "#/server/auth";
 import { getDb } from "#/server/db";
 import { BlockedHostError } from "#/server/netguard";
 import { guardSource, refreshSubscription } from "#/server/refresh";
-
-function toSourceView(source: Source): SourceView {
-  return {
-    id: source.id,
-    kind: source.kind,
-    title: source.title,
-    config: source.config,
-    lastFetchedAt: source.lastFetchedAt?.toISOString() ?? null,
-    lastError: source.lastError,
-  };
-}
+import { toSourceView } from "#/server/sources";
 
 export async function GET() {
   const session = await getSessionOrNull();
@@ -28,13 +17,13 @@ export async function GET() {
   const db = await getDb();
 
   const rows = await db
-    .select({ source: sources })
+    .select({ source: sources, customTitle: subscriptions.customTitle })
     .from(subscriptions)
     .innerJoin(sources, eq(subscriptions.sourceId, sources.id))
     .where(eq(subscriptions.userId, session.user.id))
     .orderBy(desc(subscriptions.createdAt));
   return NextResponse.json({
-    sources: rows.map((row) => toSourceView(row.source)),
+    sources: rows.map((row) => toSourceView(row.source, row.customTitle)),
   });
 }
 

@@ -307,7 +307,7 @@ export function PostComposer({ onPosted, onSuccess }: PostComposerProps) {
             </Text>
           </Pressable>
         </View>
-        {blueskyConnectionId && blueskyConnections.length > 1 && (
+        {Boolean(blueskyConnectionId) && blueskyConnections.length > 1 && (
           <View className="gap-1">
             <Text className="text-xs text-slate-500">Bluesky account</Text>
             <View className="flex-row flex-wrap gap-2">
@@ -330,14 +330,14 @@ export function PostComposer({ onPosted, onSuccess }: PostComposerProps) {
                         : "text-xs text-slate-300"
                     }
                   >
-                    {connection.label}
+                    {connection.account ?? connection.label}
                   </Text>
                 </Pressable>
               ))}
             </View>
           </View>
         )}
-        {mastodonConnectionId && mastodonConnections.length > 1 && (
+        {Boolean(mastodonConnectionId) && mastodonConnections.length > 1 && (
           <View className="gap-1">
             <Text className="text-xs text-slate-500">Mastodon account</Text>
             <View className="flex-row flex-wrap gap-2">
@@ -360,7 +360,7 @@ export function PostComposer({ onPosted, onSuccess }: PostComposerProps) {
                         : "text-xs text-slate-300"
                     }
                   >
-                    {connection.label}
+                    {connection.account ?? connection.label}
                   </Text>
                 </Pressable>
               ))}
@@ -373,12 +373,12 @@ export function PostComposer({ onPosted, onSuccess }: PostComposerProps) {
           </Text>
         )}
       </View>
-      {blueskyConnectionId && (
+      {Boolean(blueskyConnectionId) && (
         <Text className={blueskyTooLong ? "text-xs text-rose-300" : "text-xs text-slate-500"}>
           Bluesky: {blueskyLength}/300 characters
         </Text>
       )}
-      {selectedMedia.length > 0 && (blueskyConnectionId || mastodonConnectionId) && (
+      {selectedMedia.length > 0 && Boolean(blueskyConnectionId || mastodonConnectionId) && (
         <Text className="text-xs leading-5 text-slate-500">
           Attachments publish to shome. Connected platforms currently receive text only.
         </Text>

@@ -3,7 +3,7 @@ import { items, posts, sources, subscriptions, user } from "@shome/db";
 import { and, desc, eq, ilike, or, type SQL, sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import type { FeedItemView } from "#/lib/types";
-import { jsonError, UUID_RE } from "#/server/api";
+import { containsPattern, jsonError, UUID_RE } from "#/server/api";
 import { getSessionOrNull } from "#/server/auth";
 import { getDb } from "#/server/db";
 import { mediaByPostId, postToFeedItem } from "#/server/posting";
@@ -29,8 +29,17 @@ export async function GET(req: Request) {
   if (kind && kind !== "post") filters.push(eq(sources.kind, kind as SourceKind));
   if (sourceId) filters.push(eq(items.sourceId, sourceId));
   if (q) {
-    const pattern = `%${q.replace(/[\\%_]/g, (ch) => `\\${ch}`)}%`;
-    const match = or(ilike(items.title, pattern), ilike(items.text, pattern));
+    // Searching a feed means searching for who said it as much as what was
+    // said, so the publication and author names match alongside the body.
+    const pattern = containsPattern(q);
+    const match = or(
+      ilike(items.title, pattern),
+      ilike(items.text, pattern),
+      ilike(items.authorName, pattern),
+      ilike(items.authorHandle, pattern),
+      ilike(sources.title, pattern),
+      ilike(subscriptions.customTitle, pattern),
+    );
     if (match) filters.push(match);
   }
 
@@ -41,7 +50,10 @@ export async function GET(req: Request) {
           .select({
             item: items,
             sourceKind: sources.kind,
-            sourceTitle: sources.title,
+            // A rename by this subscriber wins over the name the feed reported.
+            sourceTitle: sql<
+              string | null
+            >`coalesce(${subscriptions.customTitle}, ${sources.title})`,
           })
           .from(items)
           .innerJoin(subscriptions, eq(items.sourceId, subscriptions.sourceId))

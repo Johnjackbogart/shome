@@ -34,6 +34,7 @@ export function AuthForm({ onAuthed }: { onAuthed: (user: PublicUser) => void })
           email: data.user.email,
           handle: username,
           displayName: data.user.name ?? null,
+          image: (data.user as { image?: string | null }).image ?? null,
         });
       } else {
         const { data, error: authError } = await authClient.signIn.email({
@@ -47,12 +48,14 @@ export function AuthForm({ onAuthed }: { onAuthed: (user: PublicUser) => void })
           email: string;
           name?: string | null;
           username?: string | null;
+          image?: string | null;
         };
         onAuthed({
           id: sessionUser.id,
           email: sessionUser.email,
           handle: sessionUser.username ?? null,
           displayName: sessionUser.name ?? null,
+          image: sessionUser.image ?? null,
         });
       }
     } catch (err) {
@@ -146,7 +149,9 @@ export function AuthForm({ onAuthed }: { onAuthed: (user: PublicUser) => void })
       <label className={labelClass}>
         <span className="flex items-center justify-between text-xs font-medium text-slate-300">
           Password
-          {mode === "signin" && <span className="font-normal text-slate-500">At least 8 characters</span>}
+          {mode === "signin" && (
+            <span className="font-normal text-slate-500">At least 8 characters</span>
+          )}
         </span>
         <span className="relative block">
           <input
@@ -170,7 +175,10 @@ export function AuthForm({ onAuthed }: { onAuthed: (user: PublicUser) => void })
       </label>
 
       {error && (
-        <p className="rounded-xl border border-rose-400/20 bg-rose-400/10 px-3 py-2.5 text-sm text-rose-200" role="alert">
+        <p
+          className="rounded-xl border border-rose-400/20 bg-rose-400/10 px-3 py-2.5 text-sm text-rose-200"
+          role="alert"
+        >
           {error}
         </p>
       )}

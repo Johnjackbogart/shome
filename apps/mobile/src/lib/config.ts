@@ -14,3 +14,14 @@ function guessDevServer(): string {
 }
 
 export const API_URL = process.env.EXPO_PUBLIC_API_URL ?? guessDevServer();
+
+/**
+ * Absolute URL for something the API serves. First-party media and avatars are
+ * server-relative paths (`/api/media/…`) because the web app is same-origin
+ * with them; a native <Image> has no origin to resolve those against, so it
+ * silently renders nothing. Anything already absolute is left alone — fetched
+ * items carry the source platform's own URLs.
+ */
+export function apiUrl(pathOrUrl: string): string {
+  return pathOrUrl.startsWith("/") ? `${API_URL}${pathOrUrl}` : pathOrUrl;
+}

@@ -90,6 +90,10 @@ export const connections = pgTable(
       .references(() => user.id, { onDelete: "cascade" }),
     provider: text("provider").notNull(),
     label: text("label").notNull().default("default"),
+    // Non-secret display identity for the linked account (a Bluesky handle, a
+    // Mastodon @user@host). Resolved when the connection is linked, so it is
+    // null for rows created before it existed and when resolution failed.
+    account: text("account"),
     credentials: text("credentials").notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
@@ -122,6 +126,10 @@ export const subscriptions = pgTable(
     connectionId: uuid("connection_id").references(() => connections.id, {
       onDelete: "set null",
     }),
+    // What this subscriber calls the source. It lives here rather than on the
+    // shared `sources` row so one person's rename cannot rewrite the name for
+    // everyone else, and so `sources.title` keeps the name the feed reported.
+    customTitle: text("custom_title"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [primaryKey({ columns: [t.userId, t.sourceId] })],

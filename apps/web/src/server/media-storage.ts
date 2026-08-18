@@ -32,6 +32,8 @@ type DetectedMedia = {
 const JPEG = Buffer.from([0xff, 0xd8, 0xff]);
 const PNG = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
 const WEBM = Buffer.from([0x1a, 0x45, 0xdf, 0xa3]);
+const WEBM_SEGMENT = Buffer.from([0x18, 0x53, 0x80, 0x67]);
+const WEBM_INFO_ID = 0x1549a966;
 
 function uploadDirectory(): string {
   return process.env.SHOME_UPLOAD_DIR ?? path.join(process.cwd(), ".data", "uploads");
@@ -94,45 +96,225 @@ function readBoxSize(
   return size >= 16 ? { size, header: 16 } : null;
 }
 
-function mp4DurationMs(bytes: Buffer): number | null {
-  const inspectBoxes = (start: number, end: number, depth: number): number | null => {
-    if (depth > 8) return null;
-    for (let offset = start; offset + 8 <= end; ) {
-      const box = readBoxSize(bytes, offset, end);
-      if (!box || offset + box.size > end) return null;
-      const type = bytes.subarray(offset + 4, offset + 8).toString("ascii");
-      const payloadStart = offset + box.header;
-      const boxEnd = offset + box.size;
-      if (type === "mvhd") {
-        if (payloadStart + 4 > boxEnd) return null;
-        const version = bytes.readUInt8(payloadStart);
-        const timescaleOffset = payloadStart + (version === 1 ? 20 : 12);
-        const durationOffset = payloadStart + (version === 1 ? 24 : 16);
-        const durationLength = version === 1 ? 8 : 4;
-        if (timescaleOffset + 4 > boxEnd || durationOffset + durationLength > boxEnd) return null;
-        const timescale = bytes.readUInt32BE(timescaleOffset);
-        if (timescale === 0) return null;
-        const duration =
-          version === 1
-            ? bytes.readBigUInt64BE(durationOffset)
-            : BigInt(bytes.readUInt32BE(durationOffset));
-        if (duration === 0xffffffffn || duration > BigInt(Number.MAX_SAFE_INTEGER)) return null;
-        const milliseconds = (Number(duration) * 1000) / timescale;
-        return Number.isFinite(milliseconds) && milliseconds > 0 ? Math.ceil(milliseconds) : null;
-      }
-      if (type === "moov") {
-        const duration = inspectBoxes(payloadStart, boxEnd, depth + 1);
-        if (duration !== null) return duration;
-      }
-      offset = boxEnd;
-    }
-    return null;
-  };
+type Mp4Box = {
+  type: string;
+  payloadStart: number;
+  end: number;
+};
 
-  return inspectBoxes(0, bytes.length, 0);
+function mp4Boxes(bytes: Buffer, start: number, end: number): Mp4Box[] | null {
+  const boxes: Mp4Box[] = [];
+  for (let offset = start; offset + 8 <= end; ) {
+    const box = readBoxSize(bytes, offset, end);
+    if (!box || offset + box.size > end) return null;
+    boxes.push({
+      type: bytes.subarray(offset + 4, offset + 8).toString("ascii"),
+      payloadStart: offset + box.header,
+      end: offset + box.size,
+    });
+    offset += box.size;
+  }
+  return boxes;
 }
 
-function readEbmlSize(bytes: Buffer, offset: number): { value: number; length: number } | null {
+function fullBoxFlags(bytes: Buffer, box: Mp4Box): { version: number; flags: number } | null {
+  if (box.payloadStart + 4 > box.end) return null;
+  return {
+    version: bytes.readUInt8(box.payloadStart),
+    flags: bytes.readUIntBE(box.payloadStart + 1, 3),
+  };
+}
+
+function readMp4Unsigned(bytes: Buffer, offset: number, length: number): bigint | null {
+  if ((length !== 4 && length !== 8) || offset + length > bytes.length) return null;
+  return length === 4 ? BigInt(bytes.readUInt32BE(offset)) : bytes.readBigUInt64BE(offset);
+}
+
+function durationFromUnits(duration: bigint, timescale: number): number | null {
+  if (duration <= 0n || timescale <= 0 || duration > BigInt(Number.MAX_SAFE_INTEGER)) return null;
+  const milliseconds = (Number(duration) * 1000) / timescale;
+  return Number.isFinite(milliseconds) && milliseconds > 0 ? Math.ceil(milliseconds) : null;
+}
+
+function movieHeader(
+  bytes: Buffer,
+  box: Mp4Box,
+): { timescale: number; duration: bigint | null } | null {
+  const fullBox = fullBoxFlags(bytes, box);
+  if (!fullBox) return null;
+  const timescaleOffset = box.payloadStart + (fullBox.version === 1 ? 20 : 12);
+  const durationOffset = box.payloadStart + (fullBox.version === 1 ? 24 : 16);
+  const durationLength = fullBox.version === 1 ? 8 : 4;
+  if (timescaleOffset + 4 > box.end || durationOffset + durationLength > box.end) return null;
+  const timescale = bytes.readUInt32BE(timescaleOffset);
+  const duration = readMp4Unsigned(bytes, durationOffset, durationLength);
+  if (timescale === 0 || duration === null) return null;
+  const unknownDuration = fullBox.version === 1 ? 0xffffffffffffffffn : 0xffffffffn;
+  return { timescale, duration: duration === unknownDuration || duration === 0n ? null : duration };
+}
+
+function trackId(bytes: Buffer, box: Mp4Box): number | null {
+  const fullBox = fullBoxFlags(bytes, box);
+  if (!fullBox) return null;
+  const offset = box.payloadStart + (fullBox.version === 1 ? 20 : 12);
+  return offset + 4 <= box.end ? bytes.readUInt32BE(offset) : null;
+}
+
+function mediaTimescale(bytes: Buffer, box: Mp4Box): number | null {
+  const fullBox = fullBoxFlags(bytes, box);
+  if (!fullBox) return null;
+  const offset = box.payloadStart + (fullBox.version === 1 ? 20 : 12);
+  if (offset + 4 > box.end) return null;
+  const timescale = bytes.readUInt32BE(offset);
+  return timescale > 0 ? timescale : null;
+}
+
+function movieExtendsDuration(bytes: Buffer, box: Mp4Box): bigint | null {
+  const fullBox = fullBoxFlags(bytes, box);
+  if (!fullBox) return null;
+  return readMp4Unsigned(bytes, box.payloadStart + 4, fullBox.version === 1 ? 8 : 4);
+}
+
+function trackExtendsDefaultDuration(
+  bytes: Buffer,
+  box: Mp4Box,
+): { id: number; duration: number } | null {
+  if (!fullBoxFlags(bytes, box) || box.payloadStart + 16 > box.end) return null;
+  const id = bytes.readUInt32BE(box.payloadStart + 4);
+  const duration = bytes.readUInt32BE(box.payloadStart + 12);
+  return id > 0 && duration > 0 ? { id, duration } : null;
+}
+
+function trackFragmentHeader(
+  bytes: Buffer,
+  box: Mp4Box,
+): { id: number; defaultDuration: number | null } | null {
+  const fullBox = fullBoxFlags(bytes, box);
+  if (!fullBox || box.payloadStart + 8 > box.end) return null;
+  let offset = box.payloadStart + 4;
+  const id = bytes.readUInt32BE(offset);
+  offset += 4;
+  if (fullBox.flags & 0x000001) offset += 8;
+  if (fullBox.flags & 0x000002) offset += 4;
+  let defaultDuration: number | null = null;
+  if (fullBox.flags & 0x000008) {
+    if (offset + 4 > box.end) return null;
+    defaultDuration = bytes.readUInt32BE(offset);
+  }
+  return id > 0 ? { id, defaultDuration } : null;
+}
+
+function trackFragmentDecodeTime(bytes: Buffer, box: Mp4Box): bigint | null {
+  const fullBox = fullBoxFlags(bytes, box);
+  if (!fullBox) return null;
+  return readMp4Unsigned(bytes, box.payloadStart + 4, fullBox.version === 1 ? 8 : 4);
+}
+
+function trackRunDuration(
+  bytes: Buffer,
+  box: Mp4Box,
+  defaultDuration: number | null,
+): bigint | null {
+  const fullBox = fullBoxFlags(bytes, box);
+  if (!fullBox || box.payloadStart + 8 > box.end) return null;
+  const sampleCount = bytes.readUInt32BE(box.payloadStart + 4);
+  let offset = box.payloadStart + 8;
+  if (fullBox.flags & 0x000001) offset += 4;
+  if (fullBox.flags & 0x000004) offset += 4;
+  const sampleFields =
+    (fullBox.flags & 0x000100 ? 4 : 0) +
+    (fullBox.flags & 0x000200 ? 4 : 0) +
+    (fullBox.flags & 0x000400 ? 4 : 0) +
+    (fullBox.flags & 0x000800 ? 4 : 0);
+  if (
+    offset > box.end ||
+    sampleCount > 1_000_000 ||
+    sampleFields * sampleCount > box.end - offset
+  ) {
+    return null;
+  }
+  if (!(fullBox.flags & 0x000100)) {
+    return defaultDuration && defaultDuration > 0
+      ? BigInt(defaultDuration) * BigInt(sampleCount)
+      : null;
+  }
+
+  let duration = 0n;
+  for (let sample = 0; sample < sampleCount; sample += 1) {
+    duration += BigInt(bytes.readUInt32BE(offset));
+    offset += sampleFields;
+  }
+  return duration > 0n ? duration : null;
+}
+
+function mp4DurationMs(bytes: Buffer): number | null {
+  const topLevel = mp4Boxes(bytes, 0, bytes.length);
+  const moov = topLevel?.find((box) => box.type === "moov");
+  if (!topLevel || !moov) return null;
+  const movieBoxes = mp4Boxes(bytes, moov.payloadStart, moov.end);
+  const mvhd = movieBoxes?.find((box) => box.type === "mvhd");
+  if (!movieBoxes || !mvhd) return null;
+  const movie = movieHeader(bytes, mvhd);
+  if (!movie) return null;
+  const headerDuration = movie.duration ? durationFromUnits(movie.duration, movie.timescale) : null;
+  if (headerDuration !== null) return headerDuration;
+
+  const mvex = movieBoxes.find((box) => box.type === "mvex");
+  const mvexBoxes = mvex ? mp4Boxes(bytes, mvex.payloadStart, mvex.end) : null;
+  const mehd = mvexBoxes?.find((box) => box.type === "mehd");
+  const extendsDuration = mehd ? movieExtendsDuration(bytes, mehd) : null;
+  const mehdDuration = extendsDuration ? durationFromUnits(extendsDuration, movie.timescale) : null;
+  if (mehdDuration !== null) return mehdDuration;
+
+  const timescales = new Map<number, number>();
+  for (const trak of movieBoxes.filter((box) => box.type === "trak")) {
+    const trakBoxes = mp4Boxes(bytes, trak.payloadStart, trak.end);
+    const tkhd = trakBoxes?.find((box) => box.type === "tkhd");
+    const mdia = trakBoxes?.find((box) => box.type === "mdia");
+    const mdiaBoxes = mdia ? mp4Boxes(bytes, mdia.payloadStart, mdia.end) : null;
+    const mdhd = mdiaBoxes?.find((box) => box.type === "mdhd");
+    const id = tkhd ? trackId(bytes, tkhd) : null;
+    const timescale = mdhd ? mediaTimescale(bytes, mdhd) : null;
+    if (id !== null && timescale !== null) timescales.set(id, timescale);
+  }
+  if (timescales.size === 0) return null;
+
+  const defaultDurations = new Map<number, number>();
+  for (const trex of mvexBoxes?.filter((box) => box.type === "trex") ?? []) {
+    const value = trackExtendsDefaultDuration(bytes, trex);
+    if (value) defaultDurations.set(value.id, value.duration);
+  }
+
+  let latestEnd = 0;
+  for (const moof of topLevel.filter((box) => box.type === "moof")) {
+    const moofBoxes = mp4Boxes(bytes, moof.payloadStart, moof.end);
+    if (!moofBoxes) return null;
+    for (const traf of moofBoxes.filter((box) => box.type === "traf")) {
+      const trafBoxes = mp4Boxes(bytes, traf.payloadStart, traf.end);
+      const tfhd = trafBoxes?.find((box) => box.type === "tfhd");
+      const tfdt = trafBoxes?.find((box) => box.type === "tfdt");
+      const header = tfhd ? trackFragmentHeader(bytes, tfhd) : null;
+      const start = tfdt ? trackFragmentDecodeTime(bytes, tfdt) : null;
+      const timescale = header ? timescales.get(header.id) : null;
+      if (!trafBoxes || !header || start === null || !timescale) return null;
+      const defaultDuration = header.defaultDuration ?? defaultDurations.get(header.id) ?? null;
+      let duration = 0n;
+      for (const trun of trafBoxes.filter((box) => box.type === "trun")) {
+        const runDuration = trackRunDuration(bytes, trun, defaultDuration);
+        if (runDuration === null) return null;
+        duration += runDuration;
+      }
+      const end = durationFromUnits(start + duration, timescale);
+      if (end !== null) latestEnd = Math.max(latestEnd, end);
+    }
+  }
+  return latestEnd > 0 ? latestEnd : null;
+}
+
+function readEbmlSize(
+  bytes: Buffer,
+  offset: number,
+): { value: number; length: number; unknown: boolean } | null {
   if (offset >= bytes.length) return null;
   const first = bytes.readUInt8(offset);
   let mask = 0x80;
@@ -146,9 +328,7 @@ function readEbmlSize(bytes: Buffer, offset: number): { value: number; length: n
   for (let index = 1; index < length; index += 1) {
     value = value * 256 + bytes.readUInt8(offset + index);
   }
-  // Unknown-sized elements cannot give us a reliable Info boundary.
-  if (value === 2 ** (7 * length) - 1) return null;
-  return { value, length };
+  return { value, length, unknown: value === 2 ** (7 * length) - 1 };
 }
 
 function readEbmlId(bytes: Buffer, offset: number): { value: number; length: number } | null {
@@ -178,13 +358,40 @@ function readUnsigned(bytes: Buffer, offset: number, length: number): number | n
 }
 
 function webmDurationMs(bytes: Buffer): number | null {
-  const infoOffset = bytes.indexOf(Buffer.from([0x15, 0x49, 0xa9, 0x66]));
-  if (infoOffset < 0) return null;
-  const infoSize = readEbmlSize(bytes, infoOffset + 4);
+  const segmentOffset = bytes.indexOf(WEBM_SEGMENT, WEBM.length);
+  if (segmentOffset < 0) return null;
+  const segmentSizeOffset = segmentOffset + WEBM_SEGMENT.length;
+  const segmentSize = readEbmlSize(bytes, segmentSizeOffset);
+  if (!segmentSize) return null;
+  const segmentPayloadOffset = segmentSizeOffset + segmentSize.length;
+  const segmentEnd = segmentSize.unknown ? bytes.length : segmentPayloadOffset + segmentSize.value;
+  if (segmentEnd > bytes.length) return null;
+
+  let infoOffset = 0;
+  let infoSize: { value: number; length: number; unknown: boolean } | null = null;
+  for (let offset = segmentPayloadOffset; offset < segmentEnd; ) {
+    const id = readEbmlId(bytes, offset);
+    if (!id) return null;
+    const sizeOffset = offset + id.length;
+    const size = readEbmlSize(bytes, sizeOffset);
+    if (!size) return null;
+    const payloadOffset = sizeOffset + size.length;
+    const payloadEnd = payloadOffset + size.value;
+    if (payloadEnd > segmentEnd) return null;
+    if (id.value === WEBM_INFO_ID) {
+      if (size.unknown) return null;
+      infoOffset = payloadOffset;
+      infoSize = size;
+      break;
+    }
+    // A browser-generated unknown-sized Cluster cannot be skipped safely.
+    if (size.unknown) return null;
+    offset = payloadEnd;
+  }
   if (!infoSize) return null;
-  let offset = infoOffset + 4 + infoSize.length;
-  const end = offset + infoSize.value;
-  if (end > bytes.length) return null;
+
+  let offset = infoOffset;
+  const end = infoOffset + infoSize.value;
 
   let timestampScale = 1_000_000;
   let duration: number | null = null;
@@ -192,7 +399,7 @@ function webmDurationMs(bytes: Buffer): number | null {
     const id = readEbmlId(bytes, offset);
     if (!id) return null;
     const size = readEbmlSize(bytes, offset + id.length);
-    if (!size) return null;
+    if (!size || size.unknown) return null;
     const payloadStart = offset + id.length + size.length;
     const payloadEnd = payloadStart + size.value;
     if (payloadEnd > end) return null;

@@ -40,3 +40,12 @@ export function isUniqueViolation(err: unknown): boolean {
 }
 
 export const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * Wrap a person's search text in a case-insensitive "contains" pattern, with
+ * the LIKE wildcards they typed escaped so `100%` matches the literal text
+ * rather than every row.
+ */
+export function containsPattern(term: string): string {
+  return `%${term.replace(/[\\%_]/g, (ch) => `\\${ch}`)}%`;
+}

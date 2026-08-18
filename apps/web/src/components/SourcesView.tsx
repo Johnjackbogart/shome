@@ -2,7 +2,7 @@
 
 import { type FormEvent, useCallback, useEffect, useState } from "react";
 import { api } from "#/lib/api";
-import { timeAgo } from "#/lib/format";
+import { originalSourceLabel, SOURCE_FETCH_ERROR, sourceLabel, timeAgo } from "#/lib/format";
 import type { ConnectionView, SourceView } from "#/lib/types";
 
 type Kind = "rss" | "bluesky" | "mastodon" | "youtube";
@@ -45,6 +45,19 @@ export function SourcesView() {
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     }
+  }
+
+  async function renameSource(id: string, customTitle: string | null) {
+    setError(null);
+    const res = await api.patch<{ source: SourceView }>(`/api/sources/${id}`, { customTitle });
+    setSources((current) =>
+      (current ?? []).map((source) => (source.id === id ? res.source : source)),
+    );
+    setNotice(
+      res.source.customTitle
+        ? `renamed to "${res.source.customTitle}"`
+        : `restored the original name "${originalSourceLabel(res.source)}"`,
+    );
   }
 
   async function refreshSource(id: string) {
@@ -97,41 +110,13 @@ export function SourcesView() {
         ) : (
           <ul className="mt-3 flex flex-col gap-2">
             {sources.map((source) => (
-              <li
+              <SourceRow
                 key={source.id}
-                className="card flex items-center justify-between gap-3 px-3.5 py-3"
-              >
-                <div className="flex min-w-0 flex-wrap items-center gap-2.5">
-                  <span className={`badge ${KIND_COLORS[source.kind] ?? ""}`}>{source.kind}</span>
-                  <span className="font-semibold [overflow-wrap:anywhere]">
-                    {source.title ?? describeConfig(source)}
-                  </span>
-                  <span className="text-xs text-slate-400">
-                    {source.lastFetchedAt
-                      ? `fetched ${timeAgo(source.lastFetchedAt)}`
-                      : "never fetched"}
-                  </span>
-                  {source.lastError && (
-                    <span className="text-xs text-red-400">{source.lastError}</span>
-                  )}
-                </div>
-                <div className="flex shrink-0 gap-1.5">
-                  <button
-                    type="button"
-                    className="btn-ghost"
-                    onClick={() => void refreshSource(source.id)}
-                  >
-                    refresh
-                  </button>
-                  <button
-                    type="button"
-                    className="btn-ghost text-red-400"
-                    onClick={() => void removeSource(source.id)}
-                  >
-                    remove
-                  </button>
-                </div>
-              </li>
+                source={source}
+                onRename={(title) => renameSource(source.id, title)}
+                onRefresh={() => void refreshSource(source.id)}
+                onRemove={() => void removeSource(source.id)}
+              />
             ))}
           </ul>
         )}
@@ -160,7 +145,12 @@ export function SourcesView() {
                   <span className={`badge ${KIND_COLORS[connection.provider] ?? ""}`}>
                     {connection.provider}
                   </span>
-                  <span className="font-semibold">{connection.label}</span>
+                  <span className="font-semibold [overflow-wrap:anywhere]">
+                    {connection.account ?? connection.label}
+                  </span>
+                  {connection.account && connection.label !== "default" && (
+                    <span className="text-xs text-slate-400">{connection.label}</span>
+                  )}
                 </div>
                 <div className="flex shrink-0 gap-1.5">
                   <button
@@ -180,16 +170,102 @@ export function SourcesView() {
   );
 }
 
-function describeConfig(source: SourceView): string {
-  const config = source.config;
+function SourceRow({
+  source,
+  onRename,
+  onRefresh,
+  onRemove,
+}: {
+  source: SourceView;
+  onRename: (customTitle: string | null) => Promise<void>;
+  onRefresh: () => void;
+  onRemove: () => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const original = originalSourceLabel(source);
+
+  function startEditing() {
+    setDraft(source.customTitle ?? "");
+    setError(null);
+    setEditing(true);
+  }
+
+  async function save(event: FormEvent) {
+    event.preventDefault();
+    setBusy(true);
+    setError(null);
+    try {
+      // An empty box means "go back to the name the feed gave it".
+      await onRename(draft.trim() || null);
+      setEditing(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
-    (typeof config.url === "string" && config.url) ||
-    (typeof config.actor === "string" && `@${config.actor}`) ||
-    (typeof config.account === "string" && `@${config.account}`) ||
-    (typeof config.hashtag === "string" && `#${config.hashtag}`) ||
-    (typeof config.handle === "string" && `@${config.handle}`) ||
-    (typeof config.channelId === "string" && config.channelId) ||
-    source.kind
+    <li className="card flex flex-wrap items-center justify-between gap-3 px-3.5 py-3">
+      {editing ? (
+        <form className="flex min-w-0 flex-1 flex-wrap items-center gap-2" onSubmit={save}>
+          <input
+            className="input min-w-40 flex-1"
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            placeholder={original}
+            maxLength={200}
+            aria-label={`Name for ${original}`}
+            // biome-ignore lint/a11y/noAutofocus: the input replaces the button just clicked.
+            autoFocus
+          />
+          <button type="submit" className="btn" disabled={busy}>
+            {busy ? "saving…" : "save"}
+          </button>
+          <button type="button" className="btn-ghost" onClick={() => setEditing(false)}>
+            cancel
+          </button>
+          <p className="w-full text-xs text-slate-500">
+            {source.customTitle
+              ? `Clear the box to go back to "${original}".`
+              : "Only you see this name."}
+          </p>
+          {error && <p className="w-full text-xs text-red-400">{error}</p>}
+        </form>
+      ) : (
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
+          <div className="flex min-w-0 flex-wrap items-center gap-2.5">
+            <span className={`badge ${KIND_COLORS[source.kind] ?? ""}`}>{source.kind}</span>
+            <span className="font-semibold [overflow-wrap:anywhere]">{sourceLabel(source)}</span>
+            <span className="text-xs text-slate-400">
+              {source.lastFetchedAt ? `fetched ${timeAgo(source.lastFetchedAt)}` : "never fetched"}
+            </span>
+            {source.lastError && <span className="text-xs text-red-400">{SOURCE_FETCH_ERROR}</span>}
+          </div>
+          {source.customTitle && (
+            <span className="text-xs text-slate-500 [overflow-wrap:anywhere]">
+              originally “{original}”
+            </span>
+          )}
+        </div>
+      )}
+      <div className="flex shrink-0 gap-1.5">
+        {!editing && (
+          <button type="button" className="btn-ghost" onClick={startEditing}>
+            rename
+          </button>
+        )}
+        <button type="button" className="btn-ghost" onClick={onRefresh}>
+          refresh
+        </button>
+        <button type="button" className="btn-ghost text-red-400" onClick={onRemove}>
+          remove
+        </button>
+      </div>
+    </li>
   );
 }
 
@@ -249,10 +325,10 @@ function AddSourceForm({
         config: buildConfig(),
         connectionId: connectionId || undefined,
       });
-      const name = res.source.title ?? describeConfig(res.source);
+      const name = sourceLabel(res.source);
       onAdded(
         res.refreshError
-          ? `added "${name}" — first fetch failed: ${res.refreshError}`
+          ? `added "${name}" — ${res.refreshError}`
           : `added "${name}" (${res.fetched ?? 0} items)`,
       );
     } catch (err) {
@@ -364,7 +440,7 @@ function AddSourceForm({
             </option>
             {eligibleConnections.map((c) => (
               <option key={c.id} value={c.id}>
-                {c.provider} · {c.label}
+                {c.provider} · {c.account ?? c.label}
               </option>
             ))}
           </select>

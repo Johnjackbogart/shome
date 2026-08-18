@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { type ChangeEvent, useEffect, useRef, useState } from "react";
 import { api } from "#/lib/api";
 
 type ProductView = {
@@ -89,10 +89,7 @@ function ProductEditor({
   const [error, setError] = useState<string | null>(null);
   const isNew = !product;
 
-  function update<K extends keyof ProductDraft>(
-    key: K,
-    value: ProductDraft[K],
-  ) {
+  function update<K extends keyof ProductDraft>(key: K, value: ProductDraft[K]) {
     setDraft((current) => ({ ...current, [key]: value }));
   }
 
@@ -101,10 +98,7 @@ function ProductEditor({
     setError(null);
     try {
       const response = isNew
-        ? await api.post<{ product: ProductView }>(
-            "/api/products",
-            productPayload(draft),
-          )
+        ? await api.post<{ product: ProductView }>("/api/products", productPayload(draft))
         : await api.put<{ product: ProductView }>(
             `/api/products/${product.id}`,
             productPayload(draft),
@@ -232,8 +226,18 @@ function ProductEditor({
   );
 }
 
-export function ProfileView({ handle }: { handle: string | null }) {
+export function ProfileView({
+  handle,
+  onAvatarChange,
+}: {
+  handle: string | null;
+  onAvatarChange: (image: string | null) => void;
+}) {
   const [html, setHtml] = useState<string | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [pendingAvatarUploadId, setPendingAvatarUploadId] = useState<string | null>(null);
+  const [avatarBusy, setAvatarBusy] = useState(false);
+  const [avatarNotice, setAvatarNotice] = useState<string | null>(null);
   const [products, setProducts] = useState<ProductView[] | null>(null);
   const [addingProduct, setAddingProduct] = useState(false);
   const [prompt, setPrompt] = useState("");
@@ -245,20 +249,21 @@ export function ProfileView({ handle }: { handle: string | null }) {
   const [previewDoc, setPreviewDoc] = useState<string | null>(null);
   const [previewError, setPreviewError] = useState<string | null>(null);
   const [version, setVersion] = useState(0);
+  const avatarInput = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     Promise.all([
-      api.get<{ html: string }>("/api/profile"),
+      api.get<{ html: string; image: string | null }>("/api/profile"),
       api.get<{ products: ProductView[] }>("/api/products"),
     ])
       .then(([profile, catalog]) => {
         setHtml(profile.html);
+        setAvatarUrl(profile.image);
+        onAvatarChange(profile.image);
         setProducts(catalog.products);
       })
-      .catch((err) =>
-        setError(err instanceof Error ? err.message : String(err)),
-      );
-  }, []);
+      .catch((err) => setError(err instanceof Error ? err.message : String(err)));
+  }, [onAvatarChange]);
 
   // The preview renders the current draft through the same server-side
   // component + sanitize pipeline as the published page, so generated or
@@ -293,10 +298,7 @@ export function ProfileView({ handle }: { handle: string | null }) {
 
   function onProductSaved(product: ProductView) {
     setProducts((current) => {
-      const next = [
-        ...(current ?? []).filter((item) => item.id !== product.id),
-        product,
-      ];
+      const next = [...(current ?? []).filter((item) => item.id !== product.id), product];
       return next.sort((a, b) => a.sortOrder - b.sortOrder);
     });
     setAddingProduct(false);
@@ -304,15 +306,110 @@ export function ProfileView({ handle }: { handle: string | null }) {
   }
 
   function onProductDeleted(id: string) {
-    setProducts((current) =>
-      (current ?? []).filter((product) => product.id !== id),
-    );
+    setProducts((current) => (current ?? []).filter((product) => product.id !== id));
     refreshPreview();
   }
 
   function insertBlock(source: string) {
     setHtml((current) => `${current?.trimEnd() ?? ""}\n\n${source}\n`);
     setSaved(false);
+  }
+
+  async function finishAvatarUpload(uploadId: string) {
+    setAvatarBusy(true);
+    setError(null);
+    try {
+      const completed = await api.post<{ status: "uploading" | "processing" | "ready" | "failed" }>(
+        `/api/media/uploads/${uploadId}/complete`,
+      );
+      if (completed.status === "failed") {
+        throw new Error("your profile picture could not be processed");
+      }
+      if (completed.status !== "ready") {
+        setPendingAvatarUploadId(uploadId);
+        setAvatarNotice("Your profile picture is still processing. Check again in a moment.");
+        return;
+      }
+      const savedAvatar = await api.put<{ image: string | null }>("/api/profile", {
+        avatarUploadId: uploadId,
+      });
+      setAvatarUrl(savedAvatar.image);
+      onAvatarChange(savedAvatar.image);
+      setPendingAvatarUploadId(null);
+      setAvatarNotice("Profile picture saved.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setAvatarBusy(false);
+    }
+  }
+
+  async function uploadAvatar(file: File) {
+    if (!file.type.startsWith("image/")) {
+      setError("choose an image file for your profile picture");
+      return;
+    }
+    if (file.size > 20 * 1024 * 1024) {
+      setError("profile pictures must be 20 MB or smaller");
+      return;
+    }
+
+    setAvatarBusy(true);
+    setAvatarNotice(null);
+    setError(null);
+    try {
+      const created = await api.post<{
+        uploads: { id: string; type: "image"; uploadUrl: string }[];
+      }>("/api/media/uploads", {
+        uploads: [
+          {
+            name: file.name,
+            type: "image",
+            contentType: file.type,
+            byteSize: file.size,
+          },
+        ],
+      });
+      const upload = created.uploads[0];
+      if (!upload) throw new Error("could not create a profile picture upload");
+      const form = new FormData();
+      form.set("file", file);
+      const response = await fetch(upload.uploadUrl, { method: "POST", body: form });
+      if (!response.ok) {
+        const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+        throw new Error(payload?.error ?? "could not upload your profile picture");
+      }
+      setAvatarBusy(false);
+      await finishAvatarUpload(upload.id);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+      setAvatarBusy(false);
+    }
+  }
+
+  function selectAvatar(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (file) void uploadAvatar(file);
+  }
+
+  async function removeAvatar() {
+    setAvatarBusy(true);
+    setAvatarNotice(null);
+    setError(null);
+    try {
+      const savedAvatar = await api.put<{ image: string | null }>("/api/profile", {
+        avatarUploadId: null,
+      });
+      setAvatarUrl(savedAvatar.image);
+      onAvatarChange(savedAvatar.image);
+      setPendingAvatarUploadId(null);
+      setAvatarNotice("Profile picture removed.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setAvatarBusy(false);
+    }
   }
 
   async function save() {
@@ -374,10 +471,67 @@ export function ProfileView({ handle }: { handle: string | null }) {
         </button>
       </div>
       <p className="mb-4 text-sm text-slate-400">
-        Write HTML + CSS, then drop in shome blocks wherever you want them.
-        Pages remain locked to a no-script sandbox.
+        Write HTML + CSS, then drop in shome blocks wherever you want them. Pages remain locked to a
+        no-script sandbox.
       </p>
       {error && <p className="mb-2 text-sm text-red-400">{error}</p>}
+
+      <div className="card mb-4 flex flex-wrap items-center gap-4">
+        {avatarUrl ? (
+          <img className="size-20 rounded-full bg-slate-800 object-cover" src={avatarUrl} alt="" />
+        ) : (
+          <div
+            className="grid size-20 place-items-center rounded-full bg-indigo-300 text-2xl font-bold text-slate-950"
+            aria-hidden="true"
+          >
+            {(handle ?? "s").slice(0, 1).toUpperCase()}
+          </div>
+        )}
+        <div className="min-w-48 flex-1">
+          <h3 className="font-semibold">Profile picture</h3>
+          <p className="mt-1 text-sm text-slate-400">
+            Use a square image for the best result. JPEG, PNG, GIF, WebP, or AVIF up to 20 MB.
+          </p>
+          {avatarNotice && <p className="mt-2 text-sm text-emerald-400">{avatarNotice}</p>}
+        </div>
+        <input
+          ref={avatarInput}
+          className="sr-only"
+          type="file"
+          accept="image/jpeg,image/png,image/gif,image/webp,image/avif"
+          onChange={selectAvatar}
+        />
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            className="btn-ghost"
+            onClick={() => avatarInput.current?.click()}
+            disabled={avatarBusy}
+          >
+            {avatarBusy ? "uploading…" : avatarUrl ? "change photo" : "add photo"}
+          </button>
+          {pendingAvatarUploadId && (
+            <button
+              type="button"
+              className="btn"
+              onClick={() => void finishAvatarUpload(pendingAvatarUploadId)}
+              disabled={avatarBusy}
+            >
+              check photo
+            </button>
+          )}
+          {avatarUrl && (
+            <button
+              type="button"
+              className="btn-ghost text-red-300"
+              onClick={() => void removeAvatar()}
+              disabled={avatarBusy}
+            >
+              remove
+            </button>
+          )}
+        </div>
+      </div>
 
       <div className="card mb-4">
         <p className="mb-2 font-semibold">Building blocks</p>
@@ -395,23 +549,19 @@ export function ProfileView({ handle }: { handle: string | null }) {
         </div>
         <p className="mt-2 text-sm text-slate-400">
           Inserts a small, editable tag.{" "}
-          <code className="text-slate-200">&lt;shome-posts /&gt;</code> shows
-          your posts;{" "}
-          <code className="text-slate-200">&lt;shome-products /&gt;</code> shows
-          visible catalog items.
+          <code className="text-slate-200">&lt;shome-posts /&gt;</code> shows your posts;{" "}
+          <code className="text-slate-200">&lt;shome-products /&gt;</code> shows visible catalog
+          items.
         </p>
       </div>
 
       <div className="card mb-4">
-        <label
-          className="mb-1.5 block font-semibold"
-          htmlFor="portfolio-prompt"
-        >
+        <label className="mb-1.5 block font-semibold" htmlFor="portfolio-prompt">
           Vibe-code your page
         </label>
         <p className="mb-2 text-sm text-slate-400">
-          Describe the look and content you want. OpenAI creates an editable
-          HTML + CSS draft that can include shome blocks.
+          Describe the look and content you want. OpenAI creates an editable HTML + CSS draft that
+          can include shome blocks.
         </p>
         <div className="flex flex-col gap-2 sm:flex-row">
           <input
@@ -490,10 +640,7 @@ export function ProfileView({ handle }: { handle: string | null }) {
         </div>
         {addingProduct && (
           <div className="mb-3">
-            <ProductEditor
-              onSaved={onProductSaved}
-              onDeleted={onProductDeleted}
-            />
+            <ProductEditor onSaved={onProductSaved} onDeleted={onProductDeleted} />
           </div>
         )}
         {products === null ? (
@@ -513,9 +660,7 @@ export function ProfileView({ handle }: { handle: string | null }) {
                 <summary className="cursor-pointer px-4 py-3 font-medium">
                   {product.title}{" "}
                   {!product.visible && (
-                    <span className="text-sm font-normal text-slate-500">
-                      (hidden)
-                    </span>
+                    <span className="text-sm font-normal text-slate-500">(hidden)</span>
                   )}
                 </summary>
                 <div className="px-3 pb-3">

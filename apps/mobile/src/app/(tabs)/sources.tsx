@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { api } from "@/lib/api";
-import { timeAgo } from "@/lib/format";
+import { originalSourceLabel, SOURCE_FETCH_ERROR, sourceLabel, timeAgo } from "@/lib/format";
 import { COLORS, UI } from "@/lib/ui";
 
 type Kind = "rss" | "bluesky" | "mastodon" | "youtube";
@@ -29,19 +29,6 @@ const KIND_COLORS: Record<string, string> = {
   mastodon: "text-violet-300",
   youtube: "text-red-300",
 };
-
-function describeConfig(source: SourceView): string {
-  const config = source.config;
-  return (
-    (typeof config.url === "string" && config.url) ||
-    (typeof config.actor === "string" && `@${config.actor}`) ||
-    (typeof config.account === "string" && `@${config.account}`) ||
-    (typeof config.hashtag === "string" && `#${config.hashtag}`) ||
-    (typeof config.handle === "string" && `@${config.handle}`) ||
-    (typeof config.channelId === "string" && config.channelId) ||
-    source.kind
-  );
-}
 
 export default function SourcesScreen() {
   const [sources, setSources] = useState<SourceView[] | null>(null);
@@ -89,6 +76,19 @@ export default function SourcesScreen() {
     }
   }
 
+  async function renameSource(id: string, customTitle: string | null) {
+    setError(null);
+    const res = await api.patch<{ source: SourceView }>(`/api/sources/${id}`, { customTitle });
+    setSources((current) =>
+      (current ?? []).map((source) => (source.id === id ? res.source : source)),
+    );
+    setNotice(
+      res.source.customTitle
+        ? `renamed to "${res.source.customTitle}"`
+        : `restored the original name "${originalSourceLabel(res.source)}"`,
+    );
+  }
+
   return (
     <SafeAreaView className={UI.screen} edges={["top"]}>
       <FlatList
@@ -130,43 +130,146 @@ export default function SourcesScreen() {
           </View>
         }
         renderItem={({ item: source }) => (
-          <View className={`mb-3 px-4 py-4 ${UI.card}`}>
-            <View className="flex-row flex-wrap items-center gap-2">
-              <Text
-                className={`rounded-full bg-indigo-300/10 px-2 py-1 text-xs font-semibold uppercase ${
-                  KIND_COLORS[source.kind] ?? "text-slate-400"
-                }`}
-              >
-                {source.kind}
-              </Text>
-              <Text className="shrink font-semibold text-white" numberOfLines={1}>
-                {source.title ?? describeConfig(source)}
-              </Text>
-            </View>
-            <Text className="mt-1 text-xs text-slate-500">
-              {source.lastFetchedAt ? `fetched ${timeAgo(source.lastFetchedAt)}` : "never fetched"}
-            </Text>
-            {source.lastError && (
-              <Text className="mt-1 text-xs text-rose-300">{source.lastError}</Text>
-            )}
-            <View className="mt-3 flex-row gap-2">
-              <Pressable
-                onPress={() => void refreshSource(source.id)}
-                className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 active:opacity-70"
-              >
-                <Text className="text-xs font-medium text-indigo-200">Refresh</Text>
-              </Pressable>
-              <Pressable
-                onPress={() => void removeSource(source.id)}
-                className="rounded-xl border border-rose-300/15 bg-rose-300/5 px-3 py-2 active:opacity-70"
-              >
-                <Text className="text-xs font-medium text-rose-300">Remove</Text>
-              </Pressable>
-            </View>
-          </View>
+          <SourceRow
+            source={source}
+            onRename={(title) => renameSource(source.id, title)}
+            onRefresh={() => void refreshSource(source.id)}
+            onRemove={() => void removeSource(source.id)}
+          />
         )}
       />
     </SafeAreaView>
+  );
+}
+
+function SourceRow({
+  source,
+  onRename,
+  onRefresh,
+  onRemove,
+}: {
+  source: SourceView;
+  onRename: (customTitle: string | null) => Promise<void>;
+  onRefresh: () => void;
+  onRemove: () => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const original = originalSourceLabel(source);
+
+  function startEditing() {
+    setDraft(source.customTitle ?? "");
+    setError(null);
+    setEditing(true);
+  }
+
+  async function save() {
+    setBusy(true);
+    setError(null);
+    try {
+      // An empty box means "go back to the name the feed gave it".
+      await onRename(draft.trim() || null);
+      setEditing(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (editing) {
+    return (
+      <View className={`mb-3 gap-3 px-4 py-4 ${UI.card}`}>
+        <TextInput
+          className={UI.input}
+          value={draft}
+          onChangeText={setDraft}
+          placeholder={original}
+          placeholderTextColor="#64748b"
+          maxLength={200}
+          autoFocus
+          autoCorrect={false}
+          returnKeyType="done"
+          onSubmitEditing={() => void save()}
+          accessibilityLabel={`Name for ${original}`}
+        />
+        <Text className="text-xs leading-5 text-slate-500">
+          {source.customTitle
+            ? `Clear the box to go back to "${original}".`
+            : "Only you see this name."}
+        </Text>
+        {error && <Text className="text-xs text-rose-300">{error}</Text>}
+        <View className="flex-row gap-2">
+          <Pressable
+            onPress={() => void save()}
+            disabled={busy}
+            className="rounded-xl bg-indigo-300 px-3 py-2 active:opacity-80"
+          >
+            {busy ? (
+              <ActivityIndicator size="small" color={COLORS.background} />
+            ) : (
+              <Text className="text-xs font-semibold text-slate-950">Save</Text>
+            )}
+          </Pressable>
+          <Pressable
+            onPress={() => setEditing(false)}
+            className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 active:opacity-70"
+          >
+            <Text className="text-xs font-medium text-slate-300">Cancel</Text>
+          </Pressable>
+        </View>
+      </View>
+    );
+  }
+
+  return (
+    <View className={`mb-3 px-4 py-4 ${UI.card}`}>
+      <View className="flex-row flex-wrap items-center gap-2">
+        <Text
+          className={`rounded-full bg-indigo-300/10 px-2 py-1 text-xs font-semibold uppercase ${
+            KIND_COLORS[source.kind] ?? "text-slate-400"
+          }`}
+        >
+          {source.kind}
+        </Text>
+        <Text className="shrink font-semibold text-white" numberOfLines={1}>
+          {sourceLabel(source)}
+        </Text>
+      </View>
+      {source.customTitle && (
+        <Text className="mt-1 text-xs text-slate-500" numberOfLines={1}>
+          originally “{original}”
+        </Text>
+      )}
+      <Text className="mt-1 text-xs text-slate-500">
+        {source.lastFetchedAt ? `fetched ${timeAgo(source.lastFetchedAt)}` : "never fetched"}
+      </Text>
+      {source.lastError ? (
+        <Text className="mt-1 text-xs text-rose-300">{SOURCE_FETCH_ERROR}</Text>
+      ) : null}
+      <View className="mt-3 flex-row gap-2">
+        <Pressable
+          onPress={startEditing}
+          className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 active:opacity-70"
+        >
+          <Text className="text-xs font-medium text-indigo-200">Rename</Text>
+        </Pressable>
+        <Pressable
+          onPress={onRefresh}
+          className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 active:opacity-70"
+        >
+          <Text className="text-xs font-medium text-indigo-200">Refresh</Text>
+        </Pressable>
+        <Pressable
+          onPress={onRemove}
+          className="rounded-xl border border-rose-300/15 bg-rose-300/5 px-3 py-2 active:opacity-70"
+        >
+          <Text className="text-xs font-medium text-rose-300">Remove</Text>
+        </Pressable>
+      </View>
+    </View>
   );
 }
 
@@ -206,10 +309,10 @@ function AddSourceForm({
         fetched?: number;
         refreshError?: string;
       }>("/api/sources", { kind, config: buildConfig() });
-      const name = res.source.title ?? describeConfig(res.source);
+      const name = sourceLabel(res.source);
       onAdded(
         res.refreshError
-          ? `added "${name}" — first fetch failed: ${res.refreshError}`
+          ? `added "${name}" — ${res.refreshError}`
           : `added "${name}" (${res.fetched ?? 0} items)`,
       );
     } catch (err) {

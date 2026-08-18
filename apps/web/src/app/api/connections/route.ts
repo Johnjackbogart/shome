@@ -1,11 +1,12 @@
-import { connections } from "@shome/db";
+import { connections, type Db } from "@shome/db";
 import { desc, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import type { ConnectionView } from "#/lib/types";
 import { isUniqueViolation, jsonError, parseBody } from "#/server/api";
 import { getSessionOrNull } from "#/server/auth";
-import { encryptCredentials } from "#/server/crypto";
+import { resolveConnectionAccount } from "#/server/connection-account";
+import { decryptCredentials, encryptCredentials } from "#/server/crypto";
 import { getDb } from "#/server/db";
 
 // Providers that need stored credentials, and which fields they require.
@@ -15,28 +16,53 @@ const REQUIRED_FIELDS: Record<string, string[]> = {
   youtube: ["apiKey"],
 };
 
+// Names a connection linked before `account` was recorded, so existing
+// connections show who they are without being relinked. Best effort: an
+// unresolved row simply stays unnamed and is tried again on the next read.
+async function backfillAccount(
+  db: Db,
+  row: { id: string; provider: string; credentials: string },
+): Promise<string | null> {
+  try {
+    const account = await resolveConnectionAccount(
+      row.provider,
+      await decryptCredentials(row.credentials),
+    );
+    if (account) await db.update(connections).set({ account }).where(eq(connections.id, row.id));
+    return account;
+  } catch {
+    return null;
+  }
+}
+
 export async function GET() {
   const session = await getSessionOrNull();
   if (!session) return jsonError(401, "not signed in");
   const db = await getDb();
 
-  // Credentials are intentionally never echoed back.
+  // Credentials are intentionally never echoed back; they are selected only so
+  // a legacy row can be named, and stay server-side.
   const rows = await db
     .select({
       id: connections.id,
       provider: connections.provider,
       label: connections.label,
+      account: connections.account,
+      credentials: connections.credentials,
       createdAt: connections.createdAt,
     })
     .from(connections)
     .where(eq(connections.userId, session.user.id))
     .orderBy(desc(connections.createdAt));
-  const views: ConnectionView[] = rows.map((row) => ({
-    id: row.id,
-    provider: row.provider,
-    label: row.label,
-    createdAt: row.createdAt.toISOString(),
-  }));
+  const views: ConnectionView[] = await Promise.all(
+    rows.map(async (row) => ({
+      id: row.id,
+      provider: row.provider,
+      label: row.label,
+      account: row.account ?? (await backfillAccount(db, row)),
+      createdAt: row.createdAt.toISOString(),
+    })),
+  );
   return NextResponse.json({ connections: views });
 }
 
@@ -85,6 +111,7 @@ export async function POST(req: Request) {
         userId: session.user.id,
         provider: body.data.provider,
         label: body.data.label ?? "default",
+        account: await resolveConnectionAccount(body.data.provider, credentials),
         // Stored as a compact JWE — plaintext never touches the database.
         credentials: await encryptCredentials(credentials),
       })
@@ -92,6 +119,7 @@ export async function POST(req: Request) {
         id: connections.id,
         provider: connections.provider,
         label: connections.label,
+        account: connections.account,
         createdAt: connections.createdAt,
       });
     if (!row) return jsonError(500, "failed to create connection");

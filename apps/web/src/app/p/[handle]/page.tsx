@@ -64,9 +64,26 @@ export default async function ProfilePage(ctx: { params: Promise<{ handle: strin
   return (
     <div className="flex min-h-dvh flex-col">
       <header className="flex items-center justify-between border-b border-zinc-800 px-6 py-4">
-        <div>
-          <h1 className="text-xl font-bold">{owner.name || `@${owner.username}`}</h1>
-          <p className="text-sm text-zinc-400">@{owner.username} · lives on shome</p>
+        <div className="flex min-w-0 items-center gap-3">
+          {owner.image ? (
+            // biome-ignore lint/performance/noImgElement: profile pictures are dynamic user uploads.
+            <img
+              className="size-11 shrink-0 rounded-full bg-zinc-800 object-cover"
+              src={owner.image}
+              alt=""
+            />
+          ) : (
+            <div
+              className="grid size-11 shrink-0 place-items-center rounded-full bg-indigo-300 font-semibold text-slate-950"
+              aria-hidden="true"
+            >
+              {(owner.name || owner.username || "s").slice(0, 1).toUpperCase()}
+            </div>
+          )}
+          <div className="min-w-0">
+            <h1 className="truncate text-xl font-bold">{owner.name || `@${owner.username}`}</h1>
+            <p className="truncate text-sm text-zinc-400">@{owner.username} · lives on shome</p>
+          </div>
         </div>
         <a className="text-lg font-extrabold tracking-tight text-zinc-100" href="/">
           shome

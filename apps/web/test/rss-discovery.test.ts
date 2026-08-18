@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
-  discoverRssFeeds,
   discoverPopularRssFeeds,
+  discoverRssFeeds,
   looksLikeWebsite,
   normalizeDiscoveryUrl,
   searchFeedlyRssFeeds,

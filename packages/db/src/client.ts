@@ -65,6 +65,12 @@ export interface OpenDatabaseOptions {
 
 export interface DatabaseHandle {
   db: Db;
+  /**
+   * Resolves once the driver can serve queries, and rejects with a described
+   * error if it can never serve them. Awaiting this is what turns an embedded
+   * database that failed to boot into a legible failure — see `bootFailure`.
+   */
+  ready: Promise<void>;
   /** Applies pending migrations; call (and await) before serving queries. Idempotent. */
   migrate: () => Promise<void>;
   /**
@@ -72,6 +78,28 @@ export interface DatabaseHandle {
    * dir killed mid-write can be left unreadable (recovery: delete the dir).
    */
   close: () => Promise<void>;
+}
+
+/**
+ * PGlite is Postgres compiled to WASM, so a failed boot surfaces as an
+ * Emscripten `abort()` whose stack is entirely inside the bundle — under Next
+ * every frame is ignore-listed, leaving only:
+ *
+ *     Unhandled Rejection: RuntimeError: Aborted(). Build with -sASSERTIONS…
+ *         at ignore-listed frames
+ *
+ * Nothing in that names the database, let alone the cause. Restate it.
+ */
+function bootFailure(dir: string, cause: unknown): Error {
+  return new Error(
+    `the embedded PGlite database at ${dir} failed to start. PGlite is ` +
+      `single-process: most often another process already holds that ` +
+      `directory — a second dev server (any port), or db:sql / db:studio / ` +
+      `db:migrate. Stop the other process and retry. If nothing else is ` +
+      `running, the directory was left mid-write and is unrecoverable: ` +
+      `delete it and restart.`,
+    { cause },
+  );
 }
 
 /**
@@ -86,6 +114,8 @@ export function createDatabase(opts: OpenDatabaseOptions = {}): DatabaseHandle {
     const db = drizzlePg(pool, { schema });
     return {
       db: db as unknown as Db,
+      // node-postgres connects lazily per query, so there is no boot to await.
+      ready: Promise.resolve(),
       migrate: () =>
         (migrating ??= migratePg(db, {
           migrationsFolder: resolveMigrationsFolder(),
@@ -100,11 +130,36 @@ export function createDatabase(opts: OpenDatabaseOptions = {}): DatabaseHandle {
   if (dir !== ":memory:") mkdirSync(dir, { recursive: true }); // PGlite won't create parents
   const client = dir === ":memory:" ? new PGlite() : new PGlite(dir);
   const db = drizzlePglite(client, { schema });
+
+  // PGlite boots asynchronously, but this function is synchronous by design (so
+  // Better Auth can bind at module scope) and therefore cannot await it. Observe
+  // the boot here so a failure never reaches the unhandled-rejection path, and
+  // hand callers a described error instead of the raw Emscripten abort.
+  let bootError: Error | undefined;
+  const observed = client.waitReady.then(
+    () => undefined,
+    (cause: unknown) => {
+      bootError = bootFailure(dir, cause);
+    },
+  );
+
+  const ready = observed.then(() => {
+    if (bootError) throw bootError;
+  });
+  // `ready` rejects for anyone who awaits it, but callers are not obliged to.
+  // This marks it handled so an unawaited `ready` cannot itself become the
+  // unhandled rejection this whole dance exists to remove.
+  ready.catch(() => undefined);
+
   return {
     db: db as unknown as Db,
+    ready,
     migrate: () =>
-      (migrating ??= migratePglite(db, {
-        migrationsFolder: resolveMigrationsFolder(),
+      (migrating ??= observed.then(() => {
+        if (bootError) throw bootError;
+        return migratePglite(db, {
+          migrationsFolder: resolveMigrationsFolder(),
+        });
       })),
     close: () => client.close(),
   };

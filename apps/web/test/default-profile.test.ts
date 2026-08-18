@@ -1,5 +1,6 @@
-import { describe, expect, it } from "vitest";
 import type { Db } from "@shome/db";
+import { describe, expect, it, vi } from "vitest";
+import { createDefaultProfile } from "../src/server/default-profile";
 import { hasProfileComponent } from "../src/server/profile-components";
 import { renderProfileDocument } from "../src/server/profile-page";
 import { profileHtmlOrDefault } from "../src/server/sanitize";
@@ -40,5 +41,27 @@ describe("default profile template", () => {
     expect(document).toContain("No posts yet.");
     expect(document).not.toContain("<shome-posts");
     expect(document).not.toContain("<script");
+  });
+
+  it("persists the template when an account is created", async () => {
+    const onConflictDoNothing = vi.fn().mockResolvedValue(undefined);
+    const values = vi.fn(() => ({ onConflictDoNothing }));
+    const db = {
+      insert: vi.fn(() => ({ values })),
+    } as unknown as Db;
+
+    await createDefaultProfile(db, {
+      id: "user-1",
+      name: "Sam",
+      username: "sam",
+    });
+
+    expect(values).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: "user-1",
+        html: expect.stringContaining("@sam"),
+      }),
+    );
+    expect(onConflictDoNothing).toHaveBeenCalledOnce();
   });
 });

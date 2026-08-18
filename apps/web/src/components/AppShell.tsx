@@ -16,13 +16,9 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "feed", label: "Feed" },
   { id: "discover", label: "Discover" },
   { id: "sources", label: "Sources" },
-  { id: "profile", label: "My page" },
 ];
 
-const TAB_COPY: Record<
-  Tab,
-  { eyebrow: string; title: string; description: string }
-> = {
+const TAB_COPY: Record<Tab, { eyebrow: string; title: string; description: string }> = {
   feed: {
     eyebrow: "Your daily mix",
     title: "Keep up on your own terms.",
@@ -31,14 +27,12 @@ const TAB_COPY: Record<
   discover: {
     eyebrow: "Find your next source",
     title: "A better starting point for curiosity.",
-    description:
-      "Search for worthwhile publications and add the ones you want to keep up with.",
+    description: "Search for worthwhile publications and add the ones you want to keep up with.",
   },
   sources: {
     eyebrow: "Shape your feed",
     title: "Bring in the voices you value.",
-    description:
-      "Add the sources and connections that make your feed feel like home.",
+    description: "Add the sources and connections that make your feed feel like home.",
   },
   profile: {
     eyebrow: "Your corner of the web",
@@ -50,6 +44,7 @@ const TAB_COPY: Record<
 export function AppShell({ initialUser }: { initialUser: PublicUser | null }) {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("feed");
+  const [avatarUrl, setAvatarUrl] = useState(initialUser?.image ?? null);
   const pageCopy = TAB_COPY[tab];
 
   if (!initialUser) {
@@ -83,12 +78,11 @@ export function AppShell({ initialUser }: { initialUser: PublicUser | null }) {
                 your media, made personal
               </p>
               <h1 className="mx-auto max-w-xl text-5xl leading-[0.98] font-semibold tracking-[-0.055em] text-balance sm:text-6xl xl:text-7xl">
-                A better way to{" "}
-                <span className="text-indigo-300">keep up.</span>
+                A better way to <span className="text-indigo-300">keep up.</span>
               </h1>
               <p className="mx-auto mt-7 max-w-lg text-base leading-7 text-slate-400 sm:text-lg">
-                Bring the people and ideas you care about into one intentional
-                space—without the noise.
+                Bring the people and ideas you care about into one intentional space—without the
+                noise.
               </p>
 
               <div className="mx-auto mt-12 grid max-w-xl gap-5 sm:grid-cols-3">
@@ -118,12 +112,8 @@ export function AppShell({ initialUser }: { initialUser: PublicUser | null }) {
                     M
                   </span>
                   <div>
-                    <p className="text-sm font-medium text-white">
-                      Your daily mix
-                    </p>
-                    <p className="text-xs text-slate-500">
-                      12 fresh pieces from your sources
-                    </p>
+                    <p className="text-sm font-medium text-white">Your daily mix</p>
+                    <p className="text-xs text-slate-500">12 fresh pieces from your sources</p>
                   </div>
                 </div>
                 <span className="rounded-full bg-indigo-300/10 px-2.5 py-1 text-[0.65rem] font-semibold tracking-wide text-indigo-200 uppercase">
@@ -151,8 +141,8 @@ export function AppShell({ initialUser }: { initialUser: PublicUser | null }) {
                   A new kind of social home.
                 </h2>
                 <p className="mt-3 text-sm leading-6 text-slate-400">
-                  We’re putting the finishing touches on shome. Be first to hear
-                  when the doors open.
+                  We’re putting the finishing touches on shome. Be first to hear when the doors
+                  open.
                 </p>
               </div>
               <div className="rounded-3xl border border-white/10 bg-white/[0.035] p-4 shadow-2xl shadow-black/30 backdrop-blur-xl sm:p-6">
@@ -173,10 +163,7 @@ export function AppShell({ initialUser }: { initialUser: PublicUser | null }) {
       <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_10%_4%,rgba(99,102,241,0.18),transparent_26%),radial-gradient(circle_at_88%_32%,rgba(244,114,182,0.1),transparent_22%)]" />
       <div className="mx-auto max-w-6xl px-5 py-5 sm:px-10 sm:py-7 lg:px-14">
         <header className="sticky top-4 z-10 mb-12 flex flex-wrap items-center gap-3 rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 shadow-xl shadow-black/20 backdrop-blur-xl sm:flex-nowrap sm:px-5">
-          <a
-            href="/"
-            className="flex items-center gap-2.5 font-semibold tracking-tight"
-          >
+          <a href="/" className="flex items-center gap-2.5 font-semibold tracking-tight">
             <span className="grid size-8 place-items-center rounded-xl bg-indigo-300 text-sm font-black text-slate-950 shadow-[0_0_24px_rgba(165,180,252,0.3)]">
               s
             </span>
@@ -199,19 +186,33 @@ export function AppShell({ initialUser }: { initialUser: PublicUser | null }) {
             ))}
           </nav>
           <div className="ml-auto flex items-center gap-3">
+            {avatarUrl ? (
+              <img
+                className="size-9 rounded-full bg-slate-800 object-cover"
+                src={avatarUrl}
+                alt=""
+              />
+            ) : (
+              <div
+                className="grid size-9 place-items-center rounded-full bg-indigo-300 text-sm font-bold text-slate-950"
+                aria-hidden="true"
+              >
+                {(initialUser.displayName || initialUser.handle || initialUser.email)
+                  .slice(0, 1)
+                  .toUpperCase()}
+              </div>
+            )}
             {initialUser.handle ? (
-              <a
-                className="hidden text-sm text-indigo-200 hover:text-indigo-100 hover:underline sm:inline"
-                href={`/p/${initialUser.handle}`}
-                target="_blank"
-                rel="noreferrer"
+              <button
+                type="button"
+                className="hidden cursor-pointer text-sm text-indigo-200 hover:text-indigo-100 hover:underline sm:inline"
+                onClick={() => setTab("profile")}
+                aria-label="Edit your page"
               >
                 @{initialUser.handle}
-              </a>
+              </button>
             ) : (
-              <span className="hidden text-sm text-slate-400 sm:inline">
-                {initialUser.email}
-              </span>
+              <span className="hidden text-sm text-slate-400 sm:inline">{initialUser.email}</span>
             )}
             <button
               type="button"
@@ -241,7 +242,9 @@ export function AppShell({ initialUser }: { initialUser: PublicUser | null }) {
           {tab === "feed" && <FeedView />}
           {tab === "discover" && <DiscoverView />}
           {tab === "sources" && <SourcesView />}
-          {tab === "profile" && <ProfileView handle={initialUser.handle} />}
+          {tab === "profile" && (
+            <ProfileView handle={initialUser.handle} onAvatarChange={setAvatarUrl} />
+          )}
         </main>
       </div>
     </div>
@@ -259,9 +262,7 @@ function Feature({
 }) {
   return (
     <div className="border-t border-white/10 pt-4">
-      <p className="text-[0.65rem] font-semibold tracking-[0.16em] text-indigo-300/80">
-        {number}
-      </p>
+      <p className="text-[0.65rem] font-semibold tracking-[0.16em] text-indigo-300/80">{number}</p>
       <h2 className="mt-2 text-sm font-medium text-slate-100">{title}</h2>
       <p className="mt-1.5 text-sm leading-5 text-slate-500">{description}</p>
     </div>

@@ -1,7 +1,9 @@
 import type { FeedItemView } from "@shome/core";
 import { Image } from "expo-image";
+import { useVideoPlayer, VideoView } from "expo-video";
 import * as WebBrowser from "expo-web-browser";
 import { Pressable, Text, View } from "react-native";
+import { apiUrl } from "@/lib/config";
 import { htmlToText, timeAgo } from "@/lib/format";
 import { UI } from "@/lib/ui";
 
@@ -15,6 +17,7 @@ const KIND_COLORS: Record<string, string> = {
 export function FeedItemCard({ item }: { item: FeedItemView }) {
   const body = item.text ?? (item.html ? htmlToText(item.html) : null);
   const image = item.media.find((m) => m.type === "image");
+  const video = item.media.find((m) => m.type === "video");
   const author = item.authorName ?? item.authorHandle;
 
   return (
@@ -30,18 +33,20 @@ export function FeedItemCard({ item }: { item: FeedItemView }) {
         >
           {item.sourceKind}
         </Text>
-        {item.sourceTitle && (
+        {item.sourceTitle ? (
           <Text className="shrink text-xs text-slate-400" numberOfLines={1}>
             {item.sourceTitle}
           </Text>
-        )}
+        ) : null}
         <Text className="text-xs text-slate-500">
           {timeAgo(item.publishedAt ?? item.fetchedAt)}
         </Text>
       </View>
 
-      {item.title && <Text className="mb-1 text-base font-semibold text-white">{item.title}</Text>}
-      {author && <Text className="mb-1 text-xs text-slate-400">{author}</Text>}
+      {item.title ? (
+        <Text className="mb-1 text-base font-semibold text-white">{item.title}</Text>
+      ) : null}
+      {author ? <Text className="mb-1 text-xs text-slate-400">{author}</Text> : null}
       {body ? (
         <Text className="text-sm leading-5 text-slate-300" numberOfLines={8}>
           {body}
@@ -50,13 +55,47 @@ export function FeedItemCard({ item }: { item: FeedItemView }) {
 
       {image && (
         <Image
-          source={{ uri: image.url }}
+          source={{ uri: apiUrl(image.url) }}
           contentFit="cover"
           transition={150}
           accessibilityLabel={image.alt}
           style={{ width: "100%", height: 180, borderRadius: 16, marginTop: 12 }}
         />
       )}
+
+      {video &&
+        (video.status && video.status !== "ready" ? (
+          <View className="mt-3 items-center justify-center rounded-2xl border border-white/10 bg-black/30 py-10">
+            <Text className="text-sm text-slate-400">
+              {video.status === "failed" ? "video processing failed" : "video processing…"}
+            </Text>
+          </View>
+        ) : (
+          <FeedVideo uri={apiUrl(video.url)} />
+        ))}
     </Pressable>
+  );
+}
+
+/**
+ * Its own component so the player hook is unconditional: a card without a
+ * video simply does not render one. Playback stays paused until tapped —
+ * nobody wants a feed that plays itself.
+ */
+function FeedVideo({ uri }: { uri: string }) {
+  const player = useVideoPlayer(uri);
+  return (
+    <VideoView
+      player={player}
+      nativeControls
+      contentFit="contain"
+      style={{
+        width: "100%",
+        height: 200,
+        borderRadius: 16,
+        marginTop: 12,
+        backgroundColor: "#000",
+      }}
+    />
   );
 }

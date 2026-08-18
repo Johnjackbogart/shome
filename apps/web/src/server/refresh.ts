@@ -1,4 +1,5 @@
 import { getConnector } from "@shome/connectors";
+import { SOURCE_FETCH_ERROR } from "@shome/core";
 import { connections, type Db, items, sources, subscriptions } from "@shome/db";
 import { and, eq } from "drizzle-orm";
 import { decryptCredentials } from "./crypto";
@@ -8,6 +9,13 @@ import { sanitizeItemHtml } from "./sanitize";
 export class NotSubscribedError extends Error {
   constructor() {
     super("not subscribed to this source");
+  }
+}
+
+/** Carries the connector's own failure as `cause`, for the server side only. */
+export class SourceFetchError extends Error {
+  constructor(cause: unknown) {
+    super(SOURCE_FETCH_ERROR, { cause });
   }
 }
 
@@ -94,8 +102,8 @@ export async function refreshSubscription(
   } catch (err) {
     await db
       .update(sources)
-      .set({ lastError: err instanceof Error ? err.message : String(err) })
+      .set({ lastError: SOURCE_FETCH_ERROR })
       .where(eq(sources.id, source.id));
-    throw err;
+    throw new SourceFetchError(err);
   }
 }

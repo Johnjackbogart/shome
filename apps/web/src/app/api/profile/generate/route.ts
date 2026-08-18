@@ -8,11 +8,7 @@ import { getSessionOrNull } from "#/server/auth";
 export const runtime = "nodejs";
 
 const generateSchema = z.object({
-  prompt: z
-    .string()
-    .trim()
-    .min(2, "describe the portfolio you want")
-    .max(4_000),
+  prompt: z.string().trim().min(2, "describe the portfolio you want").max(4_000),
   // Supplying the current draft lets a person make iterative requests while
   // keeping enough room for a useful model response.
   currentHtml: z.string().max(200_000).optional(),
@@ -48,17 +44,12 @@ export async function POST(req: Request) {
 
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
-    return jsonError(
-      503,
-      "OpenAI is not configured. Add OPENAI_API_KEY to apps/web/.env.",
-    );
+    return jsonError(503, "OpenAI is not configured. Add OPENAI_API_KEY to apps/web/.env.");
   }
 
   const existing = body.data.currentHtml?.trim();
   const input = `Portfolio brief:\n${body.data.prompt}${
-    existing
-      ? `\n\nCurrent draft (improve or replace it to match the brief):\n${existing}`
-      : ""
+    existing ? `\n\nCurrent draft (improve or replace it to match the brief):\n${existing}` : ""
   }`;
 
   try {
@@ -69,25 +60,17 @@ export async function POST(req: Request) {
       input,
       max_output_tokens: 5_000,
       reasoning: { effort: "low" },
-      safety_identifier: createHash("sha256")
-        .update(session.user.id)
-        .digest("hex"),
+      safety_identifier: createHash("sha256").update(session.user.id).digest("hex"),
       store: false,
       text: { verbosity: "high" },
     });
     const html = cleanHtml(response.output_text);
     if (html.includes("<") === false) {
-      return jsonError(
-        502,
-        "OpenAI did not return a usable portfolio draft. Please try again.",
-      );
+      return jsonError(502, "OpenAI did not return a usable portfolio draft. Please try again.");
     }
     return NextResponse.json({ html });
   } catch (err) {
     console.error("portfolio generation failed", err);
-    return jsonError(
-      502,
-      "OpenAI could not generate a portfolio right now. Please try again.",
-    );
+    return jsonError(502, "OpenAI could not generate a portfolio right now. Please try again.");
   }
 }

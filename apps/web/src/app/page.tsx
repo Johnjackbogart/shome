@@ -12,6 +12,7 @@ export default async function Home() {
         email: session.user.email,
         handle: (session.user as { username?: string | null }).username ?? null,
         displayName: session.user.name ?? null,
+        image: (session.user as { image?: string | null }).image ?? null,
       }
     : null;
   return <AppShell initialUser={initialUser} />;

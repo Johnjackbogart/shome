@@ -52,4 +52,3 @@ export const updateProductSchema = z
     sortOrder: z.number().int().min(-10_000).max(10_000).optional(),
   })
   .refine((data) => Object.keys(data).length > 0, "provide at least one product field");
-

@@ -17,7 +17,7 @@ function addedMessage(
 ): string {
   const name = source.title ?? fallback;
   return refreshError
-    ? `added "${name}" — first fetch failed: ${refreshError}`
+    ? `added "${name}" — ${refreshError}`
     : `added "${name}" (${fetched ?? 0} items)`;
 }
 

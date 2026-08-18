@@ -34,8 +34,13 @@ Multi-user platform built as a TypeScript monorepo:
 ```sh
 npm install
 cp .env.example apps/web/.env   # set BETTER_AUTH_SECRET (openssl rand -hex 32)
+npm run db:migrate              # create the schema — the server never migrates itself
 npm run dev                     # http://localhost:3000 — uses embedded PGlite, no DB setup
 ```
+
+Re-run `npm run db:migrate` whenever new migrations arrive (after a pull, or
+after your own `npm run db:generate`) — **with the dev server stopped**, since
+PGlite is single-process.
 
 For a real Postgres instead of PGlite: `docker compose up -d` and uncomment
 `DATABASE_URL` in `apps/web/.env`.
@@ -95,6 +100,7 @@ port 3000 on the machine running Metro). For a deployed server set
 - `npm run dev:ts` — dev server + a `tsc --watch` typechecker across all workspaces
 - `npm test` / `npm run typecheck` / `npm run lint` — Vitest, per-package tsc, Biome
 - `npm run db:generate` — regenerate SQL migrations after editing `packages/db/src/schema.ts`
+- `npm run db:migrate` — apply pending migrations (stop the dev server first)
 - `npm run build` / `npm start` — production build / serve
 
 ### Docs
