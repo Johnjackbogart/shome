@@ -5,8 +5,15 @@ services:
       POSTGRES_USER: shome
       POSTGRES_PASSWORD: shome
       POSTGRES_DB: shome
+    #  Compose's short syntax binds to 0.0.0.0 — all network interfaces, not just localhost. So the moment you run this on airport wifi or a coworking network, anyone on that network
+    #  can reach Postgres at your-laptop-ip:5432. And now shome/shome matters, because it's the only thing in the way.
+    #
+    #  The fix is one line:
+    #
+    #  ports:
+    #    - "127.0.0.1:5432:5432"
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
 

@@ -2,6 +2,7 @@ import { AtpAgent } from "@atproto/api";
 import type { CrossPostLink, FeedItemView } from "@shome/core";
 import { connections, type Db, type Post, type PostMedia, postMedia, posts } from "@shome/db";
 import { and, asc, eq, inArray } from "drizzle-orm";
+import { z } from "zod";
 import { decryptCredentials } from "./crypto";
 import { assertPublicHttpUrl } from "./netguard";
 
@@ -29,10 +30,20 @@ export type NewPostMedia = Pick<
   | "thumbnailUrl"
 >;
 
-function getString(credentials: Record<string, unknown>, field: string): string | null {
-  const value = credentials[field];
-  return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
-}
+// Stored credentials are an untyped JSON blob until they are parsed: the
+// column holds a JWE, so `decryptCredentials` can only promise an object.
+// Each provider narrows its own shape, and the payloads differ per provider.
+const credentialField = z.string().trim().min(1);
+
+const blueskyCredentials = z.object({
+  identifier: credentialField,
+  appPassword: credentialField,
+});
+
+const mastodonCredentials = z.object({
+  accessToken: credentialField,
+  server: credentialField,
+});
 
 function readableError(err: unknown): string {
   if (err instanceof Error && err.message) return err.message.slice(0, 240);
@@ -52,11 +63,11 @@ async function publishBluesky(credentials: Record<string, unknown>, text: string
   // local post intact while returning a clear per-platform delivery failure.
   if ([...text].length > 300) throw new Error("Bluesky posts are limited to 300 characters");
 
-  const identifier = getString(credentials, "identifier");
-  const appPassword = getString(credentials, "appPassword");
-  if (!identifier || !appPassword) {
+  const parsed = blueskyCredentials.safeParse(credentials);
+  if (!parsed.success) {
     throw new Error("this Bluesky connection needs an identifier and app password");
   }
+  const { identifier, appPassword } = parsed.data;
   // Connections currently target the hosted Bluesky service. Deliberately do
   // not accept a credential-supplied service URL here: this request sends an
   // app password and must never be redirectable toward an arbitrary host.
@@ -81,11 +92,11 @@ async function publishMastodon(
   credentials: Record<string, unknown>,
   text: string,
 ): Promise<string> {
-  const accessToken = getString(credentials, "accessToken");
-  const server = getString(credentials, "server");
-  if (!accessToken || !server) {
+  const parsed = mastodonCredentials.safeParse(credentials);
+  if (!parsed.success) {
     throw new Error("this Mastodon connection needs a server URL and access token");
   }
+  const { accessToken, server } = parsed.data;
   const origin = mastodonOrigin(server);
   // Credentials are user supplied, so guard legacy rows too (not only new
   // connection submissions) before sending an Authorization header.
