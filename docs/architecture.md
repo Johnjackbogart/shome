@@ -239,10 +239,15 @@ limits, data-retention rules, and scopes immediately before implementation.
 
 ### First priority — durable feed value
 
-1. **RSS/Atom discovery** — allow a user to paste a website URL and discover
-   its feed automatically. This multiplies the value of the existing RSS
-   connector across blogs, newsletters, podcasts, communities, and release
-   notes without a service-specific integration.
+1. **RSS/Atom discovery** — implemented on the web Sources page. A user pastes
+   a public website URL; the server applies the existing SSRF guard, asks
+   Feedsearch for that site's feeds, and lets the user subscribe to a result.
+   This multiplies the value of the existing RSS connector across blogs,
+   newsletters, podcasts, communities, and release notes without a
+   service-specific integration. The same view first ranks popular RSS sources
+   from aggregate Shome subscriptions. Feedly's public source directory is a
+   30-minute-cached cold-start fallback only, avoiding a stale hard-coded
+   catalog.
 2. **YouTube subscriptions** — extend the existing channel connector with an
    OAuth connection. The API can list the authenticated user's subscriptions;
    shome can then aggregate recent uploads from those channels into a

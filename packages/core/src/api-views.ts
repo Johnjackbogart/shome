@@ -17,6 +17,27 @@ export interface SourceView {
   lastError: string | null;
 }
 
+/** A public feed found by the RSS discovery service for a website. */
+export interface DiscoveredRssFeed {
+  url: string;
+  title: string | null;
+  description: string | null;
+  siteName: string | null;
+  siteUrl: string | null;
+  isPodcast: boolean;
+}
+
+/** A public RSS feed ranked by a third-party directory's subscriber count. */
+export interface PopularRssFeed extends DiscoveredRssFeed {
+  subscriberCount: number;
+}
+
+export interface PopularRssResponse {
+  feeds: PopularRssFeed[];
+  /** Feedly is used only until Shome has its own RSS subscription data. */
+  origin: "shome" | "feedly";
+}
+
 export interface MediaView {
   type: string;
   url: string;

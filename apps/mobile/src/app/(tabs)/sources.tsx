@@ -1,8 +1,14 @@
-import type { SourceView } from "@shome/core";
+import type {
+  DiscoveredRssFeed,
+  PopularRssFeed,
+  PopularRssResponse,
+  SourceView,
+} from "@shome/core";
 import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
+  Linking,
   Pressable,
   RefreshControl,
   Text,
@@ -45,14 +51,22 @@ function describeConfig(source: SourceView): string {
 
 export default function SourcesScreen() {
   const [sources, setSources] = useState<SourceView[] | null>(null);
+  const [popularRssFeeds, setPopularRssFeeds] = useState<PopularRssFeed[]>([]);
+  const [popularOrigin, setPopularOrigin] = useState<PopularRssResponse["origin"]>("feedly");
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
   const load = useCallback(async () => {
     try {
-      const res = await api.get<{ sources: SourceView[] }>("/api/sources");
+      const primary = api.get<{ sources: SourceView[] }>("/api/sources");
+      // Discovery is optional: a ranking error should never prevent access to
+      // the user's own sources.
+      const popular = api.get<PopularRssResponse>("/api/discover/rss/popular").catch(() => null);
+      const [res, popularResult] = await Promise.all([primary, popular]);
       setSources(res.sources);
+      setPopularRssFeeds(popularResult?.feeds ?? []);
+      setPopularOrigin(popularResult?.origin ?? "feedly");
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     }
@@ -107,6 +121,26 @@ export default function SourcesScreen() {
           <View>
             <Text className={`pb-2 pt-2 ${UI.eyebrow}`}>Shape your feed</Text>
             <Text className="pb-5 text-3xl font-semibold text-white">Sources</Text>
+            <RssDiscovery
+              popularFeeds={popularRssFeeds}
+              popularOrigin={popularOrigin}
+              subscribedFeedUrls={
+                new Set(
+                  (sources ?? []).flatMap((source) =>
+                    typeof source.config.url === "string" ? [source.config.url] : [],
+                  ),
+                )
+              }
+              onAdded={(msg) => {
+                setNotice(msg);
+                setError(null);
+                void load();
+              }}
+              onError={(msg) => {
+                setNotice(null);
+                setError(msg);
+              }}
+            />
             <AddSourceForm
               onAdded={(msg) => {
                 setNotice(msg);
@@ -163,6 +197,180 @@ export default function SourcesScreen() {
         )}
       />
     </SafeAreaView>
+  );
+}
+
+function addedMessage(
+  source: SourceView,
+  fallback: string,
+  fetched: number | undefined,
+  refreshError: string | undefined,
+): string {
+  const name = source.title ?? fallback;
+  return refreshError
+    ? `added "${name}" — first fetch failed: ${refreshError}`
+    : `added "${name}" (${fetched ?? 0} items)`;
+}
+
+function RssDiscovery({
+  popularFeeds,
+  popularOrigin,
+  subscribedFeedUrls,
+  onAdded,
+  onError,
+}: {
+  popularFeeds: PopularRssFeed[];
+  popularOrigin: PopularRssResponse["origin"];
+  subscribedFeedUrls: Set<string>;
+  onAdded: (message: string) => void;
+  onError: (message: string) => void;
+}) {
+  const [website, setWebsite] = useState("");
+  const [feeds, setFeeds] = useState<DiscoveredRssFeed[] | null>(null);
+  const [discovering, setDiscovering] = useState(false);
+  const [subscribingUrl, setSubscribingUrl] = useState<string | null>(null);
+  async function discover() {
+    setDiscovering(true);
+    try {
+      const result = await api.get<{ feeds: DiscoveredRssFeed[] }>(
+        `/api/discover/rss?q=${encodeURIComponent(website)}`,
+      );
+      setFeeds(result.feeds);
+    } catch (err) {
+      onError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setDiscovering(false);
+    }
+  }
+
+  async function subscribe(url: string, fallback: string) {
+    setSubscribingUrl(url);
+    try {
+      const result = await api.post<{
+        source: SourceView;
+        fetched?: number;
+        refreshError?: string;
+      }>("/api/sources", { kind: "rss", config: { url } });
+      onAdded(addedMessage(result.source, fallback, result.fetched, result.refreshError));
+    } catch (err) {
+      onError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setSubscribingUrl(null);
+    }
+  }
+
+  return (
+    <View className={`mb-4 gap-3 ${UI.card}`}>
+      <View>
+        <Text className="text-lg font-semibold text-white">Discover RSS</Text>
+        <Text className="mt-1 text-sm leading-5 text-slate-400">
+          Search by name or paste a publication, blog, or podcast website—we’ll find its public
+          feeds.
+        </Text>
+      </View>
+      <TextInput
+        className={UI.input}
+        placeholder="Ars Technica or arstechnica.com"
+        placeholderTextColor="#64748b"
+        autoCapitalize="none"
+        autoCorrect={false}
+        keyboardType="url"
+        value={website}
+        onChangeText={setWebsite}
+        onSubmitEditing={() => void discover()}
+      />
+      <Pressable
+        onPress={() => void discover()}
+        disabled={discovering}
+        className={`self-start ${UI.primaryButton}`}
+      >
+        {discovering ? (
+          <ActivityIndicator size="small" color={COLORS.background} />
+        ) : (
+          <Text className="text-sm font-semibold text-slate-950">Find feeds</Text>
+        )}
+      </Pressable>
+
+      {feeds && (
+        <View className="gap-2 border-t border-white/10 pt-3">
+          {feeds.length === 0 ? (
+            <Text className="text-sm text-slate-400">
+              No public RSS or Atom feed found for that site.
+            </Text>
+          ) : (
+            feeds.map((feed) => (
+              <View
+                key={feed.url}
+                className="rounded-2xl border border-white/10 bg-white/[0.025] p-3"
+              >
+                <Text className="font-semibold text-white">
+                  {feed.title ?? feed.siteName ?? feed.url}
+                  {feed.isPodcast ? " · podcast" : ""}
+                </Text>
+                {feed.description && (
+                  <Text className="mt-1 text-sm leading-5 text-slate-400">{feed.description}</Text>
+                )}
+                <Text className="mt-1 text-xs text-slate-500" numberOfLines={1}>
+                  {feed.url}
+                </Text>
+                <Pressable
+                  onPress={() => void subscribe(feed.url, feed.title ?? feed.siteName ?? feed.url)}
+                  disabled={subscribingUrl === feed.url}
+                  className={`mt-3 self-start ${UI.ghostButton}`}
+                >
+                  <Text className="text-xs font-semibold text-indigo-200">
+                    {subscribingUrl === feed.url ? "Adding…" : "Add"}
+                  </Text>
+                </Pressable>
+              </View>
+            ))
+          )}
+        </View>
+      )}
+
+      {popularFeeds.length > 0 && (
+        <View className="gap-2 border-t border-white/10 pt-3">
+          <Text className="font-semibold text-white">Popular RSS</Text>
+          <Text className="text-sm text-slate-400">
+            Ranked by {popularOrigin === "shome" ? "Shome" : "Feedly"} subscriber count.
+          </Text>
+          {popularFeeds.map((feed) => {
+            const subscribed = subscribedFeedUrls.has(feed.url);
+            return (
+              <View
+                key={feed.url}
+                className="rounded-2xl border border-white/10 bg-white/[0.025] p-3"
+              >
+                <Text className="font-semibold text-white">
+                  {feed.title ?? feed.siteName ?? feed.url}
+                </Text>
+                {feed.description && (
+                  <Text className="mt-1 text-sm leading-5 text-slate-400">{feed.description}</Text>
+                )}
+                <Text className="mt-1 text-xs text-slate-500">
+                  {feed.subscriberCount.toLocaleString()} {popularOrigin} subscribers
+                </Text>
+                <Pressable
+                  onPress={() => void subscribe(feed.url, feed.title ?? feed.siteName ?? feed.url)}
+                  disabled={subscribed || subscribingUrl === feed.url}
+                  className={`mt-3 self-start ${UI.ghostButton}`}
+                >
+                  <Text className="text-xs font-semibold text-indigo-200">
+                    {subscribed ? "Added" : subscribingUrl === feed.url ? "Adding…" : "Add"}
+                  </Text>
+                </Pressable>
+              </View>
+            );
+          })}
+        </View>
+      )}
+
+      <Pressable onPress={() => void Linking.openURL("https://feedsearch.dev/")}>
+        <Text className="text-xs text-slate-500 underline">
+          Feed discovery: Feedsearch · Feedly only fills an empty popular list
+        </Text>
+      </Pressable>
+    </View>
   );
 }
 

@@ -23,6 +23,7 @@ export function FeedView() {
   const [q, setQ] = useState("");
   const [appliedQ, setAppliedQ] = useState("");
   const [kind, setKind] = useState("");
+  const refreshedOnMount = useRef(false);
 
   const load = useCallback(async () => {
     setError(null);
@@ -37,11 +38,7 @@ export function FeedView() {
     }
   }, [appliedQ, kind]);
 
-  useEffect(() => {
-    void load();
-  }, [load]);
-
-  async function refreshAll() {
+  const refreshAll = useCallback(async () => {
     setBusy(true);
     setError(null);
     try {
@@ -52,7 +49,13 @@ export function FeedView() {
     } finally {
       setBusy(false);
     }
-  }
+  }, [load]);
+
+  useEffect(() => {
+    if (refreshedOnMount.current) return;
+    refreshedOnMount.current = true;
+    void refreshAll();
+  }, [refreshAll]);
 
   function search(e: FormEvent) {
     e.preventDefault();

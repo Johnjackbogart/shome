@@ -1,4 +1,4 @@
-import { eq, sql } from "drizzle-orm";
+import { count, desc, eq, inArray, sql } from "drizzle-orm";
 import { beforeAll, describe, expect, it } from "vitest";
 import {
   type Db,
@@ -123,6 +123,56 @@ describe("schema + migrations", () => {
     const rows = await db.select().from(items).where(eq(items.sourceId, source.id));
     expect(rows).toHaveLength(1);
     expect(rows[0]?.title).toBe("first");
+  });
+
+  it("ranks shared RSS sources by aggregate subscription count", async () => {
+    const [one, two] = await db
+      .insert(user)
+      .values([
+        { id: "user_rss_rank_one", name: "One", email: "rank-one@example.com" },
+        { id: "user_rss_rank_two", name: "Two", email: "rank-two@example.com" },
+      ])
+      .returning();
+    if (!one || !two) throw new Error("unreachable");
+
+    const [popular, lessPopular] = await db
+      .insert(sources)
+      .values([
+        {
+          kind: "rss",
+          canonicalKey: "rss:https://rank.example.com/popular.xml",
+          config: { url: "https://rank.example.com/popular.xml" },
+          title: "Popular",
+        },
+        {
+          kind: "rss",
+          canonicalKey: "rss:https://rank.example.com/less-popular.xml",
+          config: { url: "https://rank.example.com/less-popular.xml" },
+          title: "Less popular",
+        },
+      ])
+      .returning();
+    if (!popular || !lessPopular) throw new Error("unreachable");
+
+    await db.insert(subscriptions).values([
+      { userId: one.id, sourceId: popular.id },
+      { userId: two.id, sourceId: popular.id },
+      { userId: one.id, sourceId: lessPopular.id },
+    ]);
+
+    const subscriberCount = count(subscriptions.userId);
+    const rows = await db
+      .select({ source: sources, subscriberCount })
+      .from(sources)
+      .innerJoin(subscriptions, eq(subscriptions.sourceId, sources.id))
+      .where(inArray(sources.id, [popular.id, lessPopular.id]))
+      .groupBy(sources.id)
+      .orderBy(desc(subscriberCount), sources.title, sources.canonicalKey);
+
+    expect(rows.map((row) => [row.source.title, row.subscriberCount])).toEqual([
+      ["Popular", 2],
+      ["Less popular", 1],
+    ]);
   });
 
   it("stores waitlist and newsletter interest once per email", async () => {

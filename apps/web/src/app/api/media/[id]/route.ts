@@ -42,6 +42,7 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }
       contentType: postMedia.contentType,
       playbackUrl: postMedia.playbackUrl,
       provider: postMedia.provider,
+      providerAssetId: postMedia.providerAssetId,
       status: postMedia.status,
     })
     .from(postMedia)
@@ -63,9 +64,16 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }
     return NextResponse.redirect(playbackUrl);
   }
 
+  // Direct local uploads are persisted under the temporary upload ID. A post
+  // receives its own post_media ID when published, so read the provider asset
+  // rather than assuming those two IDs are the same. Older local attachments
+  // predate providerAssetId and continue to use their post-media ID.
+  const storageId = attachment.providerAssetId ?? id;
+  if (!UUID_RE.test(storageId)) return new Response("media is unavailable", { status: 404 });
+
   let size: number;
   try {
-    size = await storedPostMediaSize(id);
+    size = await storedPostMediaSize(storageId);
   } catch {
     return new Response("media is unavailable", { status: 404 });
   }
@@ -80,7 +88,7 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }
     });
   }
   try {
-    const body = await readStoredPostMedia(id, range.start, range.end);
+    const body = await readStoredPostMedia(storageId, range.start, range.end);
     const partial = requestedRange !== null;
     return new Response(new Uint8Array(body), {
       status: partial ? 206 : 200,

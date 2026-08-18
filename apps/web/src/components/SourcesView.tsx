@@ -1,6 +1,8 @@
 "use client";
 
+import type { PopularRssFeed, PopularRssResponse } from "@shome/core";
 import { type FormEvent, useCallback, useEffect, useState } from "react";
+import { RssDiscovery } from "@/components/RssDiscovery";
 import { api } from "@/lib/api";
 import { timeAgo } from "@/lib/format";
 import type { ConnectionView, SourceView } from "@/lib/types";
@@ -17,17 +19,25 @@ const KIND_COLORS: Record<string, string> = {
 export function SourcesView() {
   const [sources, setSources] = useState<SourceView[] | null>(null);
   const [connections, setConnections] = useState<ConnectionView[]>([]);
+  const [popularRssFeeds, setPopularRssFeeds] = useState<PopularRssFeed[]>([]);
+  const [popularOrigin, setPopularOrigin] = useState<PopularRssResponse["origin"]>("feedly");
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     try {
-      const [a, b] = await Promise.all([
+      const primary = Promise.all([
         api.get<{ sources: SourceView[] }>("/api/sources"),
         api.get<{ connections: ConnectionView[] }>("/api/connections"),
       ]);
+      // Discovery is an enhancement: an unavailable ranking must not hide the
+      // user's own sources and connections.
+      const popular = api.get<PopularRssResponse>("/api/discover/rss/popular").catch(() => null);
+      const [[a, b], c] = await Promise.all([primary, popular]);
       setSources(a.sources);
       setConnections(b.connections);
+      setPopularRssFeeds(c?.feeds ?? []);
+      setPopularOrigin(c?.origin ?? "feedly");
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     }
@@ -72,6 +82,26 @@ export function SourcesView() {
     <section className="grid grid-cols-1 items-start gap-8 md:grid-cols-[3fr_2fr]">
       <div>
         <h2 className="mb-3 text-xl font-bold">Sources</h2>
+        <RssDiscovery
+          popularFeeds={popularRssFeeds}
+          popularOrigin={popularOrigin}
+          subscribedFeedUrls={
+            new Set(
+              (sources ?? []).flatMap((source) =>
+                typeof source.config.url === "string" ? [source.config.url] : [],
+              ),
+            )
+          }
+          onAdded={(msg) => {
+            setNotice(msg);
+            setError(null);
+            void load();
+          }}
+          onError={(msg) => {
+            setNotice(null);
+            setError(msg);
+          }}
+        />
         <AddSourceForm
           connections={connections}
           onAdded={(msg) => {

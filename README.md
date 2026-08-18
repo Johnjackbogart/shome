@@ -12,6 +12,8 @@ Shome does the following:
 - distribute your IP across platforms
 - build a personalizable profile section
   - I want the user to be able to vibe code their own profile section
+- discover RSS and Atom feeds from any public website, plus the most-followed
+  RSS sources already used in shome
 
 ---
 
@@ -49,6 +51,15 @@ which enforces the three-minute limit and processes playback asynchronously.
 Register the public `/api/webhooks/cloudflare/stream` endpoint with Stream and
 set its signing secret. Media bytes never traverse the shome server in this
 mode. The local provider remains available for tests and local development.
+
+### Discovering RSS sources
+
+On the web Sources page, enter a website (not a feed URL) under **Discover
+RSS**. Shome asks [Feedsearch](https://feedsearch.dev/) to find that site's
+public RSS or Atom feeds, then lets the user subscribe directly. The same page
+first ranks popular RSS sources from Shome's aggregate subscriptions; until an
+instance has any, it falls back to Feedly subscriber counts, cached for 30
+minutes. There is no stale hard-coded top-1,000 catalog to maintain.
 
 > Troubleshooting: if the server starts 500ing with `RuntimeError: Aborted()`
 > in the logs, the embedded dev database was killed mid-write (crash/hard

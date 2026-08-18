@@ -58,6 +58,12 @@ export function AppShell({ initialUser }: { initialUser: PublicUser | null }) {
               </span>
               <span className="text-lg">shome</span>
             </a>
+            <a
+              href="/sign-in"
+              className="absolute top-7 right-6 rounded-xl border border-white/10 bg-white/[0.035] px-3 py-2 text-sm font-medium text-indigo-100 transition hover:border-indigo-200/35 hover:bg-white/[0.08] sm:top-9 sm:right-10 lg:top-12 lg:right-14 xl:right-20"
+            >
+              Sign in
+            </a>
 
             <div className="my-auto w-full max-w-2xl pt-20 pb-10 lg:pt-28">
               <p className="mb-6 flex items-center justify-center gap-2 text-xs font-semibold tracking-[0.16em] text-indigo-200 uppercase">
