@@ -7,7 +7,7 @@ import type {
   SourceView,
 } from "@shome/core";
 import { type FormEvent, useState } from "react";
-import { api } from "@/lib/api";
+import { api } from "#/lib/api";
 
 function subscribedMessage(
   source: SourceView,
@@ -22,14 +22,14 @@ function subscribedMessage(
 }
 
 export function RssDiscovery({
-  popularFeeds,
-  popularOrigin,
+  shomeFeeds,
+  webFeeds,
   subscribedFeedUrls,
   onAdded,
   onError,
 }: {
-  popularFeeds: PopularRssFeed[];
-  popularOrigin: PopularRssResponse["origin"];
+  shomeFeeds: PopularRssResponse["shomeFeeds"];
+  webFeeds: PopularRssResponse["webFeeds"];
   subscribedFeedUrls: Set<string>;
   onAdded: (message: string) => void;
   onError: (message: string) => void;
@@ -98,81 +98,54 @@ export function RssDiscovery({
           ) : (
             <ul className="flex flex-col gap-2">
               {feeds.map((feed) => (
-                <li key={feed.url} className="rounded-lg border border-white/10 px-3 py-2.5">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div className="min-w-0">
-                      <p className="font-medium [overflow-wrap:anywhere]">
-                        {feed.title ?? feed.siteName ?? feed.url}
-                        {feed.isPodcast && (
-                          <span className="ml-2 text-xs text-slate-400">podcast</span>
-                        )}
-                      </p>
-                      {feed.description && (
-                        <p className="mt-0.5 text-sm text-slate-400">{feed.description}</p>
-                      )}
-                      <p className="mt-1 text-xs text-slate-500 [overflow-wrap:anywhere]">
-                        {feed.url}
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      className="btn-ghost shrink-0"
-                      disabled={subscribingUrl === feed.url}
-                      onClick={() =>
-                        void subscribe(feed.url, feed.title ?? feed.siteName ?? feed.url)
-                      }
-                    >
-                      {subscribingUrl === feed.url ? "adding…" : "add"}
-                    </button>
-                  </div>
-                </li>
+                <SearchResult
+                  key={feed.url}
+                  feed={feed}
+                  subscribed={subscribedFeedUrls.has(feed.url)}
+                  subscribing={subscribingUrl === feed.url}
+                  onAdd={() => void subscribe(feed.url, feed.title ?? feed.siteName ?? feed.url)}
+                />
               ))}
             </ul>
           )}
         </div>
       )}
 
-      {popularFeeds.length > 0 && (
-        <div className="mt-4 border-t border-white/10 pt-3">
-          <h4 className="font-medium">Popular RSS</h4>
-          <p className="mt-1 text-sm text-slate-400">
-            Ranked by {popularOrigin === "shome" ? "Shome" : "Feedly"} subscriber count.
+      <div className="mt-4 border-t border-white/10 pt-3">
+        <h4 className="font-medium">Popular on Shome</h4>
+        <p className="mt-1 text-sm text-slate-400">Ranked by aggregate Shome subscriptions.</p>
+        {shomeFeeds.length === 0 ? (
+          <p className="mt-2 text-sm text-slate-500">
+            This community has not followed any RSS sources yet.
           </p>
-          <ul className="mt-2 flex flex-col gap-2">
-            {popularFeeds.map((feed) => {
-              const subscribed = subscribedFeedUrls.has(feed.url);
-              return (
-                <li
-                  key={feed.url}
-                  className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-white/10 px-3 py-2.5"
-                >
-                  <div className="min-w-0">
-                    <p className="font-medium [overflow-wrap:anywhere]">
-                      {feed.title ?? feed.siteName ?? feed.url}
-                    </p>
-                    {feed.description && (
-                      <p className="mt-0.5 text-sm text-slate-400">{feed.description}</p>
-                    )}
-                    <p className="mt-1 text-xs text-slate-500">
-                      {feed.subscriberCount.toLocaleString()} {popularOrigin} subscribers
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    className="btn-ghost shrink-0"
-                    disabled={subscribed || subscribingUrl === feed.url}
-                    onClick={() =>
-                      void subscribe(feed.url, feed.title ?? feed.siteName ?? feed.url)
-                    }
-                  >
-                    {subscribed ? "added" : subscribingUrl === feed.url ? "adding…" : "add"}
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      )}
+        ) : (
+          <PopularFeedList
+            feeds={shomeFeeds}
+            subscriberLabel="Shome subscribers"
+            subscribedFeedUrls={subscribedFeedUrls}
+            subscribingUrl={subscribingUrl}
+            onAdd={subscribe}
+          />
+        )}
+      </div>
+
+      <div className="mt-4 border-t border-white/10 pt-3">
+        <h4 className="font-medium">Popular across the web</h4>
+        <p className="mt-1 text-sm text-slate-400">From Feedly’s public source directory.</p>
+        {webFeeds.length === 0 ? (
+          <p className="mt-2 text-sm text-slate-500">
+            Web recommendations are unavailable right now.
+          </p>
+        ) : (
+          <PopularFeedList
+            feeds={webFeeds}
+            subscriberLabel="Feedly subscribers"
+            subscribedFeedUrls={subscribedFeedUrls}
+            subscribingUrl={subscribingUrl}
+            onAdd={subscribe}
+          />
+        )}
+      </div>
 
       <p className="mt-3 text-xs text-slate-500">
         Feed discovery powered by{" "}
@@ -184,8 +157,7 @@ export function RssDiscovery({
         >
           Feedsearch
         </a>
-        . Feedly is only used when Shome has no popular RSS sources yet; it supplies the fallback
-        ranking data. Learn more at{" "}
+        . Feedly supplies the Popular across the web list. Learn more at{" "}
         <a
           className="underline hover:text-slate-300"
           href="https://feedly.com/"
@@ -197,5 +169,89 @@ export function RssDiscovery({
         .
       </p>
     </section>
+  );
+}
+
+function PopularFeedList({
+  feeds,
+  subscriberLabel,
+  subscribedFeedUrls,
+  subscribingUrl,
+  onAdd,
+}: {
+  feeds: PopularRssFeed[];
+  subscriberLabel: string;
+  subscribedFeedUrls: Set<string>;
+  subscribingUrl: string | null;
+  onAdd: (url: string, fallback: string) => Promise<void>;
+}) {
+  return (
+    <ul className="mt-2 flex flex-col gap-2">
+      {feeds.map((feed) => {
+        const subscribed = subscribedFeedUrls.has(feed.url);
+        const subscribing = subscribingUrl === feed.url;
+        return (
+          <li
+            key={feed.url}
+            className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-white/10 px-3 py-2.5"
+          >
+            <div className="min-w-0">
+              <p className="font-medium [overflow-wrap:anywhere]">
+                {feed.title ?? feed.siteName ?? feed.url}
+              </p>
+              {feed.description && (
+                <p className="mt-0.5 text-sm text-slate-400">{feed.description}</p>
+              )}
+              <p className="mt-1 text-xs text-slate-500">
+                {feed.subscriberCount.toLocaleString()} {subscriberLabel}
+              </p>
+            </div>
+            <button
+              type="button"
+              className="btn-ghost shrink-0"
+              disabled={subscribed || subscribing}
+              onClick={() => void onAdd(feed.url, feed.title ?? feed.siteName ?? feed.url)}
+            >
+              {subscribed ? "added" : subscribing ? "adding…" : "add"}
+            </button>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+function SearchResult({
+  feed,
+  subscribed,
+  subscribing,
+  onAdd,
+}: {
+  feed: DiscoveredRssFeed;
+  subscribed: boolean;
+  subscribing: boolean;
+  onAdd: () => void;
+}) {
+  return (
+    <li className="rounded-lg border border-white/10 px-3 py-2.5">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="min-w-0">
+          <p className="font-medium [overflow-wrap:anywhere]">
+            {feed.title ?? feed.siteName ?? feed.url}
+            {feed.isPodcast && <span className="ml-2 text-xs text-slate-400">podcast</span>}
+          </p>
+          {feed.description && <p className="mt-0.5 text-sm text-slate-400">{feed.description}</p>}
+          <p className="mt-1 text-xs text-slate-500 [overflow-wrap:anywhere]">{feed.url}</p>
+        </div>
+        <button
+          type="button"
+          className="btn-ghost shrink-0"
+          disabled={subscribed || subscribing}
+          onClick={onAdd}
+        >
+          {subscribed ? "added" : subscribing ? "adding…" : "add"}
+        </button>
+      </div>
+    </li>
   );
 }

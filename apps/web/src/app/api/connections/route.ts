@@ -2,11 +2,11 @@ import { connections } from "@shome/db";
 import { desc, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import type { ConnectionView } from "@/lib/types";
-import { isUniqueViolation, jsonError, parseBody } from "@/server/api";
-import { getSessionOrNull } from "@/server/auth";
-import { encryptCredentials } from "@/server/crypto";
-import { getDb } from "@/server/db";
+import type { ConnectionView } from "#/lib/types";
+import { isUniqueViolation, jsonError, parseBody } from "#/server/api";
+import { getSessionOrNull } from "#/server/auth";
+import { encryptCredentials } from "#/server/crypto";
+import { getDb } from "#/server/db";
 
 // Providers that need stored credentials, and which fields they require.
 const REQUIRED_FIELDS: Record<string, string[]> = {

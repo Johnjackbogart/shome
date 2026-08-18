@@ -2,11 +2,11 @@ import type { SourceKind } from "@shome/core";
 import { items, posts, sources, subscriptions, user } from "@shome/db";
 import { and, desc, eq, ilike, or, type SQL, sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
-import type { FeedItemView } from "@/lib/types";
-import { jsonError, UUID_RE } from "@/server/api";
-import { getSessionOrNull } from "@/server/auth";
-import { getDb } from "@/server/db";
-import { mediaByPostId, postToFeedItem } from "@/server/posting";
+import type { FeedItemView } from "#/lib/types";
+import { jsonError, UUID_RE } from "#/server/api";
+import { getSessionOrNull } from "#/server/auth";
+import { getDb } from "#/server/db";
+import { mediaByPostId, postToFeedItem } from "#/server/posting";
 
 const KINDS = ["rss", "bluesky", "mastodon", "youtube", "post"] as const;
 

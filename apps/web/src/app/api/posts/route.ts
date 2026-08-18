@@ -2,16 +2,16 @@ import { mediaUploads, user } from "@shome/db";
 import { and, eq, inArray } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { jsonError, parseBody, UUID_RE } from "@/server/api";
-import { getSessionOrNull } from "@/server/auth";
-import { getDb } from "@/server/db";
+import { jsonError, parseBody, UUID_RE } from "#/server/api";
+import { getSessionOrNull } from "#/server/auth";
+import { getDb } from "#/server/db";
 import {
   type PreparedPostMedia,
   persistPostMedia,
   preparePostMedia,
   removeStoredPostMedia,
-} from "@/server/media-storage";
-import { createPost, type NewPostMedia, postToFeedItem } from "@/server/posting";
+} from "#/server/media-storage";
+import { createPost, type NewPostMedia, postToFeedItem } from "#/server/posting";
 
 const postFieldsSchema = z.object({
   text: z.string().trim().max(5_000),

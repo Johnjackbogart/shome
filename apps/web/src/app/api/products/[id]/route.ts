@@ -1,10 +1,10 @@
 import { products } from "@shome/db";
 import { and, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
-import { jsonError, parseBody, UUID_RE } from "@/server/api";
-import { getSessionOrNull } from "@/server/auth";
-import { getDb } from "@/server/db";
-import { updateProductSchema } from "@/server/products";
+import { jsonError, parseBody, UUID_RE } from "#/server/api";
+import { getSessionOrNull } from "#/server/auth";
+import { getDb } from "#/server/db";
+import { updateProductSchema } from "#/server/products";
 
 export async function PUT(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const { id } = await ctx.params;

@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   discoverRssFeeds,
+  discoverPopularRssFeeds,
   looksLikeWebsite,
   normalizeDiscoveryUrl,
   searchFeedlyRssFeeds,
@@ -93,5 +94,34 @@ describe("RSS discovery", () => {
     const [url] = fetch.mock.calls[0] ?? [];
     expect(String(url)).toContain("https://cloud.feedly.com/v3/search/feeds?");
     expect(String(url)).toContain("query=Ars+Example");
+  });
+
+  it("preserves Feedly's result order for the popular-sources panel", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        Response.json({
+          results: [
+            {
+              valid: true,
+              feedId: "feed/https://feeds.example.com/first.xml",
+              title: "Feedly's first result",
+              subscribers: 1,
+            },
+            {
+              valid: true,
+              feedId: "feed/https://feeds.example.com/second.xml",
+              title: "Feedly's second result",
+              subscribers: 999_999,
+            },
+          ],
+        }),
+      ),
+    );
+
+    await expect(discoverPopularRssFeeds()).resolves.toMatchObject([
+      { title: "Feedly's first result", subscriberCount: 1 },
+      { title: "Feedly's second result", subscriberCount: 999_999 },
+    ]);
   });
 });

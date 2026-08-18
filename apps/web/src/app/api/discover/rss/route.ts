@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
-import { jsonError } from "@/server/api";
-import { getSessionOrNull } from "@/server/auth";
-import { assertPublicHttpUrl, BlockedHostError } from "@/server/netguard";
+import { jsonError } from "#/server/api";
+import { getSessionOrNull } from "#/server/auth";
+import { assertPublicHttpUrl, BlockedHostError } from "#/server/netguard";
 import {
   discoverRssFeeds,
   looksLikeWebsite,
   normalizeDiscoveryUrl,
   RssDiscoveryError,
   searchFeedlyRssFeeds,
-} from "@/server/rss-discovery";
+} from "#/server/rss-discovery";
 
 export async function GET(req: Request) {
   const session = await getSessionOrNull();

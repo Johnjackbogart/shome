@@ -1,10 +1,10 @@
 import { subscriptions } from "@shome/db";
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
-import { jsonError } from "@/server/api";
-import { getSessionOrNull } from "@/server/auth";
-import { getDb } from "@/server/db";
-import { refreshSubscription } from "@/server/refresh";
+import { jsonError } from "#/server/api";
+import { getSessionOrNull } from "#/server/auth";
+import { getDb } from "#/server/db";
+import { refreshSubscription } from "#/server/refresh";
 
 // v0 refreshes inline and sequentially; a background scheduler replaces this.
 export async function POST() {

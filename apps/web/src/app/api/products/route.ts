@@ -1,10 +1,10 @@
 import { products } from "@shome/db";
 import { asc, desc, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
-import { jsonError, parseBody } from "@/server/api";
-import { getSessionOrNull } from "@/server/auth";
-import { getDb } from "@/server/db";
-import { createProductSchema } from "@/server/products";
+import { jsonError, parseBody } from "#/server/api";
+import { getSessionOrNull } from "#/server/auth";
+import { getDb } from "#/server/db";
+import { createProductSchema } from "#/server/products";
 
 export async function GET() {
   const session = await getSessionOrNull();

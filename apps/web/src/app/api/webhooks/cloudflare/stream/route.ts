@@ -2,8 +2,8 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import { mediaUploads, postMedia } from "@shome/db";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
-import { getDb } from "@/server/db";
-import { cloudflareStreamPlaybackUrls } from "@/server/media-provider";
+import { getDb } from "#/server/db";
+import { cloudflareStreamPlaybackUrls } from "#/server/media-provider";
 
 const eventSchema = z.object({
   uid: z.string().min(1),

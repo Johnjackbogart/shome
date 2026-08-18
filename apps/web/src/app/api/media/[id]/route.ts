@@ -1,9 +1,9 @@
 import { postMedia } from "@shome/db";
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
-import { UUID_RE } from "@/server/api";
-import { getDb } from "@/server/db";
-import { readStoredPostMedia, storedPostMediaSize } from "@/server/media-storage";
+import { UUID_RE } from "#/server/api";
+import { getDb } from "#/server/db";
+import { readStoredPostMedia, storedPostMediaSize } from "#/server/media-storage";
 
 export const runtime = "nodejs";
 

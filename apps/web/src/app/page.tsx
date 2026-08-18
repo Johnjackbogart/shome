@@ -1,6 +1,6 @@
-import { AppShell } from "@/components/AppShell";
-import type { PublicUser } from "@/lib/types";
-import { getSessionOrNull } from "@/server/auth";
+import { AppShell } from "#/components/AppShell";
+import type { PublicUser } from "#/lib/types";
+import { getSessionOrNull } from "#/server/auth";
 
 export const dynamic = "force-dynamic";
 

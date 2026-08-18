@@ -1,9 +1,9 @@
 import { mediaUploads } from "@shome/db";
 import { and, eq } from "drizzle-orm";
-import { jsonError, UUID_RE } from "@/server/api";
-import { getSessionOrNull } from "@/server/auth";
-import { getDb } from "@/server/db";
-import { persistPostMedia, preparePostMedia, removeStoredPostMedia } from "@/server/media-storage";
+import { jsonError, UUID_RE } from "#/server/api";
+import { getSessionOrNull } from "#/server/auth";
+import { getDb } from "#/server/db";
+import { persistPostMedia, preparePostMedia, removeStoredPostMedia } from "#/server/media-storage";
 
 export const runtime = "nodejs";
 

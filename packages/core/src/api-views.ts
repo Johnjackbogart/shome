@@ -33,9 +33,10 @@ export interface PopularRssFeed extends DiscoveredRssFeed {
 }
 
 export interface PopularRssResponse {
-  feeds: PopularRssFeed[];
-  /** Feedly is used only until Shome has its own RSS subscription data. */
-  origin: "shome" | "feedly";
+  /** RSS sources ranked by aggregate Shome subscriptions. */
+  shomeFeeds: PopularRssFeed[];
+  /** RSS sources from Feedly's public directory, cached by the server. */
+  webFeeds: PopularRssFeed[];
 }
 
 export interface MediaView {

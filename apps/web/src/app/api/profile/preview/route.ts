@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { jsonError, parseBody } from "@/server/api";
-import { getSessionOrNull } from "@/server/auth";
-import { getDb } from "@/server/db";
-import { renderProfileDocument } from "@/server/profile-page";
+import { jsonError, parseBody } from "#/server/api";
+import { getSessionOrNull } from "#/server/auth";
+import { getDb } from "#/server/db";
+import { renderProfileDocument } from "#/server/profile-page";
 
 // Renders an unsaved draft for the editor's preview pane. Same render +
 // sanitize pipeline as the published page, but nothing is written: the draft

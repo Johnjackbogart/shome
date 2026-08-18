@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import { jsonError, UUID_RE } from "@/server/api";
-import { getSessionOrNull } from "@/server/auth";
-import { getDb } from "@/server/db";
-import { BlockedHostError } from "@/server/netguard";
-import { NotSubscribedError, refreshSubscription } from "@/server/refresh";
+import { jsonError, UUID_RE } from "#/server/api";
+import { getSessionOrNull } from "#/server/auth";
+import { getDb } from "#/server/db";
+import { BlockedHostError } from "#/server/netguard";
+import { NotSubscribedError, refreshSubscription } from "#/server/refresh";
 
 export async function POST(_req: Request, ctx: { params: Promise<{ id: string }> }) {
   const { id } = await ctx.params;

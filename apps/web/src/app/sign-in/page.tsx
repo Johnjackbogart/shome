@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
-import { SignInView } from "@/components/SignInView";
-import { getSessionOrNull } from "@/server/auth";
+import { SignInView } from "#/components/SignInView";
+import { getSessionOrNull } from "#/server/auth";
 
 export const dynamic = "force-dynamic";
 

@@ -203,15 +203,13 @@ export async function discoverRssFeeds(siteUrl: string): Promise<DiscoveredRssFe
 }
 
 /**
- * Returns real, globally popular feeds. Feedly publishes the subscriber count
- * with public source-search results, so a new Shome instance has useful
- * recommendations before it has enough of its own subscription data.
+ * Returns Feedly's source-search results in the exact order Feedly supplies.
+ * We normalize unsafe or malformed entries, but deliberately do not impose a
+ * local popularity ranking or a second result limit on the directory response.
  */
 export async function discoverPopularRssFeeds(): Promise<PopularRssFeed[]> {
   if (popularCache && popularCache.expiresAt > Date.now()) return popularCache.feeds;
-  const feeds = (await searchFeedlyRssFeeds("#news"))
-    .sort((a, b) => b.subscriberCount - a.subscriberCount)
-    .slice(0, 12);
+  const feeds = await searchFeedlyRssFeeds("#news");
   popularCache = { feeds, expiresAt: Date.now() + POPULAR_CACHE_MS };
   return feeds;
 }

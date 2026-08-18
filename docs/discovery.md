@@ -26,9 +26,39 @@ RSS discovery is already available in Sources on web and mobile.
 - Add a result through the normal `POST /api/sources` path, so connector
   validation, SSRF protection, deduplication, and the initial refresh remain
   centralized.
-- `GET /api/discover/rss/popular` ranks RSS sources using aggregate Shome
-  subscription counts. Only when no RSS source exists in the database does it
-  use a 30-minute-cached Feedly result as a cold-start fallback.
+- `GET /api/discover/rss/popular` returns two independent RSS rankings: sources
+  ranked by aggregate Shome subscription counts and a 30-minute-cached Feedly
+  public-directory list for popular sources across the web.
+
+### Feedly terms assessment — implementation blocker
+
+The Feedly-backed ranking must not ship (and should be removed from the
+automatic popular-sources path) without written permission from Feedly.
+
+- Feedly documents `/v3/search/feeds` as source recommendations, but its API
+  terms require applications to display search results in the delivered order
+  and not remove sponsored or featured results. The popular-sources helper
+  queries `#news` and returns its normalized, valid results in Feedly's
+  delivered order; it does not re-sort them or apply a second result limit.
+- Feedly's current API documentation says API interactions require an API
+  access token, while the implementation calls the `cloud.feedly.com` endpoint
+  anonymously.
+- The same terms say business applications that connect to Feedly must require
+  each user to have a Feedly Pro or Team account, discourage high search
+  volumes (20 search requests per user per hour is their stated acceptable
+  rate), and prohibit mass import/export without permission. A stored list of
+  1,000 Feedly-derived sources may fall into that last restriction.
+
+References: [Feedly API terms](https://developers.feedly.com/In/reference/feedly-api-terms-of-service),
+[Feedly API introduction](https://developers.feedly.com/reference/introduction),
+and [Feedly source search](https://feedly.com/new-features/posts/introducing-the-feedly-teams-api).
+
+Use Feedsearch only for a user-requested website lookup. For Popular sources,
+use Shome's aggregate subscription counts once available and a separately
+curated or appropriately licensed seed list during cold start. Retain a
+Feedly integration only after Feedly approves the exact use case in writing;
+then preserve its ranking/order, sponsorship treatment, authentication, and
+rate limits as agreed.
 
 Current implementation:
 
@@ -157,8 +187,9 @@ between instances.
 
 ## Acceptance criteria
 
-- A new Shome instance shows Feedly RSS recommendations; as soon as it has RSS
-  subscriptions, it ranks its own database instead.
+- Discover shows Popular on Shome from aggregate RSS subscriptions. A cold
+  start list, if shown, is independently curated or used under an explicit
+  provider licence; it is not derived from Feedly search results by default.
 - Plain-name RSS searches work alongside domains and full URLs.
 - Bluesky search results can be added as public author sources.
 - Mastodon results make their instance scope clear, and an account result can

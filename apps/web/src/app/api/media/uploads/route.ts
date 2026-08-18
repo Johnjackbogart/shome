@@ -2,16 +2,16 @@ import { randomUUID } from "node:crypto";
 import { mediaUploads } from "@shome/db";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { jsonError, parseBody } from "@/server/api";
-import { getSessionOrNull } from "@/server/auth";
-import { getDb } from "@/server/db";
-import { createMediaUpload } from "@/server/media-provider";
+import { jsonError, parseBody } from "#/server/api";
+import { getSessionOrNull } from "#/server/auth";
+import { getDb } from "#/server/db";
+import { createMediaUpload } from "#/server/media-provider";
 import {
   MAX_IMAGE_BYTES,
   MAX_PHOTOS_PER_POST,
   MAX_VIDEO_BYTES,
   sanitizeMediaName,
-} from "@/server/media-storage";
+} from "#/server/media-storage";
 
 const uploadSchema = z.object({
   name: z.string().min(1).max(255),

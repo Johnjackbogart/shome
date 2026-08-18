@@ -2,9 +2,9 @@ import { postMedia, posts, profiles, user } from "@shome/db";
 import { asc, desc, eq, inArray } from "drizzle-orm";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getDb } from "@/server/db";
-import { crossPostLinks, postMediaUrl } from "@/server/posting";
-import { hasProfileComponent } from "@/server/profile-components";
+import { getDb } from "#/server/db";
+import { crossPostLinks, postMediaUrl } from "#/server/posting";
+import { hasProfileComponent } from "#/server/profile-components";
 
 export const dynamic = "force-dynamic";
 

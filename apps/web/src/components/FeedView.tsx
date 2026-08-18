@@ -1,9 +1,9 @@
 "use client";
 
 import { type ChangeEvent, type FormEvent, useCallback, useEffect, useRef, useState } from "react";
-import { api } from "@/lib/api";
-import { timeAgo, truncate } from "@/lib/format";
-import type { ConnectionView, FeedItemView } from "@/lib/types";
+import { api } from "#/lib/api";
+import { timeAgo, truncate } from "#/lib/format";
+import type { ConnectionView, FeedItemView } from "#/lib/types";
 
 const KINDS = ["post", "rss", "bluesky", "mastodon", "youtube"];
 

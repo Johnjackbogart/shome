@@ -2,8 +2,8 @@ import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
 import { z } from "zod";
-import { jsonError, parseBody } from "@/server/api";
-import { getSessionOrNull } from "@/server/auth";
+import { jsonError, parseBody } from "#/server/api";
+import { getSessionOrNull } from "#/server/auth";
 
 export const runtime = "nodejs";
 

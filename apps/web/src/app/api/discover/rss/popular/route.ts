@@ -2,10 +2,10 @@ import type { PopularRssFeed } from "@shome/core";
 import { sources, subscriptions } from "@shome/db";
 import { count, desc, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
-import { jsonError } from "@/server/api";
-import { getSessionOrNull } from "@/server/auth";
-import { getDb } from "@/server/db";
-import { discoverPopularRssFeeds, RssDiscoveryError } from "@/server/rss-discovery";
+import { jsonError } from "#/server/api";
+import { getSessionOrNull } from "#/server/auth";
+import { getDb } from "#/server/db";
+import { discoverPopularRssFeeds, RssDiscoveryError } from "#/server/rss-discovery";
 
 function toPopularFeed(
   source: typeof sources.$inferSelect,
@@ -24,10 +24,7 @@ function toPopularFeed(
   };
 }
 
-/**
- * Uses Shome's aggregate subscription data once it exists. Feedly's public
- * directory is only the cold-start fallback for an otherwise empty instance.
- */
+/** Returns separate first-party and Feedly-backed RSS popularity rankings. */
 export async function GET() {
   const session = await getSessionOrNull();
   if (!session) return jsonError(401, "not signed in");
@@ -44,14 +41,17 @@ export async function GET() {
   const localFeeds = rows
     .map((row) => toPopularFeed(row.source, row.subscriberCount))
     .filter((feed): feed is PopularRssFeed => feed !== null);
-  if (localFeeds.length > 0) {
-    return NextResponse.json({ feeds: localFeeds, origin: "shome" });
-  }
 
+  let webFeeds: PopularRssFeed[] = [];
   try {
-    return NextResponse.json({ feeds: await discoverPopularRssFeeds(), origin: "feedly" });
+    webFeeds = await discoverPopularRssFeeds();
   } catch (err) {
-    if (err instanceof RssDiscoveryError) return jsonError(err.status, err.message);
+    // Feedly augments, rather than replaces, Shome's own ranking. Keep the
+    // local list available when the external public directory is unavailable.
+    if (err instanceof RssDiscoveryError) {
+      return NextResponse.json({ shomeFeeds: localFeeds, webFeeds });
+    }
     throw err;
   }
+  return NextResponse.json({ shomeFeeds: localFeeds, webFeeds });
 }

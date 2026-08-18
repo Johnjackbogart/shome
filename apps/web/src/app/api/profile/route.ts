@@ -2,9 +2,9 @@ import { profiles } from "@shome/db";
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { jsonError, parseBody } from "@/server/api";
-import { getSessionOrNull } from "@/server/auth";
-import { getDb } from "@/server/db";
+import { jsonError, parseBody } from "#/server/api";
+import { getSessionOrNull } from "#/server/auth";
+import { getDb } from "#/server/db";
 
 export async function GET() {
   const session = await getSessionOrNull();

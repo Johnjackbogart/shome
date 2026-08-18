@@ -1,10 +1,10 @@
 import { mediaUploads, postMedia } from "@shome/db";
 import { and, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
-import { jsonError, UUID_RE } from "@/server/api";
-import { getSessionOrNull } from "@/server/auth";
-import { getDb } from "@/server/db";
-import { readProviderAsset } from "@/server/media-provider";
+import { jsonError, UUID_RE } from "#/server/api";
+import { getSessionOrNull } from "#/server/auth";
+import { getDb } from "#/server/db";
+import { readProviderAsset } from "#/server/media-provider";
 
 export async function POST(_req: Request, ctx: { params: Promise<{ id: string }> }) {
   const session = await getSessionOrNull();

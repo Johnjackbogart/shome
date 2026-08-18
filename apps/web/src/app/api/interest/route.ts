@@ -2,8 +2,8 @@ import { interestSignups } from "@shome/db";
 import { sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { parseBody } from "@/server/api";
-import { getDb } from "@/server/db";
+import { parseBody } from "#/server/api";
+import { getDb } from "#/server/db";
 
 const interestSchema = z
   .object({

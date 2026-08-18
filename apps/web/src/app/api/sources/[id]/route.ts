@@ -1,9 +1,9 @@
 import { subscriptions } from "@shome/db";
 import { and, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
-import { jsonError, UUID_RE } from "@/server/api";
-import { getSessionOrNull } from "@/server/auth";
-import { getDb } from "@/server/db";
+import { jsonError, UUID_RE } from "#/server/api";
+import { getSessionOrNull } from "#/server/auth";
+import { getDb } from "#/server/db";
 
 export async function DELETE(_req: Request, ctx: { params: Promise<{ id: string }> }) {
   const { id } = await ctx.params;

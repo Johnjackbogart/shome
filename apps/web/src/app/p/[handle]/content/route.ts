@@ -1,7 +1,7 @@
 import { profiles, user } from "@shome/db";
 import { eq } from "drizzle-orm";
-import { getDb } from "@/server/db";
-import { PROFILE_CSP, renderProfileDocument } from "@/server/profile-page";
+import { getDb } from "#/server/db";
+import { PROFILE_CSP, renderProfileDocument } from "#/server/profile-page";
 
 export const dynamic = "force-dynamic";
 

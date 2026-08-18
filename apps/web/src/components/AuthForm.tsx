@@ -1,8 +1,8 @@
 "use client";
 
 import { type FormEvent, useState } from "react";
-import { authClient } from "@/lib/auth-client";
-import type { PublicUser } from "@/lib/types";
+import { authClient } from "#/lib/auth-client";
+import type { PublicUser } from "#/lib/types";
 
 export function AuthForm({ onAuthed }: { onAuthed: (user: PublicUser) => void }) {
   const [mode, setMode] = useState<"signup" | "signin">("signin");
