@@ -1,5 +1,6 @@
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
+import { useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Platform, Pressable, Text, View } from "react-native";
@@ -25,6 +26,7 @@ async function measureBytes(asset: ImagePicker.ImagePickerAsset): Promise<number
 }
 
 export default function MeScreen() {
+  const router = useRouter();
   const { data: session, refetch } = authClient.useSession();
   const user = session?.user as
     | { name?: string; email?: string; username?: string | null; image?: string | null }
@@ -202,12 +204,22 @@ export default function MeScreen() {
         </View>
 
         {handle ? (
-          <Pressable
-            onPress={() => WebBrowser.openBrowserAsync(`${API_URL}/p/${handle}`)}
-            className={`mt-3 ${UI.ghostButton}`}
-          >
-            <Text className="font-medium text-indigo-200">View my page</Text>
-          </Pressable>
+          <View className="mt-3 gap-2">
+            <Pressable
+              onPress={() => router.push("/profile-editor")}
+              className={UI.primaryButton}
+              accessibilityRole="button"
+            >
+              <Text className="font-medium text-slate-950">Edit my page</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => WebBrowser.openBrowserAsync(`${API_URL}/p/${handle}`)}
+              className={UI.ghostButton}
+              accessibilityRole="button"
+            >
+              <Text className="font-medium text-indigo-200">View my page</Text>
+            </Pressable>
+          </View>
         ) : null}
 
         <Pressable

@@ -5,6 +5,9 @@ export type {
   CrossPostLink,
   FeedItemView,
   MediaView,
+  PeopleSearchResult,
   PublicUser,
+  SocialGraphView,
+  SocialUserView,
   SourceView,
 } from "@shome/core";

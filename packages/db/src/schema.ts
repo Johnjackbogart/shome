@@ -261,6 +261,26 @@ export const profiles = pgTable("profiles", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+// A directed, first-party relationship between two shome accounts. Keeping
+// each direction as its own row makes following mutual by choice, not by
+// accident, and lets a person see both their followers and who they follow.
+export const follows = pgTable(
+  "follows",
+  {
+    followerId: text("follower_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    followingId: text("following_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.followerId, t.followingId] }),
+    index("follows_following_created_ix").on(t.followingId, t.createdAt),
+  ],
+);
+
 // A lightweight first-party catalog for profile storefronts. Purchases stay on
 // the creator's checkout provider; shome never stores payment or order data.
 export const products = pgTable(

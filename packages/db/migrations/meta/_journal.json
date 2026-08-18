@@ -64,6 +64,13 @@
       "when": 1787061377390,
       "tag": "0008_right_oracle",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1787075845449,
+      "tag": "0009_slim_bloodstrike",
+      "breakpoints": true
     }
   ]
 }

@@ -22,20 +22,23 @@ export function FeedView() {
   const [sources, setSources] = useState<SourceView[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [searching, setSearching] = useState(false);
   const [q, setQ] = useState("");
   const [appliedQ, setAppliedQ] = useState("");
   const [kind, setKind] = useState("");
   const [sourceId, setSourceId] = useState("");
   const [composerVisible, setComposerVisible] = useState(false);
   const refreshedOnMount = useRef(false);
+  const searchRequested = useRef(false);
   // Filters change faster than the network answers; only the newest request
   // is allowed to write to state.
   const latestRequest = useRef(0);
 
   const load = useCallback(async () => {
     const requestId = ++latestRequest.current;
-    setLoading(true);
+    const isSearchRequest = searchRequested.current;
+    searchRequested.current = false;
+    setSearching(isSearchRequest);
     setError(null);
     try {
       const params = new URLSearchParams({ limit: "100" });
@@ -49,7 +52,7 @@ export function FeedView() {
         setError(err instanceof Error ? err.message : String(err));
       }
     } finally {
-      if (requestId === latestRequest.current) setLoading(false);
+      if (requestId === latestRequest.current) setSearching(false);
     }
   }, [appliedQ, kind, sourceId]);
 
@@ -88,7 +91,10 @@ export function FeedView() {
 
   function search(e: FormEvent) {
     e.preventDefault();
-    setAppliedQ(q.trim());
+    const nextQuery = q.trim();
+    if (nextQuery === appliedQ) return;
+    searchRequested.current = true;
+    setAppliedQ(nextQuery);
   }
 
   function clearFilters() {
@@ -139,8 +145,8 @@ export function FeedView() {
               </button>
             )}
           </div>
-          <button type="submit" className="btn" disabled={loading}>
-            {loading ? "searching…" : "search"}
+          <button type="submit" className="btn" disabled={searching}>
+            {searching ? "searching…" : "search"}
           </button>
         </form>
         <FilterMenu

@@ -19,5 +19,6 @@ export type PostMedia = typeof schema.postMedia.$inferSelect;
 export type MediaUpload = typeof schema.mediaUploads.$inferSelect;
 export type Feed = typeof schema.feeds.$inferSelect;
 export type Profile = typeof schema.profiles.$inferSelect;
+export type Follow = typeof schema.follows.$inferSelect;
 export type Product = typeof schema.products.$inferSelect;
 export type InterestSignup = typeof schema.interestSignups.$inferSelect;

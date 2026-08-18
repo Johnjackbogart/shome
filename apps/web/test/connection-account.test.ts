@@ -1,7 +1,19 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+const { lookup } = vi.hoisted(() => ({ lookup: vi.fn() }));
+
+vi.mock("node:dns/promises", () => ({ lookup }));
+
 import { resolveConnectionAccount } from "../src/server/connection-account";
 
-afterEach(() => vi.unstubAllGlobals());
+beforeEach(() => {
+  lookup.mockResolvedValue([{ address: "93.184.216.34" }]);
+});
+
+afterEach(() => {
+  lookup.mockReset();
+  vi.unstubAllGlobals();
+});
 
 describe("connection accounts", () => {
   it("names a Bluesky connection from its handle, but not from an email login", async () => {

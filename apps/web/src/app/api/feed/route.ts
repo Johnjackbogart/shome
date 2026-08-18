@@ -1,6 +1,6 @@
 import type { SourceKind } from "@shome/core";
-import { items, posts, sources, subscriptions, user } from "@shome/db";
-import { and, desc, eq, ilike, or, type SQL, sql } from "drizzle-orm";
+import { follows, items, posts, sources, subscriptions, user } from "@shome/db";
+import { and, desc, eq, ilike, inArray, or, type SQL, sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import type { FeedItemView } from "#/lib/types";
 import { containsPattern, jsonError, UUID_RE } from "#/server/api";
@@ -79,21 +79,32 @@ export async function GET(req: Request) {
     fetchedAt: item.fetchedAt.toISOString(),
   }));
 
-  const postRows =
-    sourceId || (kind && kind !== "post")
-      ? []
-      : await db
-          .select({ post: posts, name: user.name, username: user.username, image: user.image })
-          .from(posts)
-          .innerJoin(user, eq(posts.userId, user.id))
-          .where(
-            and(
-              eq(posts.userId, session.user.id),
-              ...(q ? [ilike(posts.text, `%${q.replace(/[\\%_]/g, (ch) => `\\${ch}`)}%`)] : []),
-            ),
-          )
-          .orderBy(desc(posts.createdAt))
-          .limit(limit);
+  const includePosts = !sourceId && (!kind || kind === "post");
+  const followedUserIds = includePosts
+    ? (
+        await db
+          .select({ followingId: follows.followingId })
+          .from(follows)
+          .where(eq(follows.followerId, session.user.id))
+      ).map((relationship) => relationship.followingId)
+    : [];
+  const postAuthors = [session.user.id, ...followedUserIds];
+  const postSearch = q
+    ? or(
+        ilike(posts.text, containsPattern(q)),
+        ilike(user.name, containsPattern(q)),
+        ilike(user.username, containsPattern(q)),
+      )
+    : undefined;
+  const postRows = includePosts
+    ? await db
+        .select({ post: posts, name: user.name, username: user.username, image: user.image })
+        .from(posts)
+        .innerJoin(user, eq(posts.userId, user.id))
+        .where(and(inArray(posts.userId, postAuthors), ...(postSearch ? [postSearch] : [])))
+        .orderBy(desc(posts.createdAt))
+        .limit(limit)
+    : [];
   const attachments = await mediaByPostId(
     db,
     postRows.map(({ post }) => post.id),

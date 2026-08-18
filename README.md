@@ -93,6 +93,46 @@ On a simulator/emulator the app finds the web server automatically (it targets
 port 3000 on the machine running Metro). For a deployed server set
 `EXPO_PUBLIC_API_URL` in `apps/mobile/.env`.
 
+#### Test on iOS
+
+Install Xcode 26.4 or newer (Xcode 26.6 is recommended) and download an iOS
+Simulator runtime from **Xcode → Settings → Components**. The visual profile
+builder includes a native WebView, so test it in a development build rather
+than Expo Go.
+
+To build and open the Simulator for the first time:
+
+```sh
+# terminal 1 — API server
+npm run dev
+
+# terminal 2 — builds the native app and opens a Simulator
+cd apps/mobile
+npx expo run:ios
+```
+
+`expo run:ios` generates the local `ios/` project when needed. For JavaScript
+changes after the first build, start Metro with `npx expo start --dev-client`
+and press `i`; rebuild with `npx expo run:ios` after changing a native module
+or app configuration.
+
+To install directly on an iPhone, connect it over USB, trust the Mac, enable
+**Settings → Privacy & Security → Developer Mode**, and sign in to Xcode with
+your Apple Account. Keep the phone and Mac on the same Wi-Fi, then run:
+
+```sh
+# make the API reachable from the phone
+npm run dev -w apps/web -- --hostname 0.0.0.0
+
+cd apps/mobile
+npx expo run:ios --device
+```
+
+If signing fails, use a bundle identifier unique to your Apple team instead of
+the current `com.shome.app`. If the phone cannot reach the local API, set
+`EXPO_PUBLIC_API_URL=http://<your-mac-lan-ip>:3000` in `apps/mobile/.env` and
+restart Metro.
+
 ### Scripts
 
 - `npm run dev` — Next.js dev server
@@ -101,7 +141,9 @@ port 3000 on the machine running Metro). For a deployed server set
 - `npm test` / `npm run typecheck` / `npm run lint` — Vitest, per-package tsc, Biome
 - `npm run db:generate` — regenerate SQL migrations after editing `packages/db/src/schema.ts`
 - `npm run db:migrate` — apply pending migrations (stop the dev server first)
-- `npm run build` / `npm start` — production build / serve
+- `npm run build` / `npm start` — production build / serve. Production builds use Webpack to
+  avoid Turbopack's PostCSS-worker port-binding issue; the server listens on `0.0.0.0` and honors
+  the platform-provided `PORT` (default: `3000`).
 
 ### Docs
 

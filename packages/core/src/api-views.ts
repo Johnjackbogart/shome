@@ -9,6 +9,27 @@ export interface PublicUser {
   image: string | null;
 }
 
+/** A shome member that can be found through people discovery. */
+export interface SocialUserView {
+  id: string;
+  handle: string;
+  displayName: string | null;
+  image: string | null;
+}
+
+/** A discovered member, including whether the signed-in viewer follows them. */
+export interface PeopleSearchResult extends SocialUserView {
+  isFollowing: boolean;
+}
+
+/** The signed-in member's own follow relationships. */
+export interface SocialGraphView {
+  followerCount: number;
+  followingCount: number;
+  followers: SocialUserView[];
+  following: SocialUserView[];
+}
+
 export interface SourceView {
   id: string;
   kind: string;

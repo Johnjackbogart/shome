@@ -19,34 +19,10 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "sources", label: "Sources" },
 ];
 
-const TAB_COPY: Record<Tab, { eyebrow: string; title: string; description: string }> = {
-  feed: {
-    eyebrow: "Your daily mix",
-    title: "Keep up on your own terms.",
-    description: "A quieter place for the people and ideas you care about.",
-  },
-  discover: {
-    eyebrow: "Find your next source",
-    title: "A better starting point for curiosity.",
-    description: "Search for worthwhile publications and add the ones you want to keep up with.",
-  },
-  sources: {
-    eyebrow: "Shape your feed",
-    title: "Bring in the voices you value.",
-    description: "Add the sources and connections that make your feed feel like home.",
-  },
-  profile: {
-    eyebrow: "Your corner of the web",
-    title: "Make a page that feels like you.",
-    description: "Create a small, personal place to share your work and ideas.",
-  },
-};
-
 export function AppShell({ initialUser }: { initialUser: PublicUser | null }) {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("feed");
   const [avatarUrl, setAvatarUrl] = useState(initialUser?.image ?? null);
-  const pageCopy = TAB_COPY[tab];
 
   if (!initialUser) {
     return (
@@ -163,7 +139,7 @@ export function AppShell({ initialUser }: { initialUser: PublicUser | null }) {
     <div className="relative isolate min-h-dvh overflow-hidden bg-[#070a18] text-slate-100">
       <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_10%_4%,rgba(99,102,241,0.18),transparent_26%),radial-gradient(circle_at_88%_32%,rgba(244,114,182,0.1),transparent_22%)]" />
       <div className="mx-auto max-w-6xl px-5 py-5 sm:px-10 sm:py-7 lg:px-14">
-        <header className="sticky top-4 z-10 mb-12 flex flex-wrap items-center gap-3 rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 shadow-xl shadow-black/20 backdrop-blur-xl sm:flex-nowrap sm:px-5">
+        <header className="sticky top-4 z-10 mb-7 flex flex-wrap items-center gap-3 rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 shadow-xl shadow-black/20 backdrop-blur-xl sm:flex-nowrap sm:px-5">
           <a href="/" className="flex items-center gap-2.5 font-semibold tracking-tight">
             <span className="grid size-8 place-items-center rounded-xl bg-indigo-300 text-sm font-black text-slate-950 shadow-[0_0_24px_rgba(165,180,252,0.3)]">
               s
@@ -223,18 +199,6 @@ export function AppShell({ initialUser }: { initialUser: PublicUser | null }) {
           </div>
         </header>
         <main className="pb-16">
-          <section className="mb-9 max-w-2xl">
-            <p className="mb-3 flex items-center gap-2 text-xs font-semibold tracking-[0.15em] text-indigo-200 uppercase">
-              <span className="h-px w-7 bg-indigo-300/70" />
-              {pageCopy.eyebrow}
-            </p>
-            <h1 className="text-3xl font-semibold tracking-[-0.04em] text-white sm:text-4xl">
-              {pageCopy.title}
-            </h1>
-            <p className="mt-3 max-w-xl text-sm leading-6 text-slate-400 sm:text-base">
-              {pageCopy.description}
-            </p>
-          </section>
           {tab === "feed" && <FeedView />}
           {tab === "discover" && <DiscoverView />}
           {tab === "sources" && <SourcesView />}
