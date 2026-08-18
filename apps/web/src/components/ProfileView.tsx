@@ -1,6 +1,7 @@
 "use client";
 
 import { type ChangeEvent, useEffect, useRef, useState } from "react";
+import { ProfilePageEditor } from "#/components/ProfilePageEditor";
 import { api } from "#/lib/api";
 
 type ProductView = {
@@ -23,19 +24,6 @@ type ProductDraft = {
   visible: boolean;
   sortOrder: string;
 };
-
-const BLOCKS = [
-  {
-    label: "posts",
-    source: "<shome-posts />",
-    description: "your first-party posts",
-  },
-  {
-    label: "shop",
-    source: "<shome-products />",
-    description: "your visible products",
-  },
-];
 
 function emptyDraft(): ProductDraft {
   return {
@@ -310,11 +298,6 @@ export function ProfileView({
     refreshPreview();
   }
 
-  function insertBlock(source: string) {
-    setHtml((current) => `${current?.trimEnd() ?? ""}\n\n${source}\n`);
-    setSaved(false);
-  }
-
   async function finishAvatarUpload(uploadId: string) {
     setAvatarBusy(true);
     setError(null);
@@ -471,8 +454,7 @@ export function ProfileView({
         </button>
       </div>
       <p className="mb-4 text-sm text-slate-400">
-        Write HTML + CSS, then drop in shome blocks wherever you want them. Pages remain locked to a
-        no-script sandbox.
+        Build visually or write HTML + CSS. Everything stays in the same no-script sandbox.
       </p>
       {error && <p className="mb-2 text-sm text-red-400">{error}</p>}
 
@@ -534,28 +516,6 @@ export function ProfileView({
       </div>
 
       <div className="card mb-4">
-        <p className="mb-2 font-semibold">Building blocks</p>
-        <div className="flex flex-wrap gap-2">
-          {BLOCKS.map((block) => (
-            <button
-              key={block.label}
-              type="button"
-              className="btn-ghost"
-              onClick={() => insertBlock(block.source)}
-            >
-              add {block.label}
-            </button>
-          ))}
-        </div>
-        <p className="mt-2 text-sm text-slate-400">
-          Inserts a small, editable tag.{" "}
-          <code className="text-slate-200">&lt;shome-posts /&gt;</code> shows your posts;{" "}
-          <code className="text-slate-200">&lt;shome-products /&gt;</code> shows visible catalog
-          items.
-        </p>
-      </div>
-
-      <div className="card mb-4">
         <label className="mb-1.5 block font-semibold" htmlFor="portfolio-prompt">
           Vibe-code your page
         </label>
@@ -589,37 +549,15 @@ export function ProfileView({
         )}
       </div>
 
-      <div className="mb-3 grid min-h-[26rem] grid-cols-1 gap-4 lg:grid-cols-2">
-        <textarea
-          className="input min-h-[26rem] resize-y font-mono text-[0.85rem] leading-relaxed whitespace-pre"
-          value={html ?? ""}
-          onChange={(event) => {
-            setHtml(event.target.value);
-            setSaved(false);
-          }}
-          spellCheck={false}
-          placeholder={"<style>…</style>\n<h1>hi</h1>\n<shome-products />"}
-        />
-        {previewDoc === null ? (
-          <div className="card flex items-center justify-center">
-            <p className="text-slate-400">{previewError ?? "building your preview…"}</p>
-          </div>
-        ) : (
-          <div className="relative min-h-[26rem]">
-            <iframe
-              className="h-full min-h-[26rem] w-full rounded-2xl border border-white/10 bg-white"
-              sandbox="allow-popups allow-popups-to-escape-sandbox"
-              srcDoc={previewDoc}
-              title="preview"
-            />
-            {previewError && (
-              <p className="absolute inset-x-0 bottom-0 rounded-b-2xl bg-red-950/90 px-3 py-2 text-sm text-red-200">
-                preview is out of date: {previewError}
-              </p>
-            )}
-          </div>
-        )}
-      </div>
+      <ProfilePageEditor
+        html={html ?? ""}
+        onChange={(nextHtml) => {
+          setHtml(nextHtml);
+          setSaved(false);
+        }}
+        previewDoc={previewDoc}
+        previewError={previewError}
+      />
 
       <section className="mt-10">
         <div className="mb-3 flex flex-wrap items-center gap-3">

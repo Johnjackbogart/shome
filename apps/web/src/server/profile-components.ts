@@ -11,7 +11,10 @@ const componentNames: ComponentName[] = ["posts", "products"];
 // server-side data contract narrow; later components can add typed attributes
 // through the registry without turning page source into executable code.
 function componentPattern(name: ComponentName): RegExp {
-  return new RegExp(`<shome-${name}\\s*(?:><\\/shome-${name}\\s*>|\\/\\s*>)`, "gi");
+  return new RegExp(
+    `<shome-${name}\\s*>(?:\\s*)<\\/shome-${name}\\s*>|<shome-${name}\\s*\\/\\s*>`,
+    "gi",
+  );
 }
 
 export function hasProfileComponent(html: string, name: ComponentName): boolean {

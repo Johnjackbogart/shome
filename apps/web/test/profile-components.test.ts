@@ -5,6 +5,7 @@ describe("profile component syntax", () => {
   it("recognizes the documented self-closing and paired tags", () => {
     expect(hasProfileComponent("<shome-products />", "products")).toBe(true);
     expect(hasProfileComponent("<shome-posts></shome-posts>", "posts")).toBe(true);
+    expect(hasProfileComponent("<shome-products>\n</shome-products>", "products")).toBe(true);
   });
 
   it("does not treat attributed or malformed tags as components", () => {

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ComingSoonForm } from "#/components/ComingSoonForm";
@@ -186,21 +187,16 @@ export function AppShell({ initialUser }: { initialUser: PublicUser | null }) {
             ))}
           </nav>
           <div className="ml-auto flex items-center gap-3">
-            {avatarUrl ? (
-              <img
-                className="size-9 rounded-full bg-slate-800 object-cover"
-                src={avatarUrl}
-                alt=""
-              />
-            ) : (
-              <div
-                className="grid size-9 place-items-center rounded-full bg-indigo-300 text-sm font-bold text-slate-950"
-                aria-hidden="true"
+            {initialUser.handle ? (
+              <Link
+                href={`/p/${encodeURIComponent(initialUser.handle)}`}
+                className="rounded-full transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-200"
+                aria-label="View your public profile"
               >
-                {(initialUser.displayName || initialUser.handle || initialUser.email)
-                  .slice(0, 1)
-                  .toUpperCase()}
-              </div>
+                <Avatar avatarUrl={avatarUrl} initialUser={initialUser} />
+              </Link>
+            ) : (
+              <Avatar avatarUrl={avatarUrl} initialUser={initialUser} />
             )}
             {initialUser.handle ? (
               <button
@@ -247,6 +243,26 @@ export function AppShell({ initialUser }: { initialUser: PublicUser | null }) {
           )}
         </main>
       </div>
+    </div>
+  );
+}
+
+function Avatar({ avatarUrl, initialUser }: { avatarUrl: string | null; initialUser: PublicUser }) {
+  if (avatarUrl) {
+    return (
+      // biome-ignore lint/performance/noImgElement: profile pictures are dynamic user uploads.
+      <img className="size-9 rounded-full bg-slate-800 object-cover" src={avatarUrl} alt="" />
+    );
+  }
+
+  return (
+    <div
+      className="grid size-9 place-items-center rounded-full bg-indigo-300 text-sm font-bold text-slate-950"
+      aria-hidden="true"
+    >
+      {(initialUser.displayName || initialUser.handle || initialUser.email)
+        .slice(0, 1)
+        .toUpperCase()}
     </div>
   );
 }
