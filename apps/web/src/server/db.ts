@@ -36,9 +36,6 @@ function handle(): Handle {
     const ready = created.migrate();
     // Swallow here to avoid unhandled-rejection noise (awaiters of getDb still
     // see the error) and drop the broken handle so the next request retries.
-    ready.catch(() => {
-      if (g.__shomeDb?.ready === ready) g.__shomeDb = undefined;
-    });
     g.__shomeDb = { db: created.db, ready, close: created.close };
     registerGracefulClose();
   }

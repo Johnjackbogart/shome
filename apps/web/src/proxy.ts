@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { isAllowedOrigin } from "@/lib/origins";
+import { isAllowedOrigin } from "#/lib/origins";
 
 // Neither Next nor Better Auth emits CORS headers on its own, so the API is
 // same-origin only by default. The Expo app running under `--web` lives on the

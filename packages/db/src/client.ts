@@ -26,7 +26,11 @@ function resolveMigrationsFolder(): string {
   if (fromEnv) return fromEnv;
   // Unbundled (tests, scripts): relative to this source file.
   try {
-    const candidate = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "migrations");
+    const candidate = path.join(
+      path.dirname(fileURLToPath(import.meta.url)),
+      "..",
+      "migrations",
+    );
     if (existsSync(candidate)) return candidate;
   } catch {
     // import.meta.url may be rewritten or invalid under a bundler — fall through.
@@ -34,7 +38,10 @@ function resolveMigrationsFolder(): string {
   // Bundled (Next.js): walk up from the server's cwd to the workspace layout.
   let dir = process.cwd();
   for (let i = 0; i < 8; i++) {
-    for (const rel of [path.join("packages", "db", "migrations"), "migrations"]) {
+    for (const rel of [
+      path.join("packages", "db", "migrations"),
+      "migrations",
+    ]) {
       // This intentionally probes deployment-specific paths. Migration SQL is
       // explicitly included in Next's output trace in apps/web/next.config.ts.
       const candidate = path.join(/* turbopackIgnore: true */ dir, rel);
@@ -87,7 +94,9 @@ export function createDatabase(opts: OpenDatabaseOptions = {}): DatabaseHandle {
     };
   }
   const dir =
-    opts.pgliteDir ?? process.env.SHOME_PGLITE_DIR ?? path.join(process.cwd(), ".data", "pglite");
+    opts.pgliteDir ??
+    process.env.SHOME_PGLITE_DIR ??
+    path.join(process.cwd(), ".data", "pglite");
   if (dir !== ":memory:") mkdirSync(dir, { recursive: true }); // PGlite won't create parents
   const client = dir === ":memory:" ? new PGlite() : new PGlite(dir);
   const db = drizzlePglite(client, { schema });
@@ -102,7 +111,9 @@ export function createDatabase(opts: OpenDatabaseOptions = {}): DatabaseHandle {
 }
 
 /** Convenience for tests/scripts: construct and migrate in one call. */
-export async function openDatabase(opts: OpenDatabaseOptions = {}): Promise<Db> {
+export async function openDatabase(
+  opts: OpenDatabaseOptions = {},
+): Promise<Db> {
   const handle = createDatabase(opts);
   await handle.migrate();
   return handle.db;
