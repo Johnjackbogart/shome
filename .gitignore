@@ -7,6 +7,7 @@ dist/
 *.log
 .DS_Store
 apps/web/.next/
+apps/web/next-env.d.ts
 apps/web/.data/
 apps/web/.data*/
 
