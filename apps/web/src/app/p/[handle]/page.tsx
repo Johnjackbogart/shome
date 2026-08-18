@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { getDb } from "#/server/db";
 import { crossPostLinks, postMediaUrl } from "#/server/posting";
 import { hasProfileComponent } from "#/server/profile-components";
+import { profileHtmlOrDefault } from "#/server/sanitize";
 
 export const dynamic = "force-dynamic";
 
@@ -29,7 +30,10 @@ export default async function ProfilePage(ctx: { params: Promise<{ handle: strin
     .from(profiles)
     .where(eq(profiles.userId, owner.id))
     .limit(1);
-  const pageEmbedsPosts = hasProfileComponent(profile?.html ?? "", "posts");
+  const pageEmbedsPosts = hasProfileComponent(
+    profileHtmlOrDefault(profile?.html, owner.username ?? handle),
+    "posts",
+  );
   const profilePosts = pageEmbedsPosts
     ? []
     : await db

@@ -23,6 +23,7 @@ export function FeedView() {
   const [q, setQ] = useState("");
   const [appliedQ, setAppliedQ] = useState("");
   const [kind, setKind] = useState("");
+  const [composerVisible, setComposerVisible] = useState(false);
   const refreshedOnMount = useRef(false);
 
   const load = useCallback(async () => {
@@ -62,16 +63,17 @@ export function FeedView() {
     setAppliedQ(q.trim());
   }
 
+  useEffect(() => {
+    if (!composerVisible) return;
+    function closeOnEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") setComposerVisible(false);
+    }
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [composerVisible]);
+
   return (
     <section>
-      <PostComposer
-        onPosted={(post) => {
-          setItems((current) => [post, ...(current ?? [])]);
-          setKind("");
-          setQ("");
-          setAppliedQ("");
-        }}
-      />
       <div className="mb-5 flex flex-wrap items-center gap-2">
         <form className="min-w-48 flex-1" onSubmit={search}>
           <input
@@ -102,7 +104,7 @@ export function FeedView() {
         <div className="card py-12 text-center">
           <p>Nothing here yet.</p>
           <p className="text-slate-400">
-            Write your first post above, or add a source in the Sources tab.
+            Create your first post, or add a source in the Sources tab.
           </p>
         </div>
       ) : (
@@ -110,6 +112,51 @@ export function FeedView() {
           {items.map((item) => (
             <FeedItem key={item.id} item={item} />
           ))}
+        </div>
+      )}
+
+      <button
+        type="button"
+        className="btn fixed right-5 bottom-5 z-40 inline-flex items-center gap-2 rounded-full px-5 py-3 shadow-lg shadow-black/40 sm:right-6 sm:bottom-6"
+        onClick={() => setComposerVisible(true)}
+        aria-haspopup="dialog"
+        aria-expanded={composerVisible}
+      >
+        <span aria-hidden="true" className="text-xl leading-none">
+          +
+        </span>
+        Create post
+      </button>
+
+      {composerVisible && (
+        <div
+          className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/85 p-4 sm:p-6"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Create post"
+        >
+          <div className="mx-auto flex min-h-full w-full max-w-2xl items-center">
+            <div className="w-full py-4">
+              <div className="mb-2 flex justify-end">
+                <button
+                  type="button"
+                  className="btn-ghost px-3 py-1.5"
+                  onClick={() => setComposerVisible(false)}
+                >
+                  close
+                </button>
+              </div>
+              <PostComposer
+                onPosted={(post) => {
+                  setItems((current) => [post, ...(current ?? [])]);
+                  setKind("");
+                  setQ("");
+                  setAppliedQ("");
+                }}
+                onSuccess={() => setComposerVisible(false)}
+              />
+            </div>
+          </div>
         </div>
       )}
     </section>
@@ -507,7 +554,12 @@ function CameraCapture({
   );
 }
 
-function PostComposer({ onPosted }: { onPosted: (post: FeedItemView) => void }) {
+type PostComposerProps = {
+  onPosted: (post: FeedItemView) => void;
+  onSuccess?: () => void;
+};
+
+function PostComposer({ onPosted, onSuccess }: PostComposerProps) {
   const [text, setText] = useState("");
   const [selectedMedia, setSelectedMedia] = useState<SelectedMedia[]>([]);
   const [cameraMode, setCameraMode] = useState<CameraMode | null>(null);
@@ -646,24 +698,28 @@ function PostComposer({ onPosted }: { onPosted: (post: FeedItemView) => void }) 
       setText("");
       setSelectedMedia([]);
       onPosted(res.post);
-      if (res.deliveries.length === 0) {
-        setNotice("posted to your shome feed");
+      if (onSuccess) {
+        onSuccess();
       } else {
-        const succeeded = res.deliveries
-          .filter((delivery) => delivery.ok)
-          .map((delivery) => delivery.provider);
-        const failed = res.deliveries.filter((delivery) => !delivery.ok);
-        setNotice(
-          [
-            "posted to your shome feed",
-            succeeded.length > 0 ? `shared to ${succeeded.join(" + ")}` : null,
-            ...failed.map(
-              (delivery) => `${delivery.provider}: ${delivery.error ?? "could not post"}`,
-            ),
-          ]
-            .filter(Boolean)
-            .join(" · "),
-        );
+        if (res.deliveries.length === 0) {
+          setNotice("posted to your shome feed");
+        } else {
+          const succeeded = res.deliveries
+            .filter((delivery) => delivery.ok)
+            .map((delivery) => delivery.provider);
+          const failed = res.deliveries.filter((delivery) => !delivery.ok);
+          setNotice(
+            [
+              "posted to your shome feed",
+              succeeded.length > 0 ? `shared to ${succeeded.join(" + ")}` : null,
+              ...failed.map(
+                (delivery) => `${delivery.provider}: ${delivery.error ?? "could not post"}`,
+              ),
+            ]
+              .filter(Boolean)
+              .join(" · "),
+          );
+        }
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));

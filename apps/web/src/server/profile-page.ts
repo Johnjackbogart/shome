@@ -1,6 +1,6 @@
 import type { Db } from "@shome/db";
 import { renderProfileComponents } from "./profile-components";
-import { defaultProfileHtml, sanitizeProfileHtml } from "./sanitize";
+import { profileHtmlOrDefault, sanitizeProfileHtml } from "./sanitize";
 
 // No scripts, no external requests beyond images/media/fonts. Served as a
 // response header for direct navigation to the content route, and repeated as a
@@ -26,9 +26,8 @@ export async function renderProfileDocument({
   html: string | null;
   handle: string;
 }): Promise<string> {
-  const inner = html?.trim()
-    ? sanitizeProfileHtml(await renderProfileComponents({ db, userId, html }))
-    : defaultProfileHtml(handle);
+  const source = profileHtmlOrDefault(html, handle);
+  const inner = sanitizeProfileHtml(await renderProfileComponents({ db, userId, html: source }));
 
   return `<!doctype html>
 <html>

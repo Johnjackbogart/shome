@@ -1,6 +1,16 @@
+import { Ionicons } from "@expo/vector-icons";
 import type { FeedItemView } from "@shome/core";
 import { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, FlatList, Pressable, RefreshControl, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  FlatList,
+  Modal,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { FeedItemCard } from "@/components/feed-item-card";
 import { PostComposer } from "@/components/post-composer";
@@ -12,6 +22,7 @@ export default function FeedScreen() {
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [fetching, setFetching] = useState(false);
+  const [composerVisible, setComposerVisible] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -76,14 +87,7 @@ export default function FeedScreen() {
           data={items}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => <FeedItemCard item={item} />}
-          contentContainerClassName="px-5 pb-8"
-          ListHeaderComponent={
-            <PostComposer
-              onPosted={(post) => {
-                setItems((current) => [post, ...(current ?? [])]);
-              }}
-            />
-          }
+          contentContainerClassName="px-5 pb-28"
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
@@ -101,6 +105,44 @@ export default function FeedScreen() {
           }
         />
       )}
+
+      <Pressable
+        onPress={() => setComposerVisible(true)}
+        className="absolute right-5 bottom-5 flex-row items-center gap-2 rounded-full bg-indigo-300 px-5 py-4 shadow-lg shadow-black/40 active:opacity-80"
+        accessibilityRole="button"
+        accessibilityLabel="Create post"
+      >
+        <Ionicons name="add" size={22} color={COLORS.background} />
+        <Text className="font-semibold text-slate-950">Create post</Text>
+      </Pressable>
+
+      <Modal
+        visible={composerVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setComposerVisible(false)}
+      >
+        <SafeAreaView className={UI.screen} edges={["top", "bottom"]}>
+          <View className="flex-row items-center justify-end px-5 pt-2 pb-3">
+            <Pressable
+              onPress={() => setComposerVisible(false)}
+              className="rounded-full p-2 active:bg-white/10"
+              accessibilityRole="button"
+              accessibilityLabel="Close post composer"
+            >
+              <Ionicons name="close" size={24} color={COLORS.muted} />
+            </Pressable>
+          </View>
+          <ScrollView contentContainerClassName="px-5 pb-8" keyboardShouldPersistTaps="handled">
+            <PostComposer
+              onPosted={(post) => {
+                setItems((current) => [post, ...(current ?? [])]);
+              }}
+              onSuccess={() => setComposerVisible(false)}
+            />
+          </ScrollView>
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   );
 }

@@ -5,6 +5,7 @@ import { z } from "zod";
 import { jsonError, parseBody } from "#/server/api";
 import { getSessionOrNull } from "#/server/auth";
 import { getDb } from "#/server/db";
+import { profileHtmlOrDefault } from "#/server/sanitize";
 
 export async function GET() {
   const session = await getSessionOrNull();
@@ -16,7 +17,9 @@ export async function GET() {
     .from(profiles)
     .where(eq(profiles.userId, session.user.id))
     .limit(1);
-  return NextResponse.json({ html: row?.html ?? "" });
+  return NextResponse.json({
+    html: profileHtmlOrDefault(row?.html, session.user.username ?? session.user.name),
+  });
 }
 
 const putSchema = z.object({

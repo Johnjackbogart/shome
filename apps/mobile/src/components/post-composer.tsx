@@ -1,4 +1,4 @@
-import type { FeedItemView } from "@shome/core";
+import type { ConnectionView, FeedItemView } from "@shome/core";
 import * as ImagePicker from "expo-image-picker";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Platform, Pressable, Text, TextInput, View } from "react-native";
@@ -16,6 +16,13 @@ type SelectedMedia = {
   type: string;
   durationMs: number | null;
   file?: File;
+};
+
+type Delivery = {
+  provider: "bluesky" | "mastodon";
+  ok: boolean;
+  url?: string;
+  error?: string;
 };
 
 function mediaType(asset: ImagePicker.ImagePickerAsset): string {
@@ -41,12 +48,27 @@ function toSelectedMedia(asset: ImagePicker.ImagePickerAsset): SelectedMedia {
   };
 }
 
-export function PostComposer({ onPosted }: { onPosted: (post: FeedItemView) => void }) {
+type PostComposerProps = {
+  onPosted: (post: FeedItemView) => void;
+  onSuccess?: () => void;
+};
+
+export function PostComposer({ onPosted, onSuccess }: PostComposerProps) {
   const [text, setText] = useState("");
   const [selectedMedia, setSelectedMedia] = useState<SelectedMedia[]>([]);
+  const [connections, setConnections] = useState<ConnectionView[]>([]);
+  const [blueskyConnectionId, setBlueskyConnectionId] = useState("");
+  const [mastodonConnectionId, setMastodonConnectionId] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+
+  const blueskyConnections = connections.filter((connection) => connection.provider === "bluesky");
+  const mastodonConnections = connections.filter(
+    (connection) => connection.provider === "mastodon",
+  );
+  const blueskyLength = [...text].length;
+  const blueskyTooLong = Boolean(blueskyConnectionId) && blueskyLength > 300;
 
   function addAssets(assets: ImagePicker.ImagePickerAsset[]) {
     const media = assets.map(toSelectedMedia);
@@ -81,6 +103,17 @@ export function PostComposer({ onPosted }: { onPosted: (post: FeedItemView) => v
         }
       })
       .catch(() => setError("could not recover the captured media"));
+  }, []);
+
+  useEffect(() => {
+    void api
+      .get<{ connections: ConnectionView[] }>("/api/connections")
+      .then((result) => setConnections(result.connections))
+      .catch((connectionError) =>
+        setError(
+          connectionError instanceof Error ? connectionError.message : String(connectionError),
+        ),
+      );
   }, []);
 
   async function chooseMedia() {
@@ -121,13 +154,17 @@ export function PostComposer({ onPosted }: { onPosted: (post: FeedItemView) => v
   }
 
   async function submit() {
-    if (busy || (text.trim().length === 0 && selectedMedia.length === 0)) return;
+    if (busy || blueskyTooLong || (text.trim().length === 0 && selectedMedia.length === 0)) {
+      return;
+    }
     setBusy(true);
     setError(null);
     setNotice(null);
     try {
       const form = new FormData();
       form.set("text", text);
+      if (blueskyConnectionId) form.set("blueskyConnectionId", blueskyConnectionId);
+      if (mastodonConnectionId) form.set("mastodonConnectionId", mastodonConnectionId);
       for (const media of selectedMedia) {
         if (Platform.OS === "web") {
           if (!media.file) throw new Error(`could not read ${media.name}`);
@@ -142,11 +179,32 @@ export function PostComposer({ onPosted }: { onPosted: (post: FeedItemView) => v
           } as unknown as Blob);
         }
       }
-      const result = await api.postForm<{ post: FeedItemView }>("/api/posts", form);
+      const result = await api.postForm<{ post: FeedItemView; deliveries: Delivery[] }>(
+        "/api/posts",
+        form,
+      );
       setText("");
       setSelectedMedia([]);
       onPosted(result.post);
-      setNotice("posted to your shome feed");
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        const succeeded = result.deliveries
+          .filter((delivery) => delivery.ok)
+          .map((delivery) => delivery.provider);
+        const failed = result.deliveries.filter((delivery) => !delivery.ok);
+        setNotice(
+          [
+            "posted to your shome feed",
+            succeeded.length > 0 ? `shared to ${succeeded.join(" + ")}` : null,
+            ...failed.map(
+              (delivery) => `${delivery.provider}: ${delivery.error ?? "could not post"}`,
+            ),
+          ]
+            .filter(Boolean)
+            .join(" · "),
+        );
+      }
     } catch (submissionError) {
       setError(submissionError instanceof Error ? submissionError.message : "could not post");
     } finally {
@@ -191,6 +249,140 @@ export function PostComposer({ onPosted }: { onPosted: (post: FeedItemView) => v
       <Text className="text-xs text-slate-500">
         Up to 10 photos · MP4/WebM/MOV videos up to 3 min
       </Text>
+      <View className="gap-3 rounded-xl border border-white/10 bg-white/5 p-3">
+        <Text className="text-sm font-medium text-white">Cross-post</Text>
+        <View className="flex-row flex-wrap gap-2">
+          <Pressable
+            onPress={() =>
+              setBlueskyConnectionId((current) =>
+                current ? "" : (blueskyConnections[0]?.id ?? ""),
+              )
+            }
+            disabled={blueskyConnections.length === 0}
+            className={`rounded-xl px-3 py-2 disabled:opacity-50 ${
+              blueskyConnectionId ? "bg-indigo-300" : "border border-white/10 bg-white/5"
+            }`}
+            accessibilityRole="checkbox"
+            accessibilityLabel="Post to Bluesky"
+            accessibilityState={{
+              checked: Boolean(blueskyConnectionId),
+              disabled: blueskyConnections.length === 0,
+            }}
+          >
+            <Text
+              className={
+                blueskyConnectionId
+                  ? "text-sm font-semibold text-slate-950"
+                  : "text-sm text-indigo-200"
+              }
+            >
+              Post to Bluesky
+            </Text>
+          </Pressable>
+          <Pressable
+            onPress={() =>
+              setMastodonConnectionId((current) =>
+                current ? "" : (mastodonConnections[0]?.id ?? ""),
+              )
+            }
+            disabled={mastodonConnections.length === 0}
+            className={`rounded-xl px-3 py-2 disabled:opacity-50 ${
+              mastodonConnectionId ? "bg-indigo-300" : "border border-white/10 bg-white/5"
+            }`}
+            accessibilityRole="checkbox"
+            accessibilityLabel="Post to Mastodon"
+            accessibilityState={{
+              checked: Boolean(mastodonConnectionId),
+              disabled: mastodonConnections.length === 0,
+            }}
+          >
+            <Text
+              className={
+                mastodonConnectionId
+                  ? "text-sm font-semibold text-slate-950"
+                  : "text-sm text-indigo-200"
+              }
+            >
+              Post to Mastodon
+            </Text>
+          </Pressable>
+        </View>
+        {blueskyConnectionId && blueskyConnections.length > 1 && (
+          <View className="gap-1">
+            <Text className="text-xs text-slate-500">Bluesky account</Text>
+            <View className="flex-row flex-wrap gap-2">
+              {blueskyConnections.map((connection) => (
+                <Pressable
+                  key={connection.id}
+                  onPress={() => setBlueskyConnectionId(connection.id)}
+                  className={`rounded-lg px-2.5 py-1.5 ${
+                    blueskyConnectionId === connection.id
+                      ? "bg-indigo-300"
+                      : "border border-white/10 bg-white/5"
+                  }`}
+                  accessibilityRole="radio"
+                  accessibilityState={{ selected: blueskyConnectionId === connection.id }}
+                >
+                  <Text
+                    className={
+                      blueskyConnectionId === connection.id
+                        ? "text-xs font-semibold text-slate-950"
+                        : "text-xs text-slate-300"
+                    }
+                  >
+                    {connection.label}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+        )}
+        {mastodonConnectionId && mastodonConnections.length > 1 && (
+          <View className="gap-1">
+            <Text className="text-xs text-slate-500">Mastodon account</Text>
+            <View className="flex-row flex-wrap gap-2">
+              {mastodonConnections.map((connection) => (
+                <Pressable
+                  key={connection.id}
+                  onPress={() => setMastodonConnectionId(connection.id)}
+                  className={`rounded-lg px-2.5 py-1.5 ${
+                    mastodonConnectionId === connection.id
+                      ? "bg-indigo-300"
+                      : "border border-white/10 bg-white/5"
+                  }`}
+                  accessibilityRole="radio"
+                  accessibilityState={{ selected: mastodonConnectionId === connection.id }}
+                >
+                  <Text
+                    className={
+                      mastodonConnectionId === connection.id
+                        ? "text-xs font-semibold text-slate-950"
+                        : "text-xs text-slate-300"
+                    }
+                  >
+                    {connection.label}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+        )}
+        {(blueskyConnections.length === 0 || mastodonConnections.length === 0) && (
+          <Text className="text-xs leading-5 text-slate-500">
+            Connect accounts in the web app’s Sources tab to cross-post from mobile.
+          </Text>
+        )}
+      </View>
+      {blueskyConnectionId && (
+        <Text className={blueskyTooLong ? "text-xs text-rose-300" : "text-xs text-slate-500"}>
+          Bluesky: {blueskyLength}/300 characters
+        </Text>
+      )}
+      {selectedMedia.length > 0 && (blueskyConnectionId || mastodonConnectionId) && (
+        <Text className="text-xs leading-5 text-slate-500">
+          Attachments publish to shome. Connected platforms currently receive text only.
+        </Text>
+      )}
       {selectedMedia.length > 0 && (
         <View className="gap-2">
           {selectedMedia.map((media) => (
@@ -217,7 +409,9 @@ export function PostComposer({ onPosted }: { onPosted: (post: FeedItemView) => v
       <View className="flex-row items-center gap-3">
         <Pressable
           onPress={() => void submit()}
-          disabled={busy || (text.trim().length === 0 && selectedMedia.length === 0)}
+          disabled={
+            busy || blueskyTooLong || (text.trim().length === 0 && selectedMedia.length === 0)
+          }
           className={`${UI.primaryButton} min-w-20 disabled:opacity-50`}
         >
           {busy ? (

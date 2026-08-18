@@ -24,23 +24,6 @@ type ProductDraft = {
   sortOrder: string;
 };
 
-const STARTER = `<style>
-  body { margin: 0; font-family: Georgia, serif; background: #f7f3ec; color: #2b2620; }
-  .hero { padding: 4rem 2rem; text-align: center; }
-  .hero h1 { font-size: 3rem; margin: 0; }
-  .hero p { color: #7a6f5f; }
-  .links { display: flex; gap: 1rem; justify-content: center; padding-bottom: 3rem; }
-  .links a { color: #2b2620; border: 1px solid #2b2620; padding: .5rem 1rem; border-radius: 999px; text-decoration: none; }
-</style>
-<div class="hero">
-  <h1>hi, I'm me.</h1>
-  <p>this corner of the internet is mine. no scripts, all vibes.</p>
-</div>
-<div class="links">
-  <a href="https://bsky.app">bluesky</a>
-  <a href="https://example.com">my blog</a>
-</div>`;
-
 const BLOCKS = [
   {
     label: "posts",
@@ -256,7 +239,6 @@ export function ProfileView({ handle }: { handle: string | null }) {
   const [prompt, setPrompt] = useState("");
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [copied, setCopied] = useState(false);
   const [generated, setGenerated] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -347,24 +329,6 @@ export function ProfileView({ handle }: { handle: string | null }) {
     }
   }
 
-  async function copyVibePrompt() {
-    const direction =
-      prompt.trim() || "A distinctive personal portfolio that feels like me.";
-    const request = `Create a self-contained personal page for shome.
-
-Creative direction: ${direction}
-
-Return only the HTML and inline CSS for the page body. Make it responsive, accessible, and polished. Do not use JavaScript, external scripts, iframes, or remote CSS. Use semantic sections and keep all styling in a <style> tag. To show my shome content, use exactly <shome-posts /> for posts or <shome-products /> for visible products; do not add attributes to these tags. This will render inside a sandboxed iframe.`;
-    try {
-      await navigator.clipboard.writeText(request);
-      setCopied(true);
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "could not copy the prompt",
-      );
-    }
-  }
-
   async function generatePortfolio() {
     setGenerating(true);
     setError(null);
@@ -376,7 +340,6 @@ Return only the HTML and inline CSS for the page body. Make it responsive, acces
       });
       setHtml(res.html);
       setSaved(false);
-      setCopied(false);
       setGenerated(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
@@ -457,7 +420,6 @@ Return only the HTML and inline CSS for the page body. Make it responsive, acces
             value={prompt}
             onChange={(event) => {
               setPrompt(event.target.value);
-              setCopied(false);
             }}
             placeholder="e.g. playful creative director portfolio, bright cobalt, editorial type"
           />
@@ -469,12 +431,6 @@ Return only the HTML and inline CSS for the page body. Make it responsive, acces
           >
             {generating ? "creating…" : "generate with OpenAI"}
           </button>
-          {/**
-            shouldnt need this, saving it in case I want it 
-          <button type="button" className="btn-ghost" onClick={() => void copyVibePrompt()}>
-            {copied ? "prompt copied ✓" : "copy prompt"}
-          </button>
-          **/}
         </div>
         {generated && (
           <p className="mt-2 text-sm text-emerald-400">
@@ -514,16 +470,6 @@ Return only the HTML and inline CSS for the page body. Make it responsive, acces
           </div>
         )}
       </div>
-
-      {(html ?? "") === "" && (
-        <button
-          type="button"
-          className="btn-ghost"
-          onClick={() => setHtml(STARTER)}
-        >
-          insert starter template
-        </button>
-      )}
 
       <section className="mt-10">
         <div className="mb-3 flex flex-wrap items-center gap-3">
