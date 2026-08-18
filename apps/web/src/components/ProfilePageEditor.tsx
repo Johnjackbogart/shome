@@ -2,6 +2,7 @@
 
 import {
   type DragEvent,
+  type PointerEvent,
   type UIEvent,
   useCallback,
   useEffect,
@@ -40,6 +41,18 @@ type BlockTextField = {
   label: string;
   value: string;
 };
+
+type PointerDrag = {
+  id: string;
+  pointerId: number;
+  startX: number;
+  startY: number;
+  moved: boolean;
+};
+
+const LAYOUT_BLOCK_DRAG_TYPE = "application/x-shome-layout-block";
+const TEMPLATE_BLOCK_DRAG_TYPE = "application/x-shome-block";
+const END_DROP_TARGET = "__shome-layout-end__";
 
 const BLOCK_TEMPLATES: BlockTemplate[] = [
   {
@@ -348,21 +361,29 @@ function withBuilderOverlay(doc: string | null, selectedBlockIndex: number | nul
       blocks.forEach((block, index) => {
         if (index === selectedIndex) block.setAttribute("data-shome-builder-selected", "true");
         block.setAttribute("data-shome-builder-index", String(index));
-        block.addEventListener("mousedown", (event) => {
-          if (event.button !== 0) return;
-          drag = { index, x: event.clientX, y: event.clientY, moved: false };
+        block.addEventListener("pointerdown", (event) => {
+          if (!event.isPrimary || event.button !== 0) return;
+          drag = {
+            index,
+            pointerId: event.pointerId,
+            x: event.clientX,
+            y: event.clientY,
+            moved: false,
+          };
           event.preventDefault();
+          block.setPointerCapture?.(event.pointerId);
           const move = (moveEvent) => {
-            if (!drag || drag.index !== index) return;
+            if (!drag || drag.index !== index || drag.pointerId !== moveEvent.pointerId) return;
             if (Math.hypot(moveEvent.clientX - drag.x, moveEvent.clientY - drag.y) > 7) {
               drag.moved = true;
               moveEvent.preventDefault();
             }
           };
           const finish = (upEvent) => {
-            document.removeEventListener("mousemove", move, true);
-            document.removeEventListener("mouseup", finish, true);
-            if (!drag || drag.index !== index) return;
+            document.removeEventListener("pointermove", move, true);
+            document.removeEventListener("pointerup", finish, true);
+            document.removeEventListener("pointercancel", cancel, true);
+            if (!drag || drag.index !== index || drag.pointerId !== upEvent.pointerId) return;
             const currentDrag = drag;
             drag = null;
             if (!currentDrag.moved) {
@@ -381,8 +402,15 @@ function withBuilderOverlay(doc: string | null, selectedBlockIndex: number | nul
               before: upEvent.clientY < bounds.top + bounds.height / 2,
             }, "*");
           };
-          document.addEventListener("mousemove", move, true);
-          document.addEventListener("mouseup", finish, true);
+          const cancel = (cancelEvent) => {
+            if (drag?.pointerId === cancelEvent.pointerId) drag = null;
+            document.removeEventListener("pointermove", move, true);
+            document.removeEventListener("pointerup", finish, true);
+            document.removeEventListener("pointercancel", cancel, true);
+          };
+          document.addEventListener("pointermove", move, true);
+          document.addEventListener("pointerup", finish, true);
+          document.addEventListener("pointercancel", cancel, true);
         });
       });
     })();
@@ -393,7 +421,11 @@ function withBuilderOverlay(doc: string | null, selectedBlockIndex: number | nul
     "style-src 'unsafe-inline';",
     "style-src 'unsafe-inline'; script-src 'unsafe-inline';",
   );
-  return interactiveDoc.replace("</head>", `${overlay}${bridge}</head>`);
+  // The bridge needs the profile blocks to exist before it queries them. Keep
+  // styles in the head, but put the script at the end of the parsed body.
+  return interactiveDoc
+    .replace("</head>", `${overlay}</head>`)
+    .replace("</body>", `${bridge}</body>`);
 }
 
 function escapeCode(value: string) {
@@ -612,6 +644,8 @@ export function ProfilePageEditor({
   );
   const lastCodeOutput = useRef<string | null>(null);
   const visualFrame = useRef<HTMLIFrameElement>(null);
+  const draggedIdRef = useRef<string | null>(null);
+  const pointerDrag = useRef<PointerDrag | null>(null);
   const model = useMemo(() => makeBuilderModel(html), [html]);
   const visualPreviewDoc = useMemo(
     () => withBuilderOverlay(previewDoc, selectedBlockIndex),
@@ -781,18 +815,119 @@ export function ProfilePageEditor({
     applyBlocks(moveBlock(model.blocks, from, targetAfterRemoval + (before ? 0 : 1)));
   }
 
+  function draggedLayoutBlockId(event: DragEvent<HTMLElement>) {
+    const candidate =
+      event.dataTransfer.getData(LAYOUT_BLOCK_DRAG_TYPE) ||
+      event.dataTransfer.getData("text/plain") ||
+      draggedIdRef.current;
+    return model?.blocks.some((block) => block.id === candidate) ? candidate : null;
+  }
+
+  function clearDragState() {
+    draggedIdRef.current = null;
+    pointerDrag.current = null;
+    setDraggedId(null);
+    setDropTarget(null);
+  }
+
+  function setDropEffect(event: DragEvent<HTMLElement>) {
+    event.dataTransfer.dropEffect = event.dataTransfer.effectAllowed === "copy" ? "copy" : "move";
+  }
+
   function dropOnBlock(event: DragEvent<HTMLElement>, targetId: string) {
     event.preventDefault();
     event.stopPropagation();
-    const templateId = event.dataTransfer.getData("application/x-shome-block");
+    const templateId = event.dataTransfer.getData(TEMPLATE_BLOCK_DRAG_TYPE);
     const target = model?.blocks.findIndex((block) => block.id === targetId) ?? -1;
     const before =
       event.clientY <
       event.currentTarget.getBoundingClientRect().top + event.currentTarget.offsetHeight / 2;
     if (templateId && target >= 0) addBlock(templateId, target + (before ? 0 : 1));
-    else if (draggedId) reorder(draggedId, targetId, before);
-    setDraggedId(null);
-    setDropTarget(null);
+    else {
+      const dragId = draggedLayoutBlockId(event);
+      if (dragId) reorder(dragId, targetId, before);
+    }
+    clearDragState();
+  }
+
+  function dropOnCanvas(event: DragEvent<HTMLElement>) {
+    event.preventDefault();
+    event.stopPropagation();
+    const templateId = event.dataTransfer.getData(TEMPLATE_BLOCK_DRAG_TYPE);
+    if (templateId) {
+      addBlock(templateId);
+    } else {
+      const dragId = draggedLayoutBlockId(event);
+      if (dragId && model) {
+        const from = model.blocks.findIndex((block) => block.id === dragId);
+        if (from >= 0) applyBlocks(moveBlock(model.blocks, from, model.blocks.length - 1));
+      }
+    }
+    clearDragState();
+  }
+
+  function pointerTargetId(clientX: number, clientY: number) {
+    const target = document
+      .elementFromPoint(clientX, clientY)
+      ?.closest<HTMLElement>("[data-shome-layout-block-id]");
+    return target?.dataset.shomeLayoutBlockId ?? null;
+  }
+
+  function pointerIsOverCanvas(clientX: number, clientY: number) {
+    return Boolean(
+      document.elementFromPoint(clientX, clientY)?.closest("[data-shome-layout-canvas]"),
+    );
+  }
+
+  function startPointerDrag(event: PointerEvent<HTMLElement>, id: string) {
+    if (event.pointerType === "mouse" || !event.isPrimary) return;
+    pointerDrag.current = {
+      id,
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      moved: false,
+    };
+    draggedIdRef.current = id;
+    setDraggedId(id);
+    event.currentTarget.setPointerCapture(event.pointerId);
+  }
+
+  function updatePointerDrag(event: PointerEvent<HTMLElement>) {
+    const drag = pointerDrag.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    if (!drag.moved) {
+      drag.moved = Math.hypot(event.clientX - drag.startX, event.clientY - drag.startY) > 7;
+    }
+    if (!drag.moved) return;
+    event.preventDefault();
+    const targetId = pointerTargetId(event.clientX, event.clientY);
+    setDropTarget(targetId ?? END_DROP_TARGET);
+  }
+
+  function finishPointerDrag(event: PointerEvent<HTMLElement>) {
+    const drag = pointerDrag.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    event.currentTarget.releasePointerCapture(event.pointerId);
+    if (drag.moved) {
+      const targetId = pointerTargetId(event.clientX, event.clientY);
+      if (targetId && targetId !== drag.id) {
+        const target = Array.from(
+          document.querySelectorAll<HTMLElement>("[data-shome-layout-block-id]"),
+        ).find((element) => element.dataset.shomeLayoutBlockId === targetId);
+        const bounds = target?.getBoundingClientRect();
+        reorder(drag.id, targetId, !bounds || event.clientY < bounds.top + bounds.height / 2);
+      } else if (!targetId && model && pointerIsOverCanvas(event.clientX, event.clientY)) {
+        const from = model.blocks.findIndex((block) => block.id === drag.id);
+        if (from >= 0) applyBlocks(moveBlock(model.blocks, from, model.blocks.length - 1));
+      }
+    }
+    clearDragState();
+  }
+
+  function cancelPointerDrag(event: PointerEvent<HTMLElement>) {
+    if (pointerDrag.current?.pointerId !== event.pointerId) return;
+    clearDragState();
   }
 
   const modes: { id: EditorMode; label: string; hint: string }[] = [
@@ -885,7 +1020,7 @@ export function ProfilePageEditor({
                       onClick={() => addBlock(template.id)}
                       onDragStart={(event) => {
                         event.dataTransfer.effectAllowed = "copy";
-                        event.dataTransfer.setData("application/x-shome-block", template.id);
+                        event.dataTransfer.setData(TEMPLATE_BLOCK_DRAG_TYPE, template.id);
                       }}
                     >
                       <span className="block text-sm font-medium text-slate-100">
@@ -903,14 +1038,9 @@ export function ProfilePageEditor({
               <fieldset
                 className="min-h-[28rem] rounded-xl border border-dashed border-white/15 bg-slate-950/45 p-3 sm:p-4"
                 aria-label="Page layout canvas"
+                data-shome-layout-canvas
                 onDragOver={(event) => event.preventDefault()}
-                onDrop={(event) => {
-                  event.preventDefault();
-                  const templateId = event.dataTransfer.getData("application/x-shome-block");
-                  if (templateId) addBlock(templateId);
-                  setDraggedId(null);
-                  setDropTarget(null);
-                }}
+                onDrop={dropOnCanvas}
               >
                 {!model ? (
                   <p className="grid min-h-56 place-items-center text-sm text-slate-400">
@@ -931,32 +1061,41 @@ export function ProfilePageEditor({
                       <article
                         key={block.id}
                         draggable
+                        data-shome-layout-block-id={block.id}
                         className={`group flex items-center gap-3 rounded-xl border bg-white/[0.035] p-3 transition ${
                           dropTarget === block.id
                             ? "border-indigo-300 bg-indigo-300/10"
-                            : "border-white/10 hover:border-white/25"
+                            : draggedId === block.id
+                              ? "border-white/10 opacity-55"
+                              : "border-white/10 hover:border-white/25"
                         }`}
                         onDragStart={(event) => {
+                          draggedIdRef.current = block.id;
                           setDraggedId(block.id);
                           event.dataTransfer.effectAllowed = "move";
+                          event.dataTransfer.setData(LAYOUT_BLOCK_DRAG_TYPE, block.id);
                           event.dataTransfer.setData("text/plain", block.id);
                         }}
-                        onDragEnd={() => {
-                          setDraggedId(null);
-                          setDropTarget(null);
-                        }}
+                        onDragEnd={clearDragState}
                         onDragOver={(event) => {
                           event.preventDefault();
+                          setDropEffect(event);
                           setDropTarget(block.id);
                         }}
-                        onDragLeave={() =>
-                          setDropTarget((current) => (current === block.id ? null : current))
-                        }
+                        onDragLeave={(event) => {
+                          if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+                            setDropTarget((current) => (current === block.id ? null : current));
+                          }
+                        }}
                         onDrop={(event) => dropOnBlock(event, block.id)}
                       >
                         <span
-                          className="cursor-grab select-none text-lg leading-none text-slate-500 active:cursor-grabbing"
+                          className="cursor-grab touch-none select-none text-lg leading-none text-slate-500 active:cursor-grabbing"
                           aria-hidden="true"
+                          onPointerDown={(event) => startPointerDrag(event, block.id)}
+                          onPointerMove={updatePointerDrag}
+                          onPointerUp={finishPointerDrag}
+                          onPointerCancel={cancelPointerDrag}
                         >
                           ⠿
                         </span>
@@ -1006,6 +1145,29 @@ export function ProfilePageEditor({
                       </article>
                     ))}
                   </div>
+                )}
+                {model && model.blocks.length > 0 && (
+                  <fieldset
+                    className={`mt-3 grid min-h-14 place-items-center rounded-lg border border-dashed text-xs transition ${
+                      dropTarget === END_DROP_TARGET
+                        ? "border-indigo-300 bg-indigo-300/10 text-indigo-100"
+                        : "border-white/10 text-slate-500"
+                    }`}
+                    aria-label="Move block to the end of the layout"
+                    onDragOver={(event) => {
+                      event.preventDefault();
+                      setDropEffect(event);
+                      setDropTarget(END_DROP_TARGET);
+                    }}
+                    onDragLeave={(event) => {
+                      if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+                        setDropTarget((current) => (current === END_DROP_TARGET ? null : current));
+                      }
+                    }}
+                    onDrop={dropOnCanvas}
+                  >
+                    Drop here to move to the end
+                  </fieldset>
                 )}
               </fieldset>
             </div>
