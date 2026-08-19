@@ -40,7 +40,9 @@ npm run dev                     # http://localhost:3000 — uses embedded PGlite
 
 Re-run `npm run db:migrate` whenever new migrations arrive (after a pull, or
 after your own `npm run db:generate`) — **with the dev server stopped**, since
-PGlite is single-process.
+PGlite is single-process. It reports the database it is targeting, which
+migrations are pending, and which ones landed; on an up-to-date database it
+applies nothing and says so.
 
 For a real Postgres instead of PGlite: `docker compose up -d` and uncomment
 `DATABASE_URL` in `apps/web/.env`.

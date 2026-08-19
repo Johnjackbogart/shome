@@ -8,6 +8,7 @@ import { getSessionOrNull } from "#/server/auth";
 import { resolveConnectionAccount } from "#/server/connection-account";
 import { decryptCredentials, encryptCredentials } from "#/server/crypto";
 import { getDb } from "#/server/db";
+import { type FollowingImportResult, importFollowingSources } from "#/server/following-import";
 
 // Providers that need stored credentials, and which fields they require.
 const REQUIRED_FIELDS: Record<string, string[]> = {
@@ -127,7 +128,19 @@ export async function POST(req: Request) {
       ...row,
       createdAt: row.createdAt.toISOString(),
     };
-    return NextResponse.json({ connection: view });
+    let following: FollowingImportResult | undefined;
+    let followingImportFailed = false;
+    if (row.provider === "bluesky" || row.provider === "mastodon") {
+      try {
+        following = await importFollowingSources(db, session.user.id, row, credentials);
+      } catch {
+        // Credentials are safely stored and the connection remains useful even
+        // if a platform is temporarily unavailable. Keep the provider's error
+        // server-side rather than exposing a potentially sensitive response.
+        followingImportFailed = true;
+      }
+    }
+    return NextResponse.json({ connection: view, following, followingImportFailed });
   } catch (err) {
     if (isUniqueViolation(err)) {
       return jsonError(409, "a connection with this provider and label already exists");

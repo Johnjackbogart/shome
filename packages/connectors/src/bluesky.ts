@@ -8,7 +8,13 @@ import {
 } from "@shome/core";
 
 export type BlueskyConfig = Record<string, unknown> &
-  ({ mode: "timeline"; account: string; service?: string } | { mode: "author"; actor: string });
+  (
+    | { mode: "timeline"; account: string; service?: string }
+    // A handle keeps this source recognizable in the UI. When it was imported
+    // from the follow graph, its DID makes its canonical key survive a handle
+    // change and is used to fetch the author's posts.
+    | { mode: "author"; actor: string; did?: string }
+  );
 
 // Unauthenticated AppView endpoint — serves public data like author feeds.
 const PUBLIC_SERVICE = "https://public.api.bsky.app";
@@ -39,6 +45,14 @@ function normalizeActor(raw: unknown, field: string): string {
   }
   const actor = raw.trim().replace(/^@/, "");
   return actor.startsWith("did:") ? actor : actor.toLowerCase();
+}
+
+function normalizeDid(raw: unknown): string | undefined {
+  if (raw === undefined) return undefined;
+  if (typeof raw !== "string" || !raw.startsWith("did:") || raw.length <= "did:".length) {
+    throw new ConnectorConfigError("config.did must be a DID");
+  }
+  return raw;
 }
 
 function postUrl(post: BskyPostView): string {
@@ -78,7 +92,13 @@ export const blueskyConnector: Connector<BlueskyConfig> = {
   auth: "account",
   parseConfig(raw) {
     if (raw.mode === "author") {
-      return { mode: "author", actor: normalizeActor(raw.actor, "actor") };
+      const config: BlueskyConfig = {
+        mode: "author",
+        actor: normalizeActor(raw.actor, "actor"),
+      };
+      const did = normalizeDid(raw.did);
+      if (did) config.did = did;
+      return config;
     }
     if (raw.mode === "timeline") {
       const config: BlueskyConfig = {
@@ -92,13 +112,13 @@ export const blueskyConnector: Connector<BlueskyConfig> = {
   },
   canonicalKey(config) {
     return config.mode === "author"
-      ? `bluesky:author:${config.actor}`
+      ? `bluesky:author:${config.did ?? config.actor}`
       : `bluesky:timeline:${config.account}`;
   },
   async fetchLatest(config, ctx): Promise<FetchResult> {
     if (config.mode === "author") {
       const agent = new AtpAgent({ service: PUBLIC_SERVICE });
-      const res = await agent.getAuthorFeed({ actor: config.actor, limit: 50 });
+      const res = await agent.getAuthorFeed({ actor: config.did ?? config.actor, limit: 50 });
       const feed = res.data.feed as unknown as { post: BskyPostView }[];
       return {
         items: feed.map(normalizePost),

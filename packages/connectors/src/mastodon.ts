@@ -9,10 +9,12 @@ import {
 export type MastodonConfig = Record<string, unknown> & {
   /** Instance origin, e.g. https://mastodon.social */
   server: string;
-  mode: "public" | "hashtag" | "home";
+  mode: "public" | "hashtag" | "home" | "account";
   hashtag?: string;
   /** Identifies whose home timeline this is, so the canonical key stays per-user. */
   account?: string;
+  /** Instance-local ID of an account imported from a person's following list. */
+  accountId?: string;
 };
 
 interface MastodonStatus {
@@ -99,6 +101,21 @@ function serverOrigin(raw: unknown): string {
   return url.origin;
 }
 
+function accountName(raw: unknown, field: string): string {
+  if (typeof raw !== "string" || raw.trim().length === 0) {
+    throw new ConnectorConfigError(`config.${field} is required`);
+  }
+  return raw.trim().replace(/^@/, "").toLowerCase();
+}
+
+function accountId(raw: unknown): string {
+  if (typeof raw !== "string" || raw.trim().length === 0) {
+    throw new ConnectorConfigError("config.accountId is required");
+  }
+  // This is an instance-issued opaque ID, rather than a human-facing handle.
+  return raw.trim();
+}
+
 export const mastodonConnector: Connector<MastodonConfig> = {
   kind: "mastodon",
   displayName: "Mastodon / Fediverse",
@@ -117,23 +134,27 @@ export const mastodonConnector: Connector<MastodonConfig> = {
       };
     }
     if (raw.mode === "home") {
-      if (typeof raw.account !== "string" || raw.account.trim().length === 0) {
-        throw new ConnectorConfigError(
-          "config.account is required for home mode (e.g. you@mastodon.social)",
-        );
-      }
       return {
         server,
         mode: "home",
-        account: raw.account.trim().replace(/^@/, "").toLowerCase(),
+        account: accountName(raw.account, "account"),
       };
     }
-    throw new ConnectorConfigError("config.mode must be 'public', 'hashtag', or 'home'");
+    if (raw.mode === "account") {
+      return {
+        server,
+        mode: "account",
+        account: accountName(raw.account, "account"),
+        accountId: accountId(raw.accountId),
+      };
+    }
+    throw new ConnectorConfigError("config.mode must be 'public', 'hashtag', 'home', or 'account'");
   },
   canonicalKey(config) {
     const host = new URL(config.server).host;
     if (config.mode === "hashtag") return `mastodon:${host}:tag:${config.hashtag}`;
     if (config.mode === "home") return `mastodon:${host}:home:${config.account}`;
+    if (config.mode === "account") return `mastodon:${host}:account:${config.accountId}`;
     return `mastodon:${host}:public`;
   },
   async fetchLatest(config, ctx): Promise<FetchResult> {
@@ -142,7 +163,9 @@ export const mastodonConnector: Connector<MastodonConfig> = {
         ? `/api/v1/timelines/tag/${encodeURIComponent(config.hashtag ?? "")}`
         : config.mode === "home"
           ? "/api/v1/timelines/home"
-          : "/api/v1/timelines/public";
+          : config.mode === "account"
+            ? `/api/v1/accounts/${encodeURIComponent(config.accountId ?? "")}/statuses`
+            : "/api/v1/timelines/public";
 
     const headers: Record<string, string> = {
       "user-agent": USER_AGENT,
@@ -169,7 +192,9 @@ export const mastodonConnector: Connector<MastodonConfig> = {
         ? `#${config.hashtag} · ${host}`
         : config.mode === "home"
           ? `Home timeline (@${config.account})`
-          : `Public timeline · ${host}`;
+          : config.mode === "account"
+            ? `@${config.account}`
+            : `Public timeline · ${host}`;
     return { items: statuses.map(normalizeStatus), sourceTitle };
   },
 };

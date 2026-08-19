@@ -10,7 +10,7 @@
     "generate": "drizzle-kit generate",
     "sql": "node scripts/sql.mjs",
     "studio": "drizzle-kit studio",
-    "migrate": "drizzle-kit migrate",
+    "migrate": "node scripts/migrate.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

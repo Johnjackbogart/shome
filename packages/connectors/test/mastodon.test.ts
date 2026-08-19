@@ -85,6 +85,22 @@ describe("mastodonConnector.parseConfig", () => {
       "mastodon:mastodon.social:home:me@mastodon.social",
     );
   });
+
+  it("accepts imported account sources and keys them by the instance-local account id", () => {
+    const config = mastodonConnector.parseConfig({
+      server: "mastodon.social",
+      mode: "account",
+      account: "@Alice@Elsewhere.Example",
+      accountId: "1234",
+    });
+    expect(config).toEqual({
+      server: "https://mastodon.social",
+      mode: "account",
+      account: "alice@elsewhere.example",
+      accountId: "1234",
+    });
+    expect(mastodonConnector.canonicalKey(config)).toBe("mastodon:mastodon.social:account:1234");
+  });
 });
 
 describe("mastodonConnector.fetchLatest", () => {
@@ -127,6 +143,29 @@ describe("mastodonConnector.fetchLatest", () => {
       account: "me@mastodon.example",
     });
     await expect(mastodonConnector.fetchLatest(config, {})).rejects.toThrow("accessToken");
+  });
+
+  it("fetches an imported account's statuses", async () => {
+    const fetchMock = vi.fn(async () => Response.json(statuses));
+    vi.stubGlobal("fetch", fetchMock);
+    const config = mastodonConnector.parseConfig({
+      server: "mastodon.example",
+      mode: "account",
+      account: "amy@mastodon.example",
+      accountId: "42",
+    });
+
+    const result = await mastodonConnector.fetchLatest(config, {
+      credentials: { accessToken: "token" },
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://mastodon.example/api/v1/accounts/42/statuses?limit=40",
+      expect.objectContaining({
+        headers: expect.objectContaining({ authorization: "Bearer token" }),
+      }),
+    );
+    expect(result.sourceTitle).toBe("@amy@mastodon.example");
   });
 });
 

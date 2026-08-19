@@ -128,8 +128,9 @@ export function SourcesView() {
           Linked credentials, for sources that need them — and for posting to Bluesky or Mastodon.
         </p>
         <AddConnectionForm
-          onAdded={() => {
+          onAdded={(message) => {
             setError(null);
+            setNotice(message);
             void load();
           }}
           onError={setError}
@@ -461,7 +462,7 @@ function AddConnectionForm({
   onAdded,
   onError,
 }: {
-  onAdded: () => void;
+  onAdded: (message: string | null) => void;
   onError: (message: string) => void;
 }) {
   const [provider, setProvider] = useState<"bluesky" | "mastodon" | "youtube">("bluesky");
@@ -483,7 +484,10 @@ function AddConnectionForm({
           : provider === "mastodon"
             ? { server: mastodonServer, accessToken }
             : { apiKey };
-      await api.post("/api/connections", {
+      const result = await api.post<{
+        following?: { imported: number; alreadySubscribed: number };
+        followingImportFailed: boolean;
+      }>("/api/connections", {
         provider,
         label: label.trim() || undefined,
         credentials,
@@ -494,7 +498,20 @@ function AddConnectionForm({
       setMastodonServer("");
       setAccessToken("");
       setApiKey("");
-      onAdded();
+      if (result.followingImportFailed) {
+        onAdded("connection linked, but following could not be imported");
+      } else if (result.following) {
+        const { imported, alreadySubscribed } = result.following;
+        onAdded(
+          imported > 0
+            ? `added ${imported} followed ${imported === 1 ? "account" : "accounts"} to Sources`
+            : alreadySubscribed > 0
+              ? "all followed accounts are already in Sources"
+              : "no followed accounts to add",
+        );
+      } else {
+        onAdded(null);
+      }
     } catch (err) {
       onError(err instanceof Error ? err.message : String(err));
     } finally {
