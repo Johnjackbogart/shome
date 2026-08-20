@@ -1,6 +1,13 @@
 import { AtpAgent } from "@atproto/api";
 import type { CrossPostLink, FeedItemView } from "@shome/core";
-import { connections, type Db, type Post, type PostMedia, postMedia, posts } from "@shome/db";
+import {
+  connections,
+  type Db,
+  type Post,
+  type PostMedia,
+  postMedia,
+  posts,
+} from "@shome/db";
 import { and, asc, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
 import { decryptCredentials } from "./crypto";
@@ -58,14 +65,20 @@ function blueskyPostUrl(uri: string): string {
   return `https://bsky.app/profile/${did}/post/${rkey}`;
 }
 
-async function publishBluesky(credentials: Record<string, unknown>, text: string): Promise<string> {
+async function publishBluesky(
+  credentials: Record<string, unknown>,
+  text: string,
+): Promise<string> {
   // The public API permits 300 Unicode characters in a post. This keeps the
   // local post intact while returning a clear per-platform delivery failure.
-  if ([...text].length > 300) throw new Error("Bluesky posts are limited to 300 characters");
+  if ([...text].length > 300)
+    throw new Error("Bluesky posts are limited to 300 characters");
 
   const parsed = blueskyCredentials.safeParse(credentials);
   if (!parsed.success) {
-    throw new Error("this Bluesky connection needs an identifier and app password");
+    throw new Error(
+      "this Bluesky connection needs an identifier and app password",
+    );
   }
   const { identifier, appPassword } = parsed.data;
   // Connections currently target the hosted Bluesky service. Deliberately do
@@ -84,7 +97,8 @@ function mastodonOrigin(raw: string): string {
   } catch {
     throw new Error("this Mastodon connection needs a valid server URL");
   }
-  if (url.protocol !== "https:") throw new Error("Mastodon server URLs must use https");
+  if (url.protocol !== "https:")
+    throw new Error("Mastodon server URLs must use https");
   return url.origin;
 }
 
@@ -94,7 +108,9 @@ async function publishMastodon(
 ): Promise<string> {
   const parsed = mastodonCredentials.safeParse(credentials);
   if (!parsed.success) {
-    throw new Error("this Mastodon connection needs a server URL and access token");
+    throw new Error(
+      "this Mastodon connection needs a server URL and access token",
+    );
   }
   const { accessToken, server } = parsed.data;
   const origin = mastodonOrigin(server);
@@ -111,7 +127,8 @@ async function publishMastodon(
     body: new URLSearchParams({ status: text }),
     signal: AbortSignal.timeout(20_000),
   });
-  if (!res.ok) throw new Error(`Mastodon rejected this post (HTTP ${res.status})`);
+  if (!res.ok)
+    throw new Error(`Mastodon rejected this post (HTTP ${res.status})`);
   const data = (await res.json()) as { url?: unknown };
   if (typeof data.url !== "string" || data.url.length === 0) {
     throw new Error("Mastodon did not return a post URL");
@@ -138,7 +155,8 @@ async function deliver(
         ),
       )
       .limit(1);
-    if (!connection) return { provider, ok: false, error: "linked connection is unavailable" };
+    if (!connection)
+      return { provider, ok: false, error: "linked connection is unavailable" };
 
     const credentials = await decryptCredentials(connection.credentials);
     const url =
@@ -151,16 +169,24 @@ async function deliver(
   }
 }
 
-export function crossPostLinks(post: Pick<Post, "blueskyUrl" | "mastodonUrl">): CrossPostLink[] {
+export function crossPostLinks(
+  post: Pick<Post, "blueskyUrl" | "mastodonUrl">,
+): CrossPostLink[] {
   const links: CrossPostLink[] = [];
-  if (post.blueskyUrl) links.push({ provider: "bluesky", url: post.blueskyUrl });
-  if (post.mastodonUrl) links.push({ provider: "mastodon", url: post.mastodonUrl });
+  if (post.blueskyUrl)
+    links.push({ provider: "bluesky", url: post.blueskyUrl });
+  if (post.mastodonUrl)
+    links.push({ provider: "mastodon", url: post.mastodonUrl });
   return links;
 }
 
 export function postToFeedItem(
   post: Post,
-  author: { name: string | null; username: string | null; image: string | null },
+  author: {
+    name: string | null;
+    username: string | null;
+    image: string | null;
+  },
   media: readonly PostMedia[] = [],
 ): FeedItemView {
   return {
@@ -170,6 +196,7 @@ export function postToFeedItem(
     sourceId: `post:${post.id}`,
     sourceKind: "post",
     sourceTitle: "my post",
+    style: post.style,
     url: null,
     title: null,
     text: post.text,
@@ -191,11 +218,19 @@ export function postMediaUrl(id: string): string {
 export function postMediaToMediaView(
   media: Pick<
     PostMedia,
-    "id" | "type" | "provider" | "providerAssetId" | "status" | "playbackUrl" | "thumbnailUrl"
+    | "id"
+    | "type"
+    | "provider"
+    | "providerAssetId"
+    | "status"
+    | "playbackUrl"
+    | "thumbnailUrl"
   >,
 ) {
   const cloudflareVideoId =
-    media.provider === "cloudflare_stream" && media.type === "video" ? media.providerAssetId : null;
+    media.provider === "cloudflare_stream" && media.type === "video"
+      ? media.providerAssetId
+      : null;
   return {
     type: media.type,
     url: media.playbackUrl ?? postMediaUrl(media.id),
@@ -231,6 +266,7 @@ export async function createPost(
   input: {
     userId: string;
     text: string;
+    style: string;
     blueskyConnectionId?: string;
     mastodonConnectionId?: string;
     media?: NewPostMedia[];
@@ -239,7 +275,7 @@ export async function createPost(
   const { created, attachedMedia } = await db.transaction(async (tx) => {
     const [post] = await tx
       .insert(posts)
-      .values({ userId: input.userId, text: input.text })
+      .values({ userId: input.userId, text: input.text, style: input.style })
       .returning();
     if (!post) throw new Error("could not save post");
     const attachedMedia = input.media?.length
@@ -259,12 +295,26 @@ export async function createPost(
     ? await Promise.all(
         [
           input.blueskyConnectionId
-            ? deliver(db, input.userId, "bluesky", input.blueskyConnectionId, input.text)
+            ? deliver(
+                db,
+                input.userId,
+                "bluesky",
+                input.blueskyConnectionId,
+                input.text,
+              )
             : null,
           input.mastodonConnectionId
-            ? deliver(db, input.userId, "mastodon", input.mastodonConnectionId, input.text)
+            ? deliver(
+                db,
+                input.userId,
+                "mastodon",
+                input.mastodonConnectionId,
+                input.text,
+              )
             : null,
-        ].filter((delivery): delivery is Promise<DeliveryResult> => delivery !== null),
+        ].filter(
+          (delivery): delivery is Promise<DeliveryResult> => delivery !== null,
+        ),
       )
     : [];
 
@@ -274,7 +324,8 @@ export async function createPost(
   const mastodonUrl = deliveries.find(
     (delivery) => delivery.provider === "mastodon" && delivery.ok,
   )?.url;
-  if (!blueskyUrl && !mastodonUrl) return { post: created, media: attachedMedia, deliveries };
+  if (!blueskyUrl && !mastodonUrl)
+    return { post: created, media: attachedMedia, deliveries };
 
   const [updated] = await db
     .update(posts)

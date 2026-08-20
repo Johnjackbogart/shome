@@ -118,6 +118,7 @@ export interface FeedItemView {
   id: string;
   sourceId: string;
   sourceKind: string;
+  style: string;
   sourceTitle: string | null;
   url: string | null;
   title: string | null;

@@ -16,7 +16,7 @@
     "start": "npm run start -w apps/web",
     "test": "vitest run",
     "typecheck": "npm run typecheck --workspaces --if-present",
-    "typecheck:watch": "tsc -p tsconfig.dev.json --watch --preserveWatchOutput",
+    "typecheck:watch": "concurrently -n web,mobile,core,db,connectors -c cyan,magenta,blue,red,white \"tsc -p apps/web/tsconfig.json --watch --preserveWatchOutput\" \"tsc -p apps/mobile/tsconfig.json --watch --preserveWatchOutput\" \"tsc -p packages/core/tsconfig.json --watch --preserveWatchOutput\" \"tsc -p packages/db/tsconfig.json --watch --preserveWatchOutput\" \"tsc -p packages/connectors/tsconfig.json --watch --preserveWatchOutput\"",
     "lint": "biome check .",
     "format": "biome format --write .",
     "db:generate": "npm run generate -w packages/db",
