@@ -1,7 +1,26 @@
 export type BuilderBoot = {
   source: string;
   previewDoc: string | null;
+  previewError: string | null;
 };
+
+export type BuilderNavigation = "allow" | "external" | "block";
+
+/**
+ * Decides what the builder WebView does with a navigation.
+ *
+ * react-native-webview cancels anything outside its origin whitelist and warns
+ * `Can't open url: <url>`. The overlay pane renders the sanitized preview in a
+ * `srcdoc` iframe, which loads as `about:srcdoc` — the library only hardcodes
+ * `about:blank` — so the whole overlay silently failed to load. The builder
+ * decides instead: its own `about:` documents load, and real links go to the
+ * browser rather than navigating the WebView away from the editor.
+ */
+export function builderNavigation(url: string): BuilderNavigation {
+  if (url.startsWith("about:")) return "allow";
+  if (/^https?:\/\//i.test(url)) return "external";
+  return "block";
+}
 
 export function scriptJson(value: unknown) {
   // Source is user-authored HTML. Escaping `<` keeps it from ending the
@@ -80,7 +99,7 @@ export function builderDocument(initial: BuilderBoot) {
     { id: "posts", label: "Posts", detail: "Your latest updates", html: '<section class="profile__section profile__posts">\\n  <div class="profile__section-heading">\\n    <h2>From the notebook</h2>\\n    <span>Latest posts</span>\\n  </div>\\n  <shome-posts />\\n</section>' },
     { id: "shop", label: "Shop", detail: "Your visible products", html: '<section class="profile__section">\\n  <div class="profile__section-heading">\\n    <h2>Shop</h2>\\n    <span>Available now</span>\\n  </div>\\n  <shome-products />\\n</section>' }
   ];
-  const state = { source: "", previewDoc: null, model: null, mode: "blocks", selected: null, editorPane: "text", blockDraft: "", fields: [], removed: null, dragged: null };
+  const state = { source: "", previewDoc: null, previewError: null, model: null, mode: "blocks", selected: null, editorPane: "text", blockDraft: "", fields: [], removed: null, dragged: null };
 
   function send(message) {
     const payload = JSON.stringify(Object.assign({ source: "shome-native-profile-builder" }, message));
@@ -353,7 +372,9 @@ export function builderDocument(initial: BuilderBoot) {
 
   function renderPreview(root, overlay) {
     if (!state.previewDoc) {
-      root.append(element("p", "empty", "Building your preview…"));
+      // Never leave "building…" up when the render actually failed — that
+      // reads as a hang and hides the reason.
+      root.append(element("p", "empty", state.previewError || "Building your preview…"));
       return;
     }
     const shell = element("div", "preview-shell");
@@ -423,6 +444,7 @@ export function builderDocument(initial: BuilderBoot) {
       if (state.selected !== null && !state.model.blocks[state.selected]) closeEditor();
     }
     if (Object.prototype.hasOwnProperty.call(input, "previewDoc")) state.previewDoc = input.previewDoc || null;
+    if (Object.prototype.hasOwnProperty.call(input, "previewError")) state.previewError = input.previewError || null;
     render();
   }
 
@@ -445,6 +467,12 @@ export function builderDocument(initial: BuilderBoot) {
 
   window.__shomeProfileBuilder = { update: update };
   update(INITIAL);
+  // The host pushes later state with injectJavaScript / postMessage, which is
+  // dropped on the floor if it lands before this script has run — the preview
+  // is fetched on a debounce, so that race is normal, not exotic. Ask for the
+  // current state now that the bridge exists instead of hoping the pushes
+  // arrived; this also re-syncs if the web view is reloaded or recycled.
+  send({ type: "ready" });
 </script>
 </body>
 </html>`;

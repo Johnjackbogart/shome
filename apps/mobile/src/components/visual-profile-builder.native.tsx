@@ -1,7 +1,12 @@
+import * as WebBrowser from "expo-web-browser";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Text, View } from "react-native";
 import { WebView } from "react-native-webview";
-import { builderDocument, scriptJson } from "@/components/visual-profile-builder-document";
+import {
+  builderDocument,
+  builderNavigation,
+  scriptJson,
+} from "@/components/visual-profile-builder-document";
 import { UI } from "@/lib/ui";
 
 type Props = {
@@ -19,12 +24,12 @@ type BuilderMessage = {
 
 export function VisualProfileBuilder({ source, previewDoc, previewError, onChange }: Props) {
   const webView = useRef<WebView>(null);
-  const [document] = useState(() => builderDocument({ source, previewDoc }));
+  const [document] = useState(() => builderDocument({ source, previewDoc, previewError }));
 
   const sync = useCallback(() => {
-    const input = scriptJson({ source, previewDoc });
+    const input = scriptJson({ source, previewDoc, previewError });
     webView.current?.injectJavaScript(`window.__shomeProfileBuilder?.update(${input}); true;`);
-  }, [previewDoc, source]);
+  }, [previewDoc, previewError, source]);
 
   useEffect(() => {
     sync();
@@ -50,8 +55,14 @@ export function VisualProfileBuilder({ source, previewDoc, previewError, onChang
           } catch {
             return;
           }
+          if (message?.source !== "shome-native-profile-builder") return;
+          // The builder asks for state once its bridge exists, so an injection
+          // that raced its boot is not lost for the life of the editor.
+          if (message.type === "ready") {
+            sync();
+            return;
+          }
           if (
-            message?.source === "shome-native-profile-builder" &&
             message.type === "change" &&
             typeof message.html === "string" &&
             message.html !== source
@@ -62,6 +73,14 @@ export function VisualProfileBuilder({ source, previewDoc, previewError, onChang
         javaScriptEnabled
         domStorageEnabled
         setSupportMultipleWindows={false}
+        // `*` hands every navigation to `builderNavigation` instead of letting
+        // the library cancel the overlay's `about:srcdoc` iframe on its own.
+        originWhitelist={["*"]}
+        onShouldStartLoadWithRequest={(request) => {
+          const decision = builderNavigation(request.url);
+          if (decision === "external") void WebBrowser.openBrowserAsync(request.url);
+          return decision === "allow";
+        }}
         style={{ height: 720, backgroundColor: "#0f172a", borderRadius: 16 }}
       />
     </View>

@@ -18,14 +18,18 @@ type BuilderMessage = {
 
 export function VisualProfileBuilder({ source, previewDoc, previewError, onChange }: Props) {
   const frame = useRef<HTMLIFrameElement>(null);
-  const [document] = useState(() => builderDocument({ source, previewDoc }));
+  const [document] = useState(() => builderDocument({ source, previewDoc, previewError }));
 
   const sync = useCallback(() => {
     frame.current?.contentWindow?.postMessage(
-      { source: "shome-native-builder-host", type: "update", input: { source, previewDoc } },
+      {
+        source: "shome-native-builder-host",
+        type: "update",
+        input: { source, previewDoc, previewError },
+      },
       "*",
     );
-  }, [previewDoc, source]);
+  }, [previewDoc, previewError, source]);
 
   useEffect(() => {
     sync();
@@ -40,8 +44,14 @@ export function VisualProfileBuilder({ source, previewDoc, previewError, onChang
       } catch {
         return;
       }
+      if (message?.source !== "shome-native-profile-builder") return;
+      // The builder asks for state once its bridge exists, so an update that
+      // raced its boot is not lost for the life of the editor.
+      if (message.type === "ready") {
+        sync();
+        return;
+      }
       if (
-        message?.source === "shome-native-profile-builder" &&
         message.type === "change" &&
         typeof message.html === "string" &&
         message.html !== source
@@ -51,7 +61,7 @@ export function VisualProfileBuilder({ source, previewDoc, previewError, onChang
     }
     window.addEventListener("message", receiveMessage);
     return () => window.removeEventListener("message", receiveMessage);
-  }, [onChange, source]);
+  }, [onChange, source, sync]);
 
   return (
     <View className={`${UI.card} gap-3`}>
