@@ -1,4 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
+import {
+  DEFAULT_POST_STYLE,
+  POST_BORDER_LINE_STYLE_OPTIONS,
+  POST_BORDER_RADIUS_OPTIONS,
+  POST_FONT_OPTIONS,
+  type PostStyle,
+} from "@shome/core";
 import { useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -51,11 +58,16 @@ export default function ProfileEditorScreen() {
   const handle = (session?.user as { username?: string | null } | undefined)?.username ?? null;
   const [source, setSource] = useState<ProfileSource | null>(null);
   const [savedSource, setSavedSource] = useState<string | null>(null);
+  const [defaultPostStyle, setDefaultPostStyle] = useState<PostStyle>({
+    ...DEFAULT_POST_STYLE,
+  });
+  const [savedPostStyle, setSavedPostStyle] = useState<PostStyle | null>(null);
   const [mode, setMode] = useState<EditorMode>("visual");
   const [pane, setPane] = useState<EditorPane>("content");
   const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [styleSaving, setStyleSaving] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -63,17 +75,23 @@ export default function ProfileEditorScreen() {
   const [previewError, setPreviewError] = useState<string | null>(null);
 
   const combinedSource = useMemo(() => (source ? combineProfileSource(source) : ""), [source]);
-  const changed = source !== null && combinedSource !== savedSource;
+  const defaultStyleChanged = JSON.stringify(defaultPostStyle) !== JSON.stringify(savedPostStyle);
+  const pageChanged = source !== null && combinedSource !== savedSource;
   const characterCount = combinedSource.length;
 
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const profile = await api.get<{ html: string }>("/api/profile");
+      const [profile, postStyle] = await Promise.all([
+        api.get<{ html: string }>("/api/profile"),
+        api.get<{ defaultPostStyle: PostStyle }>("/api/post-style"),
+      ]);
       const next = splitProfileSource(profile.html);
       setSource(next);
       setSavedSource(combineProfileSource(next));
+      setDefaultPostStyle(postStyle.defaultPostStyle);
+      setSavedPostStyle(postStyle.defaultPostStyle);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -161,6 +179,22 @@ export default function ProfileEditorScreen() {
     }
   }
 
+  async function saveDefaultPostStyle() {
+    if (!defaultStyleChanged) return;
+    setStyleSaving(true);
+    setError(null);
+    setNotice(null);
+    try {
+      await api.put("/api/post-style", { defaultPostStyle });
+      setSavedPostStyle(defaultPostStyle);
+      setNotice("Default post style saved.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setStyleSaving(false);
+    }
+  }
+
   function openPublicPage() {
     if (handle) void WebBrowser.openBrowserAsync(`${API_URL}/p/${handle}`);
   }
@@ -182,11 +216,11 @@ export default function ProfileEditorScreen() {
           </Pressable>
           <View className="flex-1">
             <Text className={UI.eyebrow}>Your public page</Text>
-            <Text className="mt-1 text-2xl font-semibold text-white">Edit my page</Text>
+            <Text className="mt-1 text-2xl font-semibold text-white">Edit profile</Text>
           </View>
           <Pressable
             onPress={() => void save()}
-            disabled={loading || saving || generating || !changed}
+            disabled={loading || saving || generating || !pageChanged}
             className="rounded-xl bg-indigo-300 px-4 py-3 active:opacity-80 disabled:opacity-50"
             accessibilityRole="button"
           >
@@ -215,6 +249,17 @@ export default function ProfileEditorScreen() {
 
             {error ? <Text className="text-sm text-rose-300">{error}</Text> : null}
             {notice ? <Text className="text-sm text-emerald-300">{notice}</Text> : null}
+
+            <DefaultPostStyleEditor
+              value={defaultPostStyle}
+              onChange={(style) => {
+                setDefaultPostStyle(style);
+                setNotice(null);
+              }}
+              onSave={() => void saveDefaultPostStyle()}
+              saving={styleSaving}
+              saved={!defaultStyleChanged}
+            />
 
             <View className={`${UI.card} gap-3`}>
               <Text className="text-base font-semibold text-white">Vibe-code your page</Text>
@@ -334,26 +379,217 @@ export default function ProfileEditorScreen() {
               </View>
             )}
 
-            {changed ? (
-              <Text className="text-xs text-amber-200">You have unpublished changes.</Text>
+            {pageChanged ? (
+              <Text className="text-xs text-amber-200">You have unpublished page changes.</Text>
             ) : (
-              <Text className="text-xs text-slate-500">All changes are saved.</Text>
+              <Text className="text-xs text-slate-500">All page changes are saved.</Text>
             )}
 
             <Pressable
               onPress={openPublicPage}
-              disabled={!handle || changed}
+              disabled={!handle || pageChanged}
               className={`${UI.ghostButton} disabled:opacity-50`}
               accessibilityRole="button"
             >
               <Text className="font-medium text-indigo-200">
-                {changed ? "Save to view your changes" : "View public page"}
+                {pageChanged ? "Save to view your changes" : "View public page"}
               </Text>
             </Pressable>
           </ScrollView>
         )}
       </KeyboardAvoidingView>
     </SafeAreaView>
+  );
+}
+
+function DefaultPostStyleEditor({
+  value,
+  onChange,
+  onSave,
+  saving,
+  saved,
+}: {
+  value: PostStyle;
+  onChange: (style: PostStyle) => void;
+  onSave: () => void;
+  saving: boolean;
+  saved: boolean;
+}) {
+  function update<K extends keyof PostStyle>(key: K, next: PostStyle[K]) {
+    onChange({ ...value, [key]: next });
+  }
+
+  return (
+    <View className={`${UI.card} gap-3`}>
+      <View className="flex-row items-start gap-3">
+        <View className="flex-1">
+          <Text className="text-base font-semibold text-white">Default post style</Text>
+          <Text className={`mt-1 ${UI.body}`}>
+            New posts start with this look. You can still customize each one before publishing.
+          </Text>
+        </View>
+      </View>
+
+      <View className="flex-row flex-wrap gap-2">
+        <Pressable
+          onPress={() => onChange({ ...DEFAULT_POST_STYLE })}
+          className={`${UI.ghostButton} px-3 py-2`}
+          accessibilityRole="button"
+          accessibilityLabel="Reset default post style"
+        >
+          <Text className="text-sm font-medium text-indigo-200">Reset</Text>
+        </Pressable>
+        <Pressable
+          onPress={onSave}
+          disabled={saving || saved}
+          className="rounded-xl bg-indigo-300 px-3 py-2 active:opacity-80 disabled:opacity-50"
+          accessibilityRole="button"
+          accessibilityLabel="Save default post style"
+        >
+          {saving ? (
+            <ActivityIndicator size="small" color={COLORS.background} />
+          ) : (
+            <Text className="text-sm font-semibold text-slate-950">
+              {saved ? "Saved ✓" : "Save default style"}
+            </Text>
+          )}
+        </Pressable>
+      </View>
+
+      <View
+        className="gap-1 border p-4"
+        style={{
+          borderColor: value.borderStyle,
+          borderRadius: Number.parseInt(value.borderRadius, 10),
+          borderStyle: value.borderLineStyle,
+          backgroundColor: value.backgroundColor,
+        }}
+      >
+        <Text style={{ color: value.fontColor, fontFamily: value.font, fontWeight: "600" }}>
+          Your next post
+        </Text>
+        <Text className="mt-1" style={{ color: value.fontColor, fontFamily: value.font }}>
+          This preview updates as you edit your default style.
+        </Text>
+        <Text
+          className="mt-2 text-xs"
+          style={{ color: value.secondaryTextColor, fontFamily: value.font }}
+        >
+          @you · just now
+        </Text>
+      </View>
+
+      <Text className="text-xs text-slate-400">Use six-digit hex colors, such as #f8fafc.</Text>
+      <View className="flex-row gap-2">
+        <View className="flex-1 gap-1">
+          <Text className="text-xs text-slate-400">Border color</Text>
+          <TextInput
+            className={`${UI.input} py-2 text-sm`}
+            value={value.borderStyle}
+            onChangeText={(next) => update("borderStyle", next)}
+            autoCapitalize="characters"
+            maxLength={7}
+            accessibilityLabel="Default post border color"
+          />
+        </View>
+        <View className="flex-1 gap-1">
+          <Text className="text-xs text-slate-400">Background color</Text>
+          <TextInput
+            className={`${UI.input} py-2 text-sm`}
+            value={value.backgroundColor}
+            onChangeText={(next) => update("backgroundColor", next)}
+            autoCapitalize="characters"
+            maxLength={7}
+            accessibilityLabel="Default post background color"
+          />
+        </View>
+      </View>
+
+      <Text className="text-xs text-slate-400">Border radius</Text>
+      <View className="flex-row flex-wrap gap-2">
+        {POST_BORDER_RADIUS_OPTIONS.map((option) => (
+          <StyleOption
+            key={option.value}
+            label={option.label}
+            selected={value.borderRadius === option.value}
+            onPress={() => update("borderRadius", option.value)}
+          />
+        ))}
+      </View>
+
+      <Text className="text-xs text-slate-400">Border style</Text>
+      <View className="flex-row flex-wrap gap-2">
+        {POST_BORDER_LINE_STYLE_OPTIONS.map((option) => (
+          <StyleOption
+            key={option.value}
+            label={option.label}
+            selected={value.borderLineStyle === option.value}
+            onPress={() => update("borderLineStyle", option.value)}
+          />
+        ))}
+      </View>
+
+      <View className="flex-row gap-2">
+        <View className="flex-1 gap-1">
+          <Text className="text-xs text-slate-400">Font color</Text>
+          <TextInput
+            className={`${UI.input} py-2 text-sm`}
+            value={value.fontColor}
+            onChangeText={(next) => update("fontColor", next)}
+            autoCapitalize="characters"
+            maxLength={7}
+            accessibilityLabel="Default post font color"
+          />
+        </View>
+        <View className="flex-1 gap-1">
+          <Text className="text-xs text-slate-400">Secondary text</Text>
+          <TextInput
+            className={`${UI.input} py-2 text-sm`}
+            value={value.secondaryTextColor}
+            onChangeText={(next) => update("secondaryTextColor", next)}
+            autoCapitalize="characters"
+            maxLength={7}
+            accessibilityLabel="Default post secondary text color"
+          />
+        </View>
+      </View>
+
+      <Text className="text-xs text-slate-400">Font</Text>
+      <View className="flex-row flex-wrap gap-2">
+        {POST_FONT_OPTIONS.map((option) => (
+          <StyleOption
+            key={option.value}
+            label={option.label}
+            selected={value.font === option.value}
+            onPress={() => update("font", option.value)}
+          />
+        ))}
+      </View>
+    </View>
+  );
+}
+
+function StyleOption({
+  label,
+  selected,
+  onPress,
+}: {
+  label: string;
+  selected: boolean;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      className={`rounded-lg px-3 py-2 ${
+        selected ? "bg-indigo-300" : "border border-white/10 bg-white/5"
+      }`}
+      accessibilityRole="radio"
+      accessibilityLabel={label}
+      accessibilityState={{ selected }}
+    >
+      <Text className={selected ? "text-slate-950" : "text-slate-200"}>{label}</Text>
+    </Pressable>
   );
 }
 

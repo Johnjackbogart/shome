@@ -1,4 +1,10 @@
-import type { FeedRules, MediaRef, SourceKind } from "@shome/core";
+import {
+  DEFAULT_POST_STYLE,
+  type FeedRules,
+  type MediaRef,
+  type PostStyle,
+  type SourceKind,
+} from "@shome/core";
 import { relations } from "drizzle-orm";
 import {
   boolean,
@@ -26,7 +32,10 @@ export const user = pgTable("user", {
   image: text("image"),
   username: text("username").unique(),
   displayUsername: text("display_username"),
-  defaultPostStyle: text("default_post_style"),
+  defaultPostStyle: jsonb("default_post_style")
+    .notNull()
+    .$type<PostStyle>()
+    .default(DEFAULT_POST_STYLE),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });

@@ -210,7 +210,7 @@ export default function MeScreen() {
               className={UI.primaryButton}
               accessibilityRole="button"
             >
-              <Text className="font-medium text-slate-950">Edit my page</Text>
+              <Text className="font-medium text-slate-950">Edit page &amp; post style</Text>
             </Pressable>
             <Pressable
               onPress={() => WebBrowser.openBrowserAsync(`${API_URL}/p/${handle}`)}

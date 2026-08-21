@@ -1,3 +1,4 @@
+import { DEFAULT_POST_STYLE } from "@shome/core";
 import { count, desc, eq, inArray, sql } from "drizzle-orm";
 import { beforeAll, describe, expect, it } from "vitest";
 import {
@@ -23,6 +24,33 @@ beforeAll(async () => {
 });
 
 describe("schema + migrations", () => {
+  it("stores a structured default post style on each user", async () => {
+    const [member] = await db
+      .insert(user)
+      .values({
+        id: "user_post_style",
+        name: "Styled user",
+        email: "styled-user@example.com",
+      })
+      .returning();
+
+    expect(member?.defaultPostStyle).toEqual(DEFAULT_POST_STYLE);
+
+    const customized = {
+      ...DEFAULT_POST_STYLE,
+      borderStyle: "#123456",
+      borderRadius: "24px" as const,
+      font: "serif" as const,
+    };
+    const [saved] = await db
+      .update(user)
+      .set({ defaultPostStyle: customized })
+      .where(eq(user.id, "user_post_style"))
+      .returning({ defaultPostStyle: user.defaultPostStyle });
+
+    expect(saved?.defaultPostStyle).toEqual(customized);
+  });
+
   it("inserts and reads across the core tables", async () => {
     const [alice] = await db
       .insert(user)

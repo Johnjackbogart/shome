@@ -3,6 +3,7 @@ import {
   POST_BORDER_LINE_STYLE_OPTIONS,
   POST_BORDER_RADIUS_OPTIONS,
   POST_FONT_OPTIONS,
+  type PostStyle,
 } from "@shome/core";
 import { type ChangeEvent, type SubmitEvent, useEffect, useRef, useState } from "react";
 import { api } from "#/lib/api";
@@ -69,6 +70,9 @@ export default function PostComposer({ onPosted, onSuccess }: PostComposerProps)
   const [secondaryTextColor, setSecondaryTextColor] = useState(
     DEFAULT_POST_STYLE.secondaryTextColor,
   );
+  const [profilePostStyle, setProfilePostStyle] = useState<PostStyle>({
+    ...DEFAULT_POST_STYLE,
+  });
   const [selectedMedia, setSelectedMedia] = useState<SelectedMedia[]>([]);
   const [cameraMode, setCameraMode] = useState<CameraMode | null>(null);
   const [connections, setConnections] = useState<ConnectionView[]>([]);
@@ -78,12 +82,22 @@ export default function PostComposer({ onPosted, onSuccess }: PostComposerProps)
   const [mediaBusy, setMediaBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-  //TODO
-  //pull default post styles from user profile
   useEffect(() => {
-    api
-      .get<{ connections: ConnectionView[] }>("/api/connections")
-      .then((res) => setConnections(res.connections))
+    Promise.all([
+      api.get<{ connections: ConnectionView[] }>("/api/connections"),
+      api.get<{ defaultPostStyle: PostStyle }>("/api/post-style"),
+    ])
+      .then(([connectionResult, profile]) => {
+        setConnections(connectionResult.connections);
+        setProfilePostStyle(profile.defaultPostStyle);
+        setBorderStyle(profile.defaultPostStyle.borderStyle);
+        setBorderRadius(profile.defaultPostStyle.borderRadius);
+        setBorderLineStyle(profile.defaultPostStyle.borderLineStyle);
+        setBackgroundColor(profile.defaultPostStyle.backgroundColor);
+        setFont(profile.defaultPostStyle.font);
+        setFontColor(profile.defaultPostStyle.fontColor);
+        setSecondaryTextColor(profile.defaultPostStyle.secondaryTextColor);
+      })
       .catch((err) => setError(err instanceof Error ? err.message : String(err)));
   }, []);
 
@@ -227,6 +241,13 @@ export default function PostComposer({ onPosted, onSuccess }: PostComposerProps)
       });
       setText("");
       setSelectedMedia([]);
+      setBorderStyle(profilePostStyle.borderStyle);
+      setBorderRadius(profilePostStyle.borderRadius);
+      setBorderLineStyle(profilePostStyle.borderLineStyle);
+      setBackgroundColor(profilePostStyle.backgroundColor);
+      setFont(profilePostStyle.font);
+      setFontColor(profilePostStyle.fontColor);
+      setSecondaryTextColor(profilePostStyle.secondaryTextColor);
       onPosted(res.post);
       if (onSuccess) {
         onSuccess();

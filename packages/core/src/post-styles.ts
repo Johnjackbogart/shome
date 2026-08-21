@@ -40,7 +40,7 @@ export const POST_BORDER_LINE_STYLE_OPTIONS: readonly {
   { label: "Dotted", value: "dotted" },
 ];
 
-export const DEFAULT_POST_STYLE: Readonly<{
+export type PostStyle = {
   borderStyle: string;
   borderRadius: PostBorderRadius;
   borderLineStyle: PostBorderLineStyle;
@@ -48,7 +48,9 @@ export const DEFAULT_POST_STYLE: Readonly<{
   font: PostFont;
   fontColor: string;
   secondaryTextColor: string;
-}> = {
+};
+
+export const DEFAULT_POST_STYLE: Readonly<PostStyle> = {
   borderStyle: "#ffffff",
   borderRadius: "16px",
   borderLineStyle: "solid",
