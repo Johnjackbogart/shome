@@ -1,15 +1,8 @@
-import {
-  type ChangeEvent,
-  type SubmitEvent,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { DEFAULT_POST_STYLE, POST_FONT_OPTIONS } from "@shome/core";
+import { type ChangeEvent, type SubmitEvent, useEffect, useRef, useState } from "react";
+import { api } from "#/lib/api";
 import type { ConnectionView, FeedItemView } from "#/lib/types";
 import CameraCapture, { type CameraMode } from "./Camera";
-
-import { api } from "#/lib/api";
 
 type PostComposerProps = {
   onPosted: (post: FeedItemView) => void;
@@ -60,12 +53,12 @@ function videoDuration(file: File): Promise<number> {
   });
 }
 
-export default function PostComposer({
-  onPosted,
-  onSuccess,
-}: PostComposerProps) {
+export default function PostComposer({ onPosted, onSuccess }: PostComposerProps) {
   const [text, setText] = useState("");
-  const [borderColor, setBorderColor] = useState<string>("#fff");
+  const [borderStyle, setBorderStyle] = useState(DEFAULT_POST_STYLE.borderStyle);
+  const [backgroundColor, setBackgroundColor] = useState(DEFAULT_POST_STYLE.backgroundColor);
+  const [font, setFont] = useState(DEFAULT_POST_STYLE.font);
+  const [fontColor, setFontColor] = useState(DEFAULT_POST_STYLE.fontColor);
   const [selectedMedia, setSelectedMedia] = useState<SelectedMedia[]>([]);
   const [cameraMode, setCameraMode] = useState<CameraMode | null>(null);
   const [connections, setConnections] = useState<ConnectionView[]>([]);
@@ -81,14 +74,10 @@ export default function PostComposer({
     api
       .get<{ connections: ConnectionView[] }>("/api/connections")
       .then((res) => setConnections(res.connections))
-      .catch((err) =>
-        setError(err instanceof Error ? err.message : String(err)),
-      );
+      .catch((err) => setError(err instanceof Error ? err.message : String(err)));
   }, []);
 
-  const blueskyConnections = connections.filter(
-    (connection) => connection.provider === "bluesky",
-  );
+  const blueskyConnections = connections.filter((connection) => connection.provider === "bluesky");
   const mastodonConnections = connections.filter(
     (connection) => connection.provider === "mastodon",
   );
@@ -101,9 +90,7 @@ export default function PostComposer({
 
   function updateMedia(localId: string, next: Partial<SelectedMedia>) {
     setSelectedMedia((current) =>
-      current.map((media) =>
-        media.localId === localId ? { ...media, ...next } : media,
-      ),
+      current.map((media) => (media.localId === localId ? { ...media, ...next } : media)),
     );
   }
   const photoCaptureInput = useRef<HTMLInputElement>(null);
@@ -111,12 +98,7 @@ export default function PostComposer({
 
   async function selectFiles(files: File[]) {
     if (files.length === 0) return;
-    if (
-      files.some(
-        (file) =>
-          !file.type.startsWith("image/") && !file.type.startsWith("video/"),
-      )
-    ) {
+    if (files.some((file) => !file.type.startsWith("image/") && !file.type.startsWith("video/"))) {
       setError("choose photo or video files only");
       return;
     }
@@ -126,17 +108,13 @@ export default function PostComposer({
       status: "uploading" as const,
     }));
     const next = [...selectedMedia, ...newlySelected];
-    if (
-      next.filter((media) => media.file.type.startsWith("image/")).length > 10
-    ) {
+    if (next.filter((media) => media.file.type.startsWith("image/")).length > 10) {
       setError("a post can include up to 10 photos");
       return;
     }
     try {
       const durations = await Promise.all(
-        files
-          .filter((file) => file.type.startsWith("video/"))
-          .map(videoDuration),
+        files.filter((file) => file.type.startsWith("video/")).map(videoDuration),
       );
       if (durations.some((duration) => duration > 180)) {
         setError("videos must be 3 minutes or shorter");
@@ -169,9 +147,7 @@ export default function PostComposer({
             const payload = (await response.json().catch(() => null)) as {
               error?: string;
             } | null;
-            throw new Error(
-              payload?.error ?? `could not upload ${selected.file.name}`,
-            );
+            throw new Error(payload?.error ?? `could not upload ${selected.file.name}`);
           }
           updateMedia(selected.localId, {
             attachmentId: upload.id,
@@ -192,11 +168,7 @@ export default function PostComposer({
           media.status === "uploading" ? { ...media, status: "failed" } : media,
         ),
       );
-      setError(
-        mediaError instanceof Error
-          ? mediaError.message
-          : "could not read selected media",
-      );
+      setError(mediaError instanceof Error ? mediaError.message : "could not read selected media");
     } finally {
       setMediaBusy(false);
     }
@@ -211,8 +183,7 @@ export default function PostComposer({
   }
 
   function openCamera(mode: CameraMode) {
-    const mediaDevices = navigator.mediaDevices as
-      Partial<MediaDevices> | undefined;
+    const mediaDevices = navigator.mediaDevices as Partial<MediaDevices> | undefined;
     if (typeof mediaDevices?.getUserMedia === "function") {
       setCameraMode(mode);
       return;
@@ -226,13 +197,15 @@ export default function PostComposer({
     setError(null);
     setNotice(null);
     try {
-      console.log(`number two ${borderColor}`);
       const res = await api.post<{
         post: FeedItemView;
         deliveries: Delivery[];
       }>("/api/posts", {
         text,
-        style: borderColor,
+        borderStyle,
+        backgroundColor,
+        font,
+        fontColor,
         blueskyConnectionId: blueskyConnectionId || undefined,
         mastodonConnectionId: mastodonConnectionId || undefined,
         attachmentIds: selectedMedia.flatMap((media) =>
@@ -255,12 +228,9 @@ export default function PostComposer({
           setNotice(
             [
               "posted to your shome feed",
-              succeeded.length > 0
-                ? `shared to ${succeeded.join(" + ")}`
-                : null,
+              succeeded.length > 0 ? `shared to ${succeeded.join(" + ")}` : null,
               ...failed.map(
-                (delivery) =>
-                  `${delivery.provider}: ${delivery.error ?? "could not post"}`,
+                (delivery) => `${delivery.provider}: ${delivery.error ?? "could not post"}`,
               ),
             ]
               .filter(Boolean)
@@ -275,14 +245,11 @@ export default function PostComposer({
     }
   }
 
-  console.log(borderColor);
   return (
     <form className="card mb-5 flex flex-col gap-3" onSubmit={submit}>
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-lg font-bold">Write a post</h2>
-        <span className="text-xs text-slate-500">
-          shows on your public profile
-        </span>
+        <span className="text-xs text-slate-500">shows on your public profile</span>
       </div>
       <textarea
         className="input min-h-28 w-full resize-y"
@@ -293,16 +260,50 @@ export default function PostComposer({
         aria-label="Post text"
       />
 
-      <label className="flex items-center gap-2 text-slate-200 text-xs">
-        <input
-          type="color"
-          className="input_color fg-grey py-1 text-sm"
-          value={borderColor}
-          onChange={(event) => setBorderColor(event.target.value)}
-          aria-label="Border Color"
-        />
-        Pick a border color
-      </label>
+      <fieldset className="grid gap-3 rounded-xl border border-white/10 bg-white/[0.02] p-3 sm:grid-cols-2">
+        <legend className="px-1 text-sm font-medium text-slate-100">Post style</legend>
+        <label className="flex items-center gap-2 text-xs text-slate-200">
+          <input
+            type="color"
+            className="input_color size-9 p-1"
+            value={borderStyle}
+            onChange={(event) => setBorderStyle(event.target.value)}
+          />
+          Border color
+        </label>
+        <label className="flex items-center gap-2 text-xs text-slate-200">
+          <input
+            type="color"
+            className="input_color size-9 p-1"
+            value={backgroundColor}
+            onChange={(event) => setBackgroundColor(event.target.value)}
+          />
+          Background color
+        </label>
+        <label className="flex items-center gap-2 text-xs text-slate-200">
+          <input
+            type="color"
+            className="input_color size-9 p-1"
+            value={fontColor}
+            onChange={(event) => setFontColor(event.target.value)}
+          />
+          Font color
+        </label>
+        <label className="flex items-center gap-2 text-xs text-slate-200">
+          Font
+          <select
+            className="input flex-1 py-1.5 text-sm"
+            value={font}
+            onChange={(event) => setFont(event.target.value as typeof font)}
+          >
+            {POST_FONT_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
+      </fieldset>
       <div className="flex flex-wrap items-center gap-3">
         <label className="btn-ghost cursor-pointer">
           <span>choose photos or videos</span>
@@ -315,18 +316,10 @@ export default function PostComposer({
             onChange={(event) => void selectMedia(event)}
           />
         </label>
-        <button
-          type="button"
-          className="btn-ghost"
-          onClick={() => openCamera("photo")}
-        >
+        <button type="button" className="btn-ghost" onClick={() => openCamera("photo")}>
           take a photo
         </button>
-        <button
-          type="button"
-          className="btn-ghost"
-          onClick={() => openCamera("video")}
-        >
+        <button type="button" className="btn-ghost" onClick={() => openCamera("video")}>
           record a video
         </button>
         <input
@@ -360,11 +353,7 @@ export default function PostComposer({
             >
               <span className="truncate">{file.name}</span>
               <span className="shrink-0 text-slate-500">
-                {status === "ready"
-                  ? "ready"
-                  : status === "failed"
-                    ? "failed"
-                    : `${status}…`}
+                {status === "ready" ? "ready" : status === "failed" ? "failed" : `${status}…`}
               </span>
               <button
                 type="button"
@@ -390,9 +379,7 @@ export default function PostComposer({
             checked={Boolean(blueskyConnectionId)}
             disabled={blueskyConnections.length === 0}
             onChange={(event) =>
-              setBlueskyConnectionId(
-                event.target.checked ? (blueskyConnections[0]?.id ?? "") : "",
-              )
+              setBlueskyConnectionId(event.target.checked ? (blueskyConnections[0]?.id ?? "") : "")
             }
           />
           Post to Bluesky
@@ -438,29 +425,20 @@ export default function PostComposer({
             ))}
           </select>
         )}
-        {(blueskyConnections.length === 0 ||
-          mastodonConnections.length === 0) && (
-          <span className="text-xs text-slate-500">
-            Link accounts in Sources to cross-post.
-          </span>
+        {(blueskyConnections.length === 0 || mastodonConnections.length === 0) && (
+          <span className="text-xs text-slate-500">Link accounts in Sources to cross-post.</span>
         )}
       </div>
       {blueskyConnectionId && (
-        <p
-          className={
-            blueskyTooLong ? "text-xs text-rose-300" : "text-xs text-slate-500"
-          }
-        >
+        <p className={blueskyTooLong ? "text-xs text-rose-300" : "text-xs text-slate-500"}>
           Bluesky: {blueskyLength}/300 characters
         </p>
       )}
-      {mediaFiles.length > 0 &&
-        (blueskyConnectionId || mastodonConnectionId) && (
-          <p className="text-xs text-slate-500">
-            Attachments publish to shome. Connected platforms currently receive
-            text only.
-          </p>
-        )}
+      {mediaFiles.length > 0 && (blueskyConnectionId || mastodonConnectionId) && (
+        <p className="text-xs text-slate-500">
+          Attachments publish to shome. Connected platforms currently receive text only.
+        </p>
+      )}
       <div className="flex items-center gap-3">
         <button
           type="submit"

@@ -1,4 +1,5 @@
-import { type Db, postMedia, posts, products } from "@shome/db";
+import { isPostFont } from "@shome/core";
+import { type Db, type Post, postMedia, posts, products } from "@shome/db";
 import { asc, desc, eq, inArray } from "drizzle-orm";
 import sanitizeHtml from "sanitize-html";
 import { postMediaUrl } from "./posting";
@@ -37,6 +38,25 @@ function isSafeHttpUrl(value: string | null): value is string {
   } catch {
     return false;
   }
+}
+
+function isHexColor(value: string | null): value is string {
+  // Earlier posts stored the browser's short `#fff` default. Continue to
+  // render that safe legacy form after the column rename, while new requests
+  // use the normalized six-digit form enforced by the API.
+  return Boolean(value && /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i.test(value));
+}
+
+function postStyleAttribute(
+  post: Pick<Post, "borderStyle" | "backgroundColor" | "font" | "fontColor">,
+): string {
+  const declarations = [
+    isHexColor(post.borderStyle) ? `border-color: ${post.borderStyle}` : null,
+    isHexColor(post.backgroundColor) ? `background-color: ${post.backgroundColor}` : null,
+    isPostFont(post.font) ? `font-family: ${post.font}` : null,
+    isHexColor(post.fontColor) ? `color: ${post.fontColor}` : null,
+  ].filter((declaration): declaration is string => Boolean(declaration));
+  return declarations.length ? ` style="${declarations.join("; ")}"` : "";
 }
 
 async function renderPosts(db: Db, userId: string): Promise<string> {
@@ -93,7 +113,8 @@ async function renderPosts(db: Db, userId: string): Promise<string> {
                 `<a class="shome-post__link" href="${escapeHtml(link.url)}">${link.label} ↗</a>`,
             )
             .join("");
-          return `<article class="shome-post">
+          const hasCustomFontColor = isHexColor(post.fontColor);
+          return `<article class="shome-post${hasCustomFontColor ? " shome-post--custom-font-color" : ""}"${postStyleAttribute(post)}>
   <p class="shome-post__text">${escapeTextWithBreaks(post.text)}</p>
   ${media ? `<div class="shome-post__media">${media}</div>` : ""}
   <footer class="shome-post__footer"><time datetime="${post.createdAt.toISOString()}">${post.createdAt.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}</time>${links}</footer>
@@ -113,6 +134,7 @@ async function renderPosts(db: Db, userId: string): Promise<string> {
     .shome-post__video { width: 100%; object-fit: contain; }
     .shome-post__video-link { display: inline-block; }
     .shome-post__footer { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1rem; font-size: .875rem; opacity: .72; }
+    .shome-post.shome-post--custom-font-color .shome-post__link { color: inherit; }
   </style>
   ${content}
 </section>`;

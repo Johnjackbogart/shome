@@ -92,6 +92,13 @@
       "when": 1787242219154,
       "tag": "0012_handy_frightful_four",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1787326330239,
+      "tag": "0013_flawless_rawhide_kid",
+      "breakpoints": true
     }
   ]
 }

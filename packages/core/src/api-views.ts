@@ -1,5 +1,7 @@
 // Shapes the web API serves to its clients (the Next.js UI and the Expo app).
 
+import type { PostFont } from "./post-styles";
+
 export interface PublicUser {
   id: string;
   email: string;
@@ -118,7 +120,11 @@ export interface FeedItemView {
   id: string;
   sourceId: string;
   sourceKind: string;
-  style: string;
+  /** Per-post visual settings. Source items leave these unset. */
+  borderStyle: string | null;
+  backgroundColor: string | null;
+  font: PostFont | null;
+  fontColor: string | null;
   sourceTitle: string | null;
   url: string | null;
   title: string | null;

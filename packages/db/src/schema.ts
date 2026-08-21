@@ -173,7 +173,10 @@ export const posts = pgTable(
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
     text: text("text_content").notNull(),
-    style: text("content_style"),
+    borderStyle: text("border_style"),
+    backgroundColor: text("background_color"),
+    font: text("font"),
+    fontColor: text("font_color"),
     blueskyUrl: text("bluesky_url"),
     mastodonUrl: text("mastodon_url"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

@@ -1,4 +1,10 @@
-import type { ConnectionView, FeedItemView } from "@shome/core";
+import {
+  type ConnectionView,
+  DEFAULT_POST_STYLE,
+  type FeedItemView,
+  POST_FONT_OPTIONS,
+  type PostFont,
+} from "@shome/core";
 import * as ImagePicker from "expo-image-picker";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Platform, Pressable, Text, TextInput, View } from "react-native";
@@ -55,6 +61,10 @@ type PostComposerProps = {
 
 export function PostComposer({ onPosted, onSuccess }: PostComposerProps) {
   const [text, setText] = useState("");
+  const [borderStyle, setBorderStyle] = useState(DEFAULT_POST_STYLE.borderStyle);
+  const [backgroundColor, setBackgroundColor] = useState(DEFAULT_POST_STYLE.backgroundColor);
+  const [font, setFont] = useState<PostFont>(DEFAULT_POST_STYLE.font);
+  const [fontColor, setFontColor] = useState(DEFAULT_POST_STYLE.fontColor);
   const [selectedMedia, setSelectedMedia] = useState<SelectedMedia[]>([]);
   const [connections, setConnections] = useState<ConnectionView[]>([]);
   const [blueskyConnectionId, setBlueskyConnectionId] = useState("");
@@ -163,6 +173,10 @@ export function PostComposer({ onPosted, onSuccess }: PostComposerProps) {
     try {
       const form = new FormData();
       form.set("text", text);
+      form.set("borderStyle", borderStyle);
+      form.set("backgroundColor", backgroundColor);
+      form.set("font", font);
+      form.set("fontColor", fontColor);
       if (blueskyConnectionId) form.set("blueskyConnectionId", blueskyConnectionId);
       if (mastodonConnectionId) form.set("mastodonConnectionId", mastodonConnectionId);
       for (const media of selectedMedia) {
@@ -229,6 +243,60 @@ export function PostComposer({ onPosted, onSuccess }: PostComposerProps) {
         placeholderTextColor="#64748b"
         accessibilityLabel="Post text"
       />
+      <View className="gap-2 rounded-xl border border-white/10 bg-white/5 p-3">
+        <Text className="text-sm font-medium text-white">Post style</Text>
+        <Text className="text-xs text-slate-400">Use six-digit hex colors, such as #f8fafc.</Text>
+        <View className="flex-row gap-2">
+          <TextInput
+            className={`${UI.input} flex-1 py-2 text-sm`}
+            value={borderStyle}
+            onChangeText={setBorderStyle}
+            autoCapitalize="characters"
+            maxLength={7}
+            placeholder="#ffffff"
+            placeholderTextColor="#64748b"
+            accessibilityLabel="Border color"
+          />
+          <TextInput
+            className={`${UI.input} flex-1 py-2 text-sm`}
+            value={backgroundColor}
+            onChangeText={setBackgroundColor}
+            autoCapitalize="characters"
+            maxLength={7}
+            placeholder="#0f172a"
+            placeholderTextColor="#64748b"
+            accessibilityLabel="Background color"
+          />
+        </View>
+        <TextInput
+          className={`${UI.input} py-2 text-sm`}
+          value={fontColor}
+          onChangeText={setFontColor}
+          autoCapitalize="characters"
+          maxLength={7}
+          placeholder="#f8fafc"
+          placeholderTextColor="#64748b"
+          accessibilityLabel="Font color"
+        />
+        <View className="flex-row flex-wrap gap-2">
+          {POST_FONT_OPTIONS.map((option) => (
+            <Pressable
+              key={option.value}
+              onPress={() => setFont(option.value)}
+              className={`rounded-lg px-3 py-2 ${
+                font === option.value ? "bg-indigo-300" : "border border-white/10 bg-white/5"
+              }`}
+              accessibilityRole="radio"
+              accessibilityLabel={`${option.label} font`}
+              accessibilityState={{ selected: font === option.value }}
+            >
+              <Text className={font === option.value ? "text-slate-950" : "text-slate-200"}>
+                {option.label}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+      </View>
       <View className="flex-row flex-wrap gap-2">
         <Pressable onPress={() => void chooseMedia()} className={`${UI.ghostButton} px-3 py-2`}>
           <Text className="text-sm font-medium text-indigo-200">Choose media</Text>

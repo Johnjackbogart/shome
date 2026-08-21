@@ -1,3 +1,4 @@
+import { isPostFont } from "@shome/core";
 import { postMedia, posts, profiles, user } from "@shome/db";
 import { asc, desc, eq, inArray } from "drizzle-orm";
 import type { Metadata } from "next";
@@ -109,10 +110,24 @@ export default async function ProfilePage(ctx: { params: Promise<{ handle: strin
               {profilePosts.map((post) => {
                 const links = crossPostLinks(post);
                 const attachments = mediaByPost.get(post.id) ?? [];
+                const hasCustomStyle = Boolean(
+                  post.borderStyle || post.backgroundColor || post.font || post.fontColor,
+                );
+                const style = hasCustomStyle
+                  ? {
+                      borderColor: post.borderStyle ?? undefined,
+                      backgroundColor: post.backgroundColor ?? undefined,
+                      color: post.fontColor ?? undefined,
+                      fontFamily: isPostFont(post.font) ? post.font : undefined,
+                    }
+                  : undefined;
                 return (
                   <article
                     key={post.id}
-                    className="rounded-xl border border-zinc-800 bg-zinc-900 p-4"
+                    className={`rounded-xl border border-zinc-800 bg-zinc-900 p-4${
+                      hasCustomStyle ? " post--custom" : ""
+                    }`}
+                    style={style}
                   >
                     <p className="whitespace-pre-wrap [overflow-wrap:anywhere]">{post.text}</p>
                     {attachments.length > 0 && (

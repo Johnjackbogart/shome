@@ -29,12 +29,20 @@ export default function FeedItem({ item }: { item: FeedItemView }) {
   const videos = item.media.filter((m) => m.type === "video");
   const other = item.media.filter((m) => m.type !== "image" && m.type !== "video");
   const crossPosts = item.crossPosts ?? [];
+  const hasCustomStyle =
+    item.sourceKind === "post" &&
+    Boolean(item.borderStyle || item.backgroundColor || item.font || item.fontColor);
+  const articleStyle = hasCustomStyle
+    ? {
+        borderColor: item.borderStyle ?? undefined,
+        backgroundColor: item.backgroundColor ?? undefined,
+        color: item.fontColor ?? undefined,
+        fontFamily: item.font ?? undefined,
+      }
+    : undefined;
 
-  const articleStyle = console.log(`style: ${item.style}`);
-  console.log(`article style: ${articleStyle}`);
-  console.log(item);
   return (
-    <article className="card" style={item.style ? { borderColor: item.style } : undefined}>
+    <article className={`card${hasCustomStyle ? " post--custom" : ""}`} style={articleStyle}>
       <header className="mb-2 flex items-center gap-2.5">
         {item.authorAvatarUrl && (
           <img

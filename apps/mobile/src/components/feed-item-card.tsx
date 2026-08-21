@@ -19,36 +19,56 @@ export function FeedItemCard({ item }: { item: FeedItemView }) {
   const image = item.media.find((m) => m.type === "image");
   const video = item.media.find((m) => m.type === "video");
   const author = item.authorName ?? item.authorHandle;
+  const hasCustomStyle =
+    item.sourceKind === "post" &&
+    Boolean(item.borderStyle || item.backgroundColor || item.font || item.fontColor);
+  const postTextStyle = hasCustomStyle
+    ? { color: item.fontColor ?? undefined, fontFamily: item.font ?? undefined }
+    : undefined;
+  const postCardStyle = hasCustomStyle
+    ? {
+        borderColor: item.borderStyle ?? undefined,
+        backgroundColor: item.backgroundColor ?? undefined,
+      }
+    : undefined;
 
   return (
     <Pressable
       onPress={item.url ? () => WebBrowser.openBrowserAsync(item.url as string) : undefined}
       className={`mb-3 ${UI.card} active:opacity-80`}
+      style={postCardStyle}
     >
       <View className="mb-1.5 flex-row flex-wrap items-center gap-2">
         <Text
           className={`rounded-full bg-indigo-300/10 px-2 py-1 text-xs font-semibold uppercase ${
             KIND_COLORS[item.sourceKind] ?? "text-slate-400"
           }`}
+          style={postTextStyle}
         >
           {item.sourceKind}
         </Text>
         {item.sourceTitle ? (
-          <Text className="shrink text-xs text-slate-400" numberOfLines={1}>
+          <Text className="shrink text-xs text-slate-400" numberOfLines={1} style={postTextStyle}>
             {item.sourceTitle}
           </Text>
         ) : null}
-        <Text className="text-xs text-slate-500">
+        <Text className="text-xs text-slate-500" style={postTextStyle}>
           {timeAgo(item.publishedAt ?? item.fetchedAt)}
         </Text>
       </View>
 
       {item.title ? (
-        <Text className="mb-1 text-base font-semibold text-white">{item.title}</Text>
+        <Text className="mb-1 text-base font-semibold text-white" style={postTextStyle}>
+          {item.title}
+        </Text>
       ) : null}
-      {author ? <Text className="mb-1 text-xs text-slate-400">{author}</Text> : null}
+      {author ? (
+        <Text className="mb-1 text-xs text-slate-400" style={postTextStyle}>
+          {author}
+        </Text>
+      ) : null}
       {body ? (
-        <Text className="text-sm leading-5 text-slate-300" numberOfLines={8}>
+        <Text className="text-sm leading-5 text-slate-300" numberOfLines={8} style={postTextStyle}>
           {body}
         </Text>
       ) : null}

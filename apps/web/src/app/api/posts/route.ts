@@ -1,3 +1,4 @@
+import { DEFAULT_POST_STYLE, POST_FONT_VALUES } from "@shome/core";
 import { mediaUploads, user } from "@shome/db";
 import { and, eq, inArray } from "drizzle-orm";
 import { NextResponse } from "next/server";
@@ -11,31 +12,26 @@ import {
   preparePostMedia,
   removeStoredPostMedia,
 } from "#/server/media-storage";
-import {
-  createPost,
-  type NewPostMedia,
-  postToFeedItem,
-} from "#/server/posting";
+import { createPost, type NewPostMedia, postToFeedItem } from "#/server/posting";
+
+const hexColor = z
+  .string()
+  .trim()
+  .regex(/^#[0-9a-fA-F]{6}$/, "must be a six-digit hex color");
 
 const postFieldsSchema = z.object({
   text: z.string().trim().max(5_000),
-  style: z.string().trim().max(5_000), //will stick with this limit for styling
-  blueskyConnectionId: z
-    .string()
-    .regex(UUID_RE, "invalid Bluesky connection")
-    .optional(),
-  mastodonConnectionId: z
-    .string()
-    .regex(UUID_RE, "invalid Mastodon connection")
-    .optional(),
+  borderStyle: hexColor.default(DEFAULT_POST_STYLE.borderStyle),
+  backgroundColor: hexColor.default(DEFAULT_POST_STYLE.backgroundColor),
+  font: z.enum(POST_FONT_VALUES).default(DEFAULT_POST_STYLE.font),
+  fontColor: hexColor.default(DEFAULT_POST_STYLE.fontColor),
+  blueskyConnectionId: z.string().regex(UUID_RE, "invalid Bluesky connection").optional(),
+  mastodonConnectionId: z.string().regex(UUID_RE, "invalid Mastodon connection").optional(),
 });
 
 const createSchema = postFieldsSchema
   .extend({
-    attachmentIds: z
-      .array(z.string().regex(UUID_RE, "invalid attachment"))
-      .max(50)
-      .default([]),
+    attachmentIds: z.array(z.string().regex(UUID_RE, "invalid attachment")).max(50).default([]),
   })
   .refine((input) => input.text.length > 0 || input.attachmentIds.length > 0, {
     message: "write something or add media before posting",
@@ -45,9 +41,7 @@ const createSchema = postFieldsSchema
 function validationMessage(error: z.ZodError): string {
   return error.issues
     .map((issue) =>
-      issue.path.length
-        ? `${issue.path.join(".")}: ${issue.message}`
-        : issue.message,
+      issue.path.length ? `${issue.path.join(".")}: ${issue.message}` : issue.message,
     )
     .join("; ");
 }
@@ -80,7 +74,10 @@ export async function POST(req: Request) {
     }
     const parsed = postFieldsSchema.safeParse({
       text: formField(form, "text"),
-      style: formField(form, "style"),
+      borderStyle: formField(form, "borderStyle"),
+      backgroundColor: formField(form, "backgroundColor"),
+      font: formField(form, "font"),
+      fontColor: formField(form, "fontColor"),
       blueskyConnectionId: formField(form, "blueskyConnectionId"),
       mastodonConnectionId: formField(form, "mastodonConnectionId"),
     });
@@ -94,10 +91,7 @@ export async function POST(req: Request) {
     try {
       preparedMedia = await preparePostMedia(entries as File[]);
     } catch (error) {
-      return jsonError(
-        400,
-        error instanceof Error ? error.message : "could not read attachments",
-      );
+      return jsonError(400, error instanceof Error ? error.message : "could not read attachments");
     }
     if (!fields.text && preparedMedia.length === 0) {
       return jsonError(400, "write something or add media before posting");
@@ -117,10 +111,7 @@ export async function POST(req: Request) {
         .select()
         .from(mediaUploads)
         .where(
-          and(
-            eq(mediaUploads.userId, session.user.id),
-            inArray(mediaUploads.id, attachmentIds),
-          ),
+          and(eq(mediaUploads.userId, session.user.id), inArray(mediaUploads.id, attachmentIds)),
         );
       if (uploads.length !== attachmentIds.length)
         return jsonError(400, "one or more uploads are unavailable");
@@ -170,18 +161,11 @@ export async function POST(req: Request) {
       .limit(1);
 
     return NextResponse.json({
-      post: postToFeedItem(
-        post,
-        author ?? { name: null, username: null, image: null },
-        media,
-      ),
+      post: postToFeedItem(post, author ?? { name: null, username: null, image: null }, media),
       deliveries,
     });
   } catch (error) {
     await removeStoredPostMedia(preparedMedia.map((media) => media.id));
-    return jsonError(
-      500,
-      error instanceof Error ? error.message : "could not save post",
-    );
+    return jsonError(500, error instanceof Error ? error.message : "could not save post");
   }
 }

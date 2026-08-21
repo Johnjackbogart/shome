@@ -1,5 +1,5 @@
 import { AtpAgent } from "@atproto/api";
-import type { CrossPostLink, FeedItemView } from "@shome/core";
+import { type CrossPostLink, type FeedItemView, isPostFont } from "@shome/core";
 import { connections, type Db, type Post, type PostMedia, postMedia, posts } from "@shome/db";
 import { and, asc, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
@@ -174,7 +174,10 @@ export function postToFeedItem(
     sourceId: `post:${post.id}`,
     sourceKind: "post",
     sourceTitle: "my post",
-    style: post.style ?? "",
+    borderStyle: post.borderStyle,
+    backgroundColor: post.backgroundColor,
+    font: isPostFont(post.font) ? post.font : null,
+    fontColor: post.fontColor,
     url: null,
     title: null,
     text: post.text,
@@ -235,7 +238,10 @@ export async function createPost(
   input: {
     userId: string;
     text: string;
-    style: string;
+    borderStyle: string;
+    backgroundColor: string;
+    font: string;
+    fontColor: string;
     blueskyConnectionId?: string;
     mastodonConnectionId?: string;
     media?: NewPostMedia[];
@@ -244,7 +250,14 @@ export async function createPost(
   const { created, attachedMedia } = await db.transaction(async (tx) => {
     const [post] = await tx
       .insert(posts)
-      .values({ userId: input.userId, text: input.text, style: input.style })
+      .values({
+        userId: input.userId,
+        text: input.text,
+        borderStyle: input.borderStyle,
+        backgroundColor: input.backgroundColor,
+        font: input.font,
+        fontColor: input.fontColor,
+      })
       .returning();
     if (!post) throw new Error("could not save post");
     const attachedMedia = input.media?.length
