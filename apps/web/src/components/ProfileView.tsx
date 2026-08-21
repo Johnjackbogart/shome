@@ -1,5 +1,12 @@
 "use client";
 
+import {
+  DEFAULT_POST_STYLE,
+  POST_BORDER_LINE_STYLE_OPTIONS,
+  POST_BORDER_RADIUS_OPTIONS,
+  POST_FONT_OPTIONS,
+  type PostStyle,
+} from "@shome/core";
 import { type ChangeEvent, useEffect, useRef, useState } from "react";
 import { ProfilePageEditor } from "#/components/ProfilePageEditor";
 import { api } from "#/lib/api";
@@ -59,6 +66,156 @@ function productPayload(draft: ProductDraft) {
     visible: draft.visible,
     sortOrder: Number.parseInt(draft.sortOrder, 10) || 0,
   };
+}
+
+function DefaultPostStyleEditor({
+  value,
+  onChange,
+  onSave,
+  saving,
+  saved,
+}: {
+  value: PostStyle;
+  onChange: (style: PostStyle) => void;
+  onSave: () => void;
+  saving: boolean;
+  saved: boolean;
+}) {
+  function update<K extends keyof PostStyle>(key: K, next: PostStyle[K]) {
+    onChange({ ...value, [key]: next });
+  }
+
+  return (
+    <div className="card mb-4">
+      <div className="mb-4 flex flex-wrap items-start gap-3">
+        <div>
+          <h3 className="font-semibold">Default post style</h3>
+          <p className="mt-1 text-sm text-slate-400">
+            New posts start with this look. You can still customize an individual post before
+            publishing it.
+          </p>
+        </div>
+        <div className="ml-auto flex gap-2">
+          <button
+            type="button"
+            className="btn-ghost"
+            onClick={() => onChange({ ...DEFAULT_POST_STYLE })}
+          >
+            reset
+          </button>
+          <button type="button" className="btn" onClick={onSave} disabled={saving || saved}>
+            {saving ? "saving…" : saved ? "saved ✓" : "save default"}
+          </button>
+        </div>
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(16rem,0.7fr)]">
+        <fieldset className="grid gap-3 rounded-xl border border-white/10 bg-white/[0.02] p-3 sm:grid-cols-2">
+          <legend className="px-1 text-sm font-medium text-slate-100">Style controls</legend>
+          <label className="flex items-center gap-2 text-xs text-slate-200">
+            <input
+              type="color"
+              className="input_color size-9 p-1"
+              value={value.borderStyle}
+              onChange={(event) => update("borderStyle", event.target.value)}
+            />
+            Border color
+          </label>
+          <label className="flex items-center gap-2 text-xs text-slate-200">
+            Border radius
+            <select
+              className="input flex-1 py-1.5 text-sm"
+              value={value.borderRadius}
+              onChange={(event) =>
+                update("borderRadius", event.target.value as PostStyle["borderRadius"])
+              }
+            >
+              {POST_BORDER_RADIUS_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="flex items-center gap-2 text-xs text-slate-200">
+            Border style
+            <select
+              className="input flex-1 py-1.5 text-sm"
+              value={value.borderLineStyle}
+              onChange={(event) =>
+                update("borderLineStyle", event.target.value as PostStyle["borderLineStyle"])
+              }
+            >
+              {POST_BORDER_LINE_STYLE_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="flex items-center gap-2 text-xs text-slate-200">
+            <input
+              type="color"
+              className="input_color size-9 p-1"
+              value={value.backgroundColor}
+              onChange={(event) => update("backgroundColor", event.target.value)}
+            />
+            Background color
+          </label>
+          <label className="flex items-center gap-2 text-xs text-slate-200">
+            <input
+              type="color"
+              className="input_color size-9 p-1"
+              value={value.fontColor}
+              onChange={(event) => update("fontColor", event.target.value)}
+            />
+            Font color
+          </label>
+          <label className="flex items-center gap-2 text-xs text-slate-200">
+            <input
+              type="color"
+              className="input_color size-9 p-1"
+              value={value.secondaryTextColor}
+              onChange={(event) => update("secondaryTextColor", event.target.value)}
+            />
+            Secondary text
+          </label>
+          <label className="flex items-center gap-2 text-xs text-slate-200 sm:col-span-2">
+            Font
+            <select
+              className="input flex-1 py-1.5 text-sm"
+              value={value.font}
+              onChange={(event) => update("font", event.target.value as PostStyle["font"])}
+            >
+              {POST_FONT_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        </fieldset>
+
+        <article
+          className="border p-4"
+          style={{
+            borderColor: value.borderStyle,
+            borderRadius: value.borderRadius,
+            borderStyle: value.borderLineStyle,
+            backgroundColor: value.backgroundColor,
+            color: value.fontColor,
+            fontFamily: value.font,
+          }}
+        >
+          <p className="font-semibold">Your next post</p>
+          <p className="mt-2">This preview updates as you edit your default style.</p>
+          <p className="mt-3 text-xs" style={{ color: value.secondaryTextColor }}>
+            @you · just now
+          </p>
+        </article>
+      </div>
+    </div>
+  );
 }
 
 function ProductEditor({
@@ -222,6 +379,9 @@ export function ProfileView({
   onAvatarChange: (image: string | null) => void;
 }) {
   const [html, setHtml] = useState<string | null>(null);
+  const [defaultPostStyle, setDefaultPostStyle] = useState<PostStyle>({
+    ...DEFAULT_POST_STYLE,
+  });
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [pendingAvatarUploadId, setPendingAvatarUploadId] = useState<string | null>(null);
   const [avatarBusy, setAvatarBusy] = useState(false);
@@ -230,7 +390,9 @@ export function ProfileView({
   const [addingProduct, setAddingProduct] = useState(false);
   const [prompt, setPrompt] = useState("");
   const [busy, setBusy] = useState(false);
+  const [styleBusy, setStyleBusy] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [styleSaved, setStyleSaved] = useState(false);
   const [generated, setGenerated] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -242,11 +404,14 @@ export function ProfileView({
   useEffect(() => {
     Promise.all([
       api.get<{ html: string; image: string | null }>("/api/profile"),
+      api.get<{ defaultPostStyle: PostStyle }>("/api/post-style"),
       api.get<{ products: ProductView[] }>("/api/products"),
     ])
-      .then(([profile, catalog]) => {
+      .then(([profile, postStyle, catalog]) => {
         setHtml(profile.html);
         setAvatarUrl(profile.image);
+        setDefaultPostStyle(postStyle.defaultPostStyle);
+        setStyleSaved(true);
         onAvatarChange(profile.image);
         setProducts(catalog.products);
       })
@@ -409,6 +574,19 @@ export function ProfileView({
     }
   }
 
+  async function saveDefaultPostStyle() {
+    setStyleBusy(true);
+    setError(null);
+    try {
+      await api.put("/api/post-style", { defaultPostStyle });
+      setStyleSaved(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setStyleBusy(false);
+    }
+  }
+
   async function generatePortfolio() {
     setGenerating(true);
     setError(null);
@@ -514,6 +692,18 @@ export function ProfileView({
           )}
         </div>
       </div>
+
+      <DefaultPostStyleEditor
+        value={defaultPostStyle}
+        onChange={(style) => {
+          setDefaultPostStyle(style);
+          setStyleSaved(false);
+          setSaved(false);
+        }}
+        onSave={() => void saveDefaultPostStyle()}
+        saving={styleBusy}
+        saved={styleSaved}
+      />
 
       <div className="card mb-4">
         <label className="mb-1.5 block font-semibold" htmlFor="portfolio-prompt">

@@ -8,6 +8,7 @@ import {
   type PostBorderLineStyle,
   type PostBorderRadius,
   type PostFont,
+  type PostStyle,
 } from "@shome/core";
 import * as ImagePicker from "expo-image-picker";
 import { useEffect, useState } from "react";
@@ -78,6 +79,9 @@ export function PostComposer({ onPosted, onSuccess }: PostComposerProps) {
   const [secondaryTextColor, setSecondaryTextColor] = useState(
     DEFAULT_POST_STYLE.secondaryTextColor,
   );
+  const [profilePostStyle, setProfilePostStyle] = useState<PostStyle>({
+    ...DEFAULT_POST_STYLE,
+  });
   const [selectedMedia, setSelectedMedia] = useState<SelectedMedia[]>([]);
   const [connections, setConnections] = useState<ConnectionView[]>([]);
   const [blueskyConnectionId, setBlueskyConnectionId] = useState("");
@@ -129,9 +133,21 @@ export function PostComposer({ onPosted, onSuccess }: PostComposerProps) {
   }, []);
 
   useEffect(() => {
-    void api
-      .get<{ connections: ConnectionView[] }>("/api/connections")
-      .then((result) => setConnections(result.connections))
+    void Promise.all([
+      api.get<{ connections: ConnectionView[] }>("/api/connections"),
+      api.get<{ defaultPostStyle: PostStyle }>("/api/post-style"),
+    ])
+      .then(([connectionResult, profile]) => {
+        setConnections(connectionResult.connections);
+        setProfilePostStyle(profile.defaultPostStyle);
+        setBorderStyle(profile.defaultPostStyle.borderStyle);
+        setBorderRadius(profile.defaultPostStyle.borderRadius);
+        setBorderLineStyle(profile.defaultPostStyle.borderLineStyle);
+        setBackgroundColor(profile.defaultPostStyle.backgroundColor);
+        setFont(profile.defaultPostStyle.font);
+        setFontColor(profile.defaultPostStyle.fontColor);
+        setSecondaryTextColor(profile.defaultPostStyle.secondaryTextColor);
+      })
       .catch((connectionError) =>
         setError(
           connectionError instanceof Error ? connectionError.message : String(connectionError),
@@ -215,6 +231,13 @@ export function PostComposer({ onPosted, onSuccess }: PostComposerProps) {
       );
       setText("");
       setSelectedMedia([]);
+      setBorderStyle(profilePostStyle.borderStyle);
+      setBorderRadius(profilePostStyle.borderRadius);
+      setBorderLineStyle(profilePostStyle.borderLineStyle);
+      setBackgroundColor(profilePostStyle.backgroundColor);
+      setFont(profilePostStyle.font);
+      setFontColor(profilePostStyle.fontColor);
+      setSecondaryTextColor(profilePostStyle.secondaryTextColor);
       onPosted(result.post);
       if (onSuccess) {
         onSuccess();

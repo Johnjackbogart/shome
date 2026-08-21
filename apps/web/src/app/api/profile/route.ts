@@ -80,8 +80,14 @@ export async function PUT(req: Request) {
       if (!upload) return jsonError(400, "profile picture is not ready");
       image = profileAvatarUrl(upload.id);
     }
+  }
+
+  if (image !== undefined) {
     await db.update(user).set({ image, updatedAt: new Date() }).where(eq(user.id, session.user.id));
   }
 
-  return NextResponse.json({ ok: true, image: image ?? null });
+  return NextResponse.json({
+    ok: true,
+    image: image ?? null,
+  });
 }

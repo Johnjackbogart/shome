@@ -1,9 +1,4 @@
-import {
-  DEFAULT_POST_STYLE,
-  POST_BORDER_LINE_STYLE_VALUES,
-  POST_BORDER_RADIUS_VALUES,
-  POST_FONT_VALUES,
-} from "@shome/core";
+import type { PostStyle } from "@shome/core";
 import { mediaUploads, user } from "@shome/db";
 import { and, eq, inArray } from "drizzle-orm";
 import { NextResponse } from "next/server";
@@ -17,24 +12,11 @@ import {
   preparePostMedia,
   removeStoredPostMedia,
 } from "#/server/media-storage";
+import { postStyleOrDefault, postStyleSchema } from "#/server/post-style";
 import { createPost, type NewPostMedia, postToFeedItem } from "#/server/posting";
 
-const hexColor = z
-  .string()
-  .trim()
-  .regex(/^#[0-9a-fA-F]{6}$/, "must be a six-digit hex color");
-
-const postFieldsSchema = z.object({
+const postFieldsSchema = postStyleSchema.partial().extend({
   text: z.string().trim().max(5_000),
-  borderStyle: hexColor.default(DEFAULT_POST_STYLE.borderStyle),
-  borderRadius: z.enum(POST_BORDER_RADIUS_VALUES).default(DEFAULT_POST_STYLE.borderRadius),
-  borderLineStyle: z
-    .enum(POST_BORDER_LINE_STYLE_VALUES)
-    .default(DEFAULT_POST_STYLE.borderLineStyle),
-  backgroundColor: hexColor.default(DEFAULT_POST_STYLE.backgroundColor),
-  font: z.enum(POST_FONT_VALUES).default(DEFAULT_POST_STYLE.font),
-  fontColor: hexColor.default(DEFAULT_POST_STYLE.fontColor),
-  secondaryTextColor: hexColor.default(DEFAULT_POST_STYLE.secondaryTextColor),
   blueskyConnectionId: z.string().regex(UUID_RE, "invalid Bluesky connection").optional(),
   mastodonConnectionId: z.string().regex(UUID_RE, "invalid Mastodon connection").optional(),
 });
@@ -118,6 +100,26 @@ export async function POST(req: Request) {
 
   const db = await getDb();
   try {
+    const [author] = await db
+      .select({
+        name: user.name,
+        username: user.username,
+        image: user.image,
+        defaultPostStyle: user.defaultPostStyle,
+      })
+      .from(user)
+      .where(eq(user.id, session.user.id))
+      .limit(1);
+    const savedStyle = postStyleOrDefault(author?.defaultPostStyle);
+    const style: PostStyle = {
+      borderStyle: fields.borderStyle ?? savedStyle.borderStyle,
+      borderRadius: fields.borderRadius ?? savedStyle.borderRadius,
+      borderLineStyle: fields.borderLineStyle ?? savedStyle.borderLineStyle,
+      backgroundColor: fields.backgroundColor ?? savedStyle.backgroundColor,
+      font: fields.font ?? savedStyle.font,
+      fontColor: fields.fontColor ?? savedStyle.fontColor,
+      secondaryTextColor: fields.secondaryTextColor ?? savedStyle.secondaryTextColor,
+    };
     let uploadedMedia: NewPostMedia[] = [];
     if (attachmentIds.length > 0) {
       const uploads = await db
@@ -154,7 +156,10 @@ export async function POST(req: Request) {
     await persistPostMedia(preparedMedia);
     const { post, media, deliveries } = await createPost(db, {
       userId: session.user.id,
-      ...fields,
+      text: fields.text,
+      ...style,
+      blueskyConnectionId: fields.blueskyConnectionId,
+      mastodonConnectionId: fields.mastodonConnectionId,
       media: [
         ...uploadedMedia,
         ...preparedMedia.map(({ bytes: _bytes, ...media }) => ({
@@ -167,12 +172,6 @@ export async function POST(req: Request) {
         })),
       ],
     });
-    const [author] = await db
-      .select({ name: user.name, username: user.username, image: user.image })
-      .from(user)
-      .where(eq(user.id, session.user.id))
-      .limit(1);
-
     return NextResponse.json({
       post: postToFeedItem(post, author ?? { name: null, username: null, image: null }, media),
       deliveries,
