@@ -4,7 +4,6 @@ import { connections, type Db, items, sources, subscriptions } from "@shome/db";
 import { and, eq } from "drizzle-orm";
 import { decryptCredentials } from "./crypto";
 import { assertPublicHttpUrl } from "./netguard";
-import { sanitizeItemHtml } from "./sanitize";
 
 export class NotSubscribedError extends Error {
   constructor() {
@@ -76,13 +75,11 @@ export async function refreshSubscription(
       url: item.url ?? null,
       title: item.title ?? null,
       text: item.text ?? null,
-      html: item.html ? sanitizeItemHtml(item.html) : null,
       authorName: item.author?.name ?? null,
       authorHandle: item.author?.handle ?? null,
       authorAvatarUrl: item.author?.avatarUrl ?? null,
       media: item.media ?? [],
       publishedAt: item.publishedAt ?? null,
-      raw: item.raw ?? null,
     }));
     if (values.length > 0) {
       await db

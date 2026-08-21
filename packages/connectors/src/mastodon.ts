@@ -3,6 +3,7 @@ import {
   ConnectorConfigError,
   type ContentItem,
   type FetchResult,
+  htmlToPlainText,
   type MediaRef,
 } from "@shome/core";
 
@@ -35,19 +36,8 @@ interface MastodonStatus {
 
 const USER_AGENT = "shome/0.1 (open source media engine)";
 
-/** Rough plain-text projection of status HTML, for keyword matching and previews. */
-export function stripHtml(html: string): string {
-  return html
-    .replace(/<br\s*\/?>/gi, "\n")
-    .replace(/<\/p>/gi, "\n\n")
-    .replace(/<[^>]+>/g, "")
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .trim();
-}
+/** @deprecated Use htmlToPlainText from @shome/core in new connectors. */
+export const stripHtml = htmlToPlainText;
 
 function attachmentType(type: string | undefined): MediaRef["type"] {
   if (type === "video" || type === "gifv") return "video";
@@ -58,7 +48,7 @@ function attachmentType(type: string | undefined): MediaRef["type"] {
 function normalizeStatus(status: MastodonStatus): ContentItem {
   // Boosts wrap the original; show the original content attributed to its author.
   const inner = status.reblog ?? status;
-  const html = inner.content ?? "";
+  const content = inner.content ?? "";
   const media: MediaRef[] = (inner.media_attachments ?? [])
     .map((att) => ({
       type: attachmentType(att.type),
@@ -69,8 +59,7 @@ function normalizeStatus(status: MastodonStatus): ContentItem {
   return {
     externalId: status.id,
     url: inner.url ?? inner.uri ?? undefined,
-    text: html ? stripHtml(html) : undefined,
-    html: html || undefined,
+    text: content ? htmlToPlainText(content) : undefined,
     author: inner.account
       ? {
           name: inner.account.display_name || inner.account.acct,
@@ -80,7 +69,6 @@ function normalizeStatus(status: MastodonStatus): ContentItem {
       : undefined,
     media,
     publishedAt: inner.created_at ? new Date(inner.created_at) : undefined,
-    raw: status,
   };
 }
 

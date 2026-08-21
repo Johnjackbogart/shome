@@ -16,17 +16,3 @@ export function timeAgo(iso: string | null): string {
   if (days < 7) return `${days}d ago`;
   return new Date(iso).toLocaleDateString();
 }
-
-/** Item HTML is sanitized server-side; for the native list we flatten it to text. */
-export function htmlToText(html: string): string {
-  return html
-    .replace(/<(br|\/p|\/div|\/li)[^>]*>/gi, "\n")
-    .replace(/<[^>]+>/g, "")
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&#x?\d+;|&\w+;/g, " ")
-    .replace(/\n{3,}/g, "\n\n")
-    .trim();
-}

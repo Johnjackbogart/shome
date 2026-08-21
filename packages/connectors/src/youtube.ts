@@ -127,7 +127,6 @@ export const youtubeConnector: Connector<YoutubeConfig> = {
         author: entry.snippet?.channelTitle ? { name: entry.snippet.channelTitle } : undefined,
         media: thumb ? [{ type: "image", url: thumb }] : [],
         publishedAt: published ? new Date(published) : undefined,
-        raw: entry,
       });
     }
     return { items, sourceTitle: channel.snippet?.title };

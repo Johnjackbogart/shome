@@ -132,7 +132,9 @@ describe("mastodonConnector.fetchLatest", () => {
     // Boost: outer id (so re-fetches dedupe), inner author/content/url
     expect(boost?.externalId).toBe("102");
     expect(boost?.author?.handle).toBe("carol@other.example");
-    expect(boost?.html).toBe("<p>original toot</p>");
+    expect(boost?.text).toBe("original toot");
+    expect(boost).not.toHaveProperty("html");
+    expect(boost).not.toHaveProperty("raw");
     expect(boost?.url).toBe("https://other.example/@carol/90");
   });
 
@@ -172,7 +174,7 @@ describe("mastodonConnector.fetchLatest", () => {
 describe("stripHtml", () => {
   it("turns paragraphs and breaks into whitespace and decodes entities", () => {
     expect(stripHtml("<p>one</p><p>two&nbsp;<br>three &lt;ok&gt;</p>".replace("&nbsp;", " "))).toBe(
-      "one\n\ntwo \nthree <ok>",
+      "one\n\ntwo\nthree <ok>",
     );
   });
 });

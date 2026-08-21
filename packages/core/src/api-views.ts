@@ -123,7 +123,6 @@ export interface FeedItemView {
   url: string | null;
   title: string | null;
   text: string | null;
-  html: string | null;
   authorName: string | null;
   authorHandle: string | null;
   authorAvatarUrl: string | null;

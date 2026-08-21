@@ -1,59 +1,11 @@
 import sanitizeHtml from "sanitize-html";
 
 /**
- * Two trust boundaries, two policies:
- *
- * - Item HTML (from connectors) renders inline in people's feeds on the app
- *   origin → tightest allowlist, no styling hooks, applied once at ingest.
- * - Profile HTML (user-authored) renders ONLY inside a fully sandboxed iframe
+ * Profile HTML (user-authored) renders ONLY inside a fully sandboxed iframe
  *   (opaque origin, no scripts) behind a strict CSP → structural tags plus CSS
  *   are allowed, scripts never; applied at serve time so sanitizer fixes reach
  *   existing profiles.
  */
-
-export function sanitizeItemHtml(html: string): string {
-  return sanitizeHtml(html, {
-    allowedTags: [
-      "a",
-      "p",
-      "br",
-      "strong",
-      "em",
-      "b",
-      "i",
-      "u",
-      "s",
-      "blockquote",
-      "code",
-      "pre",
-      "ul",
-      "ol",
-      "li",
-      "h3",
-      "h4",
-      "img",
-      "figure",
-      "figcaption",
-      "span",
-      "hr",
-    ],
-    allowedAttributes: {
-      // target/rel must be allowlisted or the transformTags additions below are
-      // stripped again; the transform overwrites any author-supplied values.
-      a: ["href", "title", "target", "rel"],
-      img: ["src", "alt", "title"],
-    },
-    allowedSchemes: ["http", "https", "mailto"],
-    allowedSchemesByTag: { img: ["http", "https"] },
-    transformTags: {
-      a: sanitizeHtml.simpleTransform("a", {
-        rel: "noopener noreferrer nofollow",
-        target: "_blank",
-      }),
-    },
-    disallowedTagsMode: "discard",
-  });
-}
 
 const PROFILE_TAGS = [
   "div",

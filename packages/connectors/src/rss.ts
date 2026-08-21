@@ -4,6 +4,7 @@ import {
   ConnectorConfigError,
   type ContentItem,
   type FetchResult,
+  htmlToPlainText,
   type MediaRef,
 } from "@shome/core";
 import Parser from "rss-parser";
@@ -88,12 +89,12 @@ function normalizeItem(item: Parser.Item & ExtraItemFields): ContentItem {
     externalId,
     url: item.link ?? undefined,
     title: item.title?.trim() || undefined,
-    text: item.contentSnippet?.trim() || undefined,
-    html: item.contentEncoded ?? item.content ?? undefined,
+    text:
+      htmlToPlainText(item.contentEncoded ?? item.content ?? item.contentSnippet ?? "") ||
+      undefined,
     author: item.creator ? { name: item.creator } : undefined,
     media: dedupedMedia,
     publishedAt: publishedAt && !Number.isNaN(publishedAt.getTime()) ? publishedAt : undefined,
-    raw: item,
   };
 }
 

@@ -82,7 +82,6 @@ function normalizePost(entry: { post: BskyPostView }): ContentItem {
     },
     media,
     publishedAt: created ? new Date(created) : undefined,
-    raw: entry,
   };
 }
 

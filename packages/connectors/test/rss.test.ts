@@ -49,7 +49,9 @@ describe("rssConnector.fetchLatest", () => {
     expect(first?.title).toBe("First Post");
     expect(first?.url).toBe("https://blog.example.com/first");
     expect(first?.author?.name).toBe("Jordan Writer");
-    expect(first?.html).toContain("<strong>rich</strong>");
+    expect(first?.text).toBe("Full rich body.");
+    expect(first).not.toHaveProperty("html");
+    expect(first).not.toHaveProperty("raw");
     expect(first?.publishedAt).toEqual(new Date("2026-08-03T12:00:00Z"));
     // enclosure + duplicate media:content collapse to unique urls
     expect(first?.media?.map((m) => m.url).sort()).toEqual([

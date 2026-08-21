@@ -10,13 +10,7 @@ const KIND_COLORS: Record<string, string> = {
   youtube: "text-red-300",
 };
 
-function MediaState({
-  status,
-  type,
-}: {
-  status: string;
-  type: "photo" | "video";
-}) {
+function MediaState({ status, type }: { status: string; type: "photo" | "video" }) {
   const message =
     status === "failed"
       ? `${type} processing failed`
@@ -33,19 +27,14 @@ function MediaState({
 export default function FeedItem({ item }: { item: FeedItemView }) {
   const images = item.media.filter((m) => m.type === "image");
   const videos = item.media.filter((m) => m.type === "video");
-  const other = item.media.filter(
-    (m) => m.type !== "image" && m.type !== "video",
-  );
+  const other = item.media.filter((m) => m.type !== "image" && m.type !== "video");
   const crossPosts = item.crossPosts ?? [];
 
   const articleStyle = console.log(`style: ${item.style}`);
   console.log(`article style: ${articleStyle}`);
   console.log(item);
   return (
-    <article
-      className="card"
-      style={item.style ? { borderColor: item.style } : undefined}
-    >
+    <article className="card" style={item.style ? { borderColor: item.style } : undefined}>
       <header className="mb-2 flex items-center gap-2.5">
         {item.authorAvatarUrl && (
           <img
@@ -59,16 +48,11 @@ export default function FeedItem({ item }: { item: FeedItemView }) {
           <span className="font-semibold">
             {item.authorName ?? item.sourceTitle ?? item.sourceKind}
             {item.authorHandle && (
-              <span className="font-normal text-slate-400">
-                {" "}
-                @{item.authorHandle}
-              </span>
+              <span className="font-normal text-slate-400"> @{item.authorHandle}</span>
             )}
           </span>
           <span className="flex flex-wrap items-center gap-1.5 text-xs text-slate-400">
-            <span className={`badge ${KIND_COLORS[item.sourceKind] ?? ""}`}>
-              {item.sourceKind}
-            </span>
+            <span className={`badge ${KIND_COLORS[item.sourceKind] ?? ""}`}>{item.sourceKind}</span>
             {item.sourceTitle ? <span>{item.sourceTitle} ·</span> : null}
             <span>{timeAgo(item.publishedAt ?? item.fetchedAt)}</span>
           </span>
@@ -92,15 +76,7 @@ export default function FeedItem({ item }: { item: FeedItemView }) {
         </h3>
       )}
 
-      {item.html ? (
-        // Sanitized server-side at ingest (tight allowlist, no styles/scripts).
-        <div
-          className="prose prose-sm prose-invert max-w-none [overflow-wrap:anywhere]"
-          dangerouslySetInnerHTML={{ __html: item.html }}
-        />
-      ) : item.text ? (
-        <p className="[overflow-wrap:anywhere]">{truncate(item.text, 500)}</p>
-      ) : null}
+      {item.text ? <p className="[overflow-wrap:anywhere]">{truncate(item.text, 500)}</p> : null}
 
       {images.length > 0 && (
         <div className="mt-2.5 grid grid-cols-[repeat(auto-fit,minmax(140px,1fr))] gap-2">
@@ -124,13 +100,7 @@ export default function FeedItem({ item }: { item: FeedItemView }) {
         <div className="mt-2.5 grid gap-2">
           {videos.map((media) => {
             if (media.status && media.status !== "ready") {
-              return (
-                <MediaState
-                  key={media.url}
-                  status={media.status}
-                  type="video"
-                />
-              );
+              return <MediaState key={media.url} status={media.status} type="video" />;
             }
             if (media.embedUrl) {
               return (

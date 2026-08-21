@@ -65,7 +65,7 @@ export default function PostComposer({
   onSuccess,
 }: PostComposerProps) {
   const [text, setText] = useState("");
-  const [borderColor, setBorderColor] = useState<String>("#fff");
+  const [borderColor, setBorderColor] = useState<string>("#fff");
   const [selectedMedia, setSelectedMedia] = useState<SelectedMedia[]>([]);
   const [cameraMode, setCameraMode] = useState<CameraMode | null>(null);
   const [connections, setConnections] = useState<ConnectionView[]>([]);

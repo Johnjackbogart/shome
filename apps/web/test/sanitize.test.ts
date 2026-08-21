@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { sanitizeItemHtml, sanitizeProfileHtml } from "../src/server/sanitize";
+import { sanitizeProfileHtml } from "../src/server/sanitize";
 
 // Regression: transformTags-added attributes are stripped again unless they are
 // also in allowedAttributes, which once silently undid the target=_blank fix.
@@ -16,12 +16,6 @@ describe("link targets", () => {
     expect(out).toContain('rel="noopener noreferrer"');
     expect(out).not.toContain("_self");
     expect(out).not.toContain('"opener"');
-  });
-
-  it("item links open in a new tab with a safe rel", () => {
-    const out = sanitizeItemHtml('<a href="https://bsky.app/">bsky</a>');
-    expect(out).toContain('target="_blank"');
-    expect(out).toContain('rel="noopener noreferrer nofollow"');
   });
 });
 

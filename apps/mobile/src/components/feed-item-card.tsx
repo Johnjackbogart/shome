@@ -4,7 +4,7 @@ import { useVideoPlayer, VideoView } from "expo-video";
 import * as WebBrowser from "expo-web-browser";
 import { Pressable, Text, View } from "react-native";
 import { apiUrl } from "@/lib/config";
-import { htmlToText, timeAgo } from "@/lib/format";
+import { timeAgo } from "@/lib/format";
 import { UI } from "@/lib/ui";
 
 const KIND_COLORS: Record<string, string> = {
@@ -15,7 +15,7 @@ const KIND_COLORS: Record<string, string> = {
 };
 
 export function FeedItemCard({ item }: { item: FeedItemView }) {
-  const body = item.text ?? (item.html ? htmlToText(item.html) : null);
+  const body = item.text;
   const image = item.media.find((m) => m.type === "image");
   const video = item.media.find((m) => m.type === "video");
   const author = item.authorName ?? item.authorHandle;
