@@ -31,18 +31,32 @@ export default function FeedItem({ item }: { item: FeedItemView }) {
   const crossPosts = item.crossPosts ?? [];
   const hasCustomStyle =
     item.sourceKind === "post" &&
-    Boolean(item.borderStyle || item.backgroundColor || item.font || item.fontColor);
+    Boolean(
+      item.borderStyle ||
+        item.borderRadius ||
+        item.borderLineStyle ||
+        item.backgroundColor ||
+        item.font ||
+        item.fontColor ||
+        item.secondaryTextColor,
+    );
   const articleStyle = hasCustomStyle
     ? {
         borderColor: item.borderStyle ?? undefined,
+        borderRadius: item.borderRadius ?? undefined,
+        borderStyle: item.borderLineStyle ?? undefined,
         backgroundColor: item.backgroundColor ?? undefined,
         color: item.fontColor ?? undefined,
         fontFamily: item.font ?? undefined,
       }
     : undefined;
+  const primaryTextStyle = hasCustomStyle ? { color: item.fontColor ?? undefined } : undefined;
+  const secondaryTextStyle = hasCustomStyle
+    ? { color: item.secondaryTextColor ?? item.fontColor ?? undefined }
+    : undefined;
 
   return (
-    <article className={`card${hasCustomStyle ? " post--custom" : ""}`} style={articleStyle}>
+    <article className="card" style={articleStyle}>
       <header className="mb-2 flex items-center gap-2.5">
         {item.authorAvatarUrl && (
           <img
@@ -53,28 +67,36 @@ export default function FeedItem({ item }: { item: FeedItemView }) {
           />
         )}
         <div className="flex min-w-0 flex-col">
-          <span className="font-semibold">
+          <span className="font-semibold" style={primaryTextStyle}>
             {item.authorName ?? item.sourceTitle ?? item.sourceKind}
             {item.authorHandle && (
-              <span className="font-normal text-slate-400"> @{item.authorHandle}</span>
+              <span className="font-normal text-slate-400" style={secondaryTextStyle}>
+                @{item.authorHandle}
+              </span>
             )}
           </span>
           <span className="flex flex-wrap items-center gap-1.5 text-xs text-slate-400">
-            <span className={`badge ${KIND_COLORS[item.sourceKind] ?? ""}`}>{item.sourceKind}</span>
-            {item.sourceTitle ? <span>{item.sourceTitle} ·</span> : null}
-            <span>{timeAgo(item.publishedAt ?? item.fetchedAt)}</span>
+            <span
+              className={`badge ${KIND_COLORS[item.sourceKind] ?? ""}`}
+              style={secondaryTextStyle}
+            >
+              {item.sourceKind}
+            </span>
+            {item.sourceTitle ? <span style={secondaryTextStyle}>{item.sourceTitle} ·</span> : null}
+            <span style={secondaryTextStyle}>{timeAgo(item.publishedAt ?? item.fetchedAt)}</span>
           </span>
         </div>
       </header>
 
       {item.title && (
-        <h3 className="mt-0.5 mb-1 text-[1.05rem] font-semibold">
+        <h3 className="mt-0.5 mb-1 text-[1.05rem] font-semibold" style={primaryTextStyle}>
           {item.url ? (
             <a
               className="text-slate-100 hover:text-indigo-100 hover:underline"
               href={item.url}
               target="_blank"
               rel="noreferrer"
+              style={primaryTextStyle}
             >
               {item.title}
             </a>
@@ -84,7 +106,11 @@ export default function FeedItem({ item }: { item: FeedItemView }) {
         </h3>
       )}
 
-      {item.text ? <p className="[overflow-wrap:anywhere]">{truncate(item.text, 500)}</p> : null}
+      {item.text ? (
+        <p className="[overflow-wrap:anywhere]" style={primaryTextStyle}>
+          {truncate(item.text, 500)}
+        </p>
+      ) : null}
 
       {images.length > 0 && (
         <div className="mt-2.5 grid grid-cols-[repeat(auto-fit,minmax(140px,1fr))] gap-2">
@@ -148,6 +174,7 @@ export default function FeedItem({ item }: { item: FeedItemView }) {
               href={m.url}
               target="_blank"
               rel="noreferrer"
+              style={secondaryTextStyle}
             >
               ▶ {m.type}
             </a>
@@ -158,6 +185,7 @@ export default function FeedItem({ item }: { item: FeedItemView }) {
               href={item.url}
               target="_blank"
               rel="noreferrer"
+              style={secondaryTextStyle}
             >
               open ↗
             </a>
@@ -169,6 +197,7 @@ export default function FeedItem({ item }: { item: FeedItemView }) {
               href={crossPost.url}
               target="_blank"
               rel="noreferrer"
+              style={secondaryTextStyle}
             >
               {crossPost.provider} ↗
             </a>

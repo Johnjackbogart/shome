@@ -1,4 +1,4 @@
-import { isPostFont } from "@shome/core";
+import { isPostBorderLineStyle, isPostBorderRadius, isPostFont } from "@shome/core";
 import { type Db, type Post, postMedia, posts, products } from "@shome/db";
 import { asc, desc, eq, inArray } from "drizzle-orm";
 import sanitizeHtml from "sanitize-html";
@@ -48,13 +48,27 @@ function isHexColor(value: string | null): value is string {
 }
 
 function postStyleAttribute(
-  post: Pick<Post, "borderStyle" | "backgroundColor" | "font" | "fontColor">,
+  post: Pick<
+    Post,
+    | "borderStyle"
+    | "borderRadius"
+    | "borderLineStyle"
+    | "backgroundColor"
+    | "font"
+    | "fontColor"
+    | "secondaryTextColor"
+  >,
 ): string {
   const declarations = [
     isHexColor(post.borderStyle) ? `border-color: ${post.borderStyle}` : null,
+    isPostBorderRadius(post.borderRadius) ? `border-radius: ${post.borderRadius}` : null,
+    isPostBorderLineStyle(post.borderLineStyle) ? `border-style: ${post.borderLineStyle}` : null,
     isHexColor(post.backgroundColor) ? `background-color: ${post.backgroundColor}` : null,
     isPostFont(post.font) ? `font-family: ${post.font}` : null,
     isHexColor(post.fontColor) ? `color: ${post.fontColor}` : null,
+    isHexColor(post.secondaryTextColor)
+      ? `--shome-post-secondary-text-color: ${post.secondaryTextColor}`
+      : null,
   ].filter((declaration): declaration is string => Boolean(declaration));
   return declarations.length ? ` style="${declarations.join("; ")}"` : "";
 }
@@ -114,7 +128,8 @@ async function renderPosts(db: Db, userId: string): Promise<string> {
             )
             .join("");
           const hasCustomFontColor = isHexColor(post.fontColor);
-          return `<article class="shome-post${hasCustomFontColor ? " shome-post--custom-font-color" : ""}"${postStyleAttribute(post)}>
+          const hasCustomSecondaryTextColor = isHexColor(post.secondaryTextColor);
+          return `<article class="shome-post${hasCustomFontColor ? " shome-post--custom-font-color" : ""}${hasCustomSecondaryTextColor ? " shome-post--custom-secondary-text-color" : ""}"${postStyleAttribute(post)}>
   <p class="shome-post__text">${escapeTextWithBreaks(post.text)}</p>
   ${media ? `<div class="shome-post__media">${media}</div>` : ""}
   <footer class="shome-post__footer"><time datetime="${post.createdAt.toISOString()}">${post.createdAt.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}</time>${links}</footer>
@@ -135,6 +150,8 @@ async function renderPosts(db: Db, userId: string): Promise<string> {
     .shome-post__video-link { display: inline-block; }
     .shome-post__footer { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1rem; font-size: .875rem; opacity: .72; }
     .shome-post.shome-post--custom-font-color .shome-post__link { color: inherit; }
+    .shome-post.shome-post--custom-secondary-text-color .shome-post__footer,
+    .shome-post.shome-post--custom-secondary-text-color .shome-post__link { color: var(--shome-post-secondary-text-color); }
   </style>
   ${content}
 </section>`;

@@ -30,9 +30,12 @@ describe("profile component syntax", () => {
                           id: "post-1",
                           text: "A styled post",
                           borderStyle: "#fff",
+                          borderRadius: "24px",
+                          borderLineStyle: "dashed",
                           backgroundColor: "#abcdef",
                           font: "serif",
                           fontColor: "#fedcba",
+                          secondaryTextColor: "#aabbcc",
                           blueskyUrl: null,
                           mastodonUrl: null,
                           createdAt: new Date("2026-01-01T00:00:00.000Z"),
@@ -53,8 +56,11 @@ describe("profile component syntax", () => {
     });
 
     expect(html).toContain("border-color: #fff");
+    expect(html).toContain("border-radius: 24px");
+    expect(html).toContain("border-style: dashed");
     expect(html).toContain("background-color: #abcdef");
     expect(html).toContain("font-family: serif");
     expect(html).toContain("color: #fedcba");
+    expect(html).toContain("--shome-post-secondary-text-color: #aabbcc");
   });
 });

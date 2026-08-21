@@ -8,9 +8,12 @@ describe("post style API view", () => {
       id: "post-1",
       text: "Styled post",
       borderStyle: "#123456",
+      borderRadius: "24px",
+      borderLineStyle: "dashed",
       backgroundColor: "#abcdef",
       font: "serif",
       fontColor: "#fedcba",
+      secondaryTextColor: "#aabbcc",
       blueskyUrl: null,
       mastodonUrl: null,
       createdAt: new Date("2026-01-01T00:00:00.000Z"),
@@ -18,9 +21,12 @@ describe("post style API view", () => {
 
     expect(postToFeedItem(post, { name: "Sam", username: "sam", image: null })).toMatchObject({
       borderStyle: "#123456",
+      borderRadius: "24px",
+      borderLineStyle: "dashed",
       backgroundColor: "#abcdef",
       font: "serif",
       fontColor: "#fedcba",
+      secondaryTextColor: "#aabbcc",
     });
   });
 
@@ -29,9 +35,12 @@ describe("post style API view", () => {
       id: "post-1",
       text: "Styled post",
       borderStyle: null,
+      borderRadius: null,
+      borderLineStyle: null,
       backgroundColor: null,
       font: "url(https://example.test/font)",
       fontColor: null,
+      secondaryTextColor: null,
       blueskyUrl: null,
       mastodonUrl: null,
       createdAt: new Date("2026-01-01T00:00:00.000Z"),

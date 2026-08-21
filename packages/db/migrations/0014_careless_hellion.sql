@@ -1,0 +1,1 @@
+ALTER TABLE "posts" ADD COLUMN "secondary_text_color" text;

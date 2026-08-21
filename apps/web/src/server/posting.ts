@@ -1,5 +1,11 @@
 import { AtpAgent } from "@atproto/api";
-import { type CrossPostLink, type FeedItemView, isPostFont } from "@shome/core";
+import {
+  type CrossPostLink,
+  type FeedItemView,
+  isPostBorderLineStyle,
+  isPostBorderRadius,
+  isPostFont,
+} from "@shome/core";
 import { connections, type Db, type Post, type PostMedia, postMedia, posts } from "@shome/db";
 import { and, asc, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
@@ -175,9 +181,12 @@ export function postToFeedItem(
     sourceKind: "post",
     sourceTitle: "my post",
     borderStyle: post.borderStyle,
+    borderRadius: isPostBorderRadius(post.borderRadius) ? post.borderRadius : null,
+    borderLineStyle: isPostBorderLineStyle(post.borderLineStyle) ? post.borderLineStyle : null,
     backgroundColor: post.backgroundColor,
     font: isPostFont(post.font) ? post.font : null,
     fontColor: post.fontColor,
+    secondaryTextColor: post.secondaryTextColor,
     url: null,
     title: null,
     text: post.text,
@@ -239,9 +248,12 @@ export async function createPost(
     userId: string;
     text: string;
     borderStyle: string;
+    borderRadius: string;
+    borderLineStyle: string;
     backgroundColor: string;
     font: string;
     fontColor: string;
+    secondaryTextColor: string;
     blueskyConnectionId?: string;
     mastodonConnectionId?: string;
     media?: NewPostMedia[];
@@ -254,9 +266,12 @@ export async function createPost(
         userId: input.userId,
         text: input.text,
         borderStyle: input.borderStyle,
+        borderRadius: input.borderRadius,
+        borderLineStyle: input.borderLineStyle,
         backgroundColor: input.backgroundColor,
         font: input.font,
         fontColor: input.fontColor,
+        secondaryTextColor: input.secondaryTextColor,
       })
       .returning();
     if (!post) throw new Error("could not save post");

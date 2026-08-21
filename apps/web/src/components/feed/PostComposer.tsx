@@ -1,4 +1,9 @@
-import { DEFAULT_POST_STYLE, POST_FONT_OPTIONS } from "@shome/core";
+import {
+  DEFAULT_POST_STYLE,
+  POST_BORDER_LINE_STYLE_OPTIONS,
+  POST_BORDER_RADIUS_OPTIONS,
+  POST_FONT_OPTIONS,
+} from "@shome/core";
 import { type ChangeEvent, type SubmitEvent, useEffect, useRef, useState } from "react";
 import { api } from "#/lib/api";
 import type { ConnectionView, FeedItemView } from "#/lib/types";
@@ -56,9 +61,14 @@ function videoDuration(file: File): Promise<number> {
 export default function PostComposer({ onPosted, onSuccess }: PostComposerProps) {
   const [text, setText] = useState("");
   const [borderStyle, setBorderStyle] = useState(DEFAULT_POST_STYLE.borderStyle);
+  const [borderRadius, setBorderRadius] = useState(DEFAULT_POST_STYLE.borderRadius);
+  const [borderLineStyle, setBorderLineStyle] = useState(DEFAULT_POST_STYLE.borderLineStyle);
   const [backgroundColor, setBackgroundColor] = useState(DEFAULT_POST_STYLE.backgroundColor);
   const [font, setFont] = useState(DEFAULT_POST_STYLE.font);
   const [fontColor, setFontColor] = useState(DEFAULT_POST_STYLE.fontColor);
+  const [secondaryTextColor, setSecondaryTextColor] = useState(
+    DEFAULT_POST_STYLE.secondaryTextColor,
+  );
   const [selectedMedia, setSelectedMedia] = useState<SelectedMedia[]>([]);
   const [cameraMode, setCameraMode] = useState<CameraMode | null>(null);
   const [connections, setConnections] = useState<ConnectionView[]>([]);
@@ -203,9 +213,12 @@ export default function PostComposer({ onPosted, onSuccess }: PostComposerProps)
       }>("/api/posts", {
         text,
         borderStyle,
+        borderRadius,
+        borderLineStyle,
         backgroundColor,
         font,
         fontColor,
+        secondaryTextColor,
         blueskyConnectionId: blueskyConnectionId || undefined,
         mastodonConnectionId: mastodonConnectionId || undefined,
         attachmentIds: selectedMedia.flatMap((media) =>
@@ -272,6 +285,34 @@ export default function PostComposer({ onPosted, onSuccess }: PostComposerProps)
           Border color
         </label>
         <label className="flex items-center gap-2 text-xs text-slate-200">
+          Border radius
+          <select
+            className="input flex-1 py-1.5 text-sm"
+            value={borderRadius}
+            onChange={(event) => setBorderRadius(event.target.value as typeof borderRadius)}
+          >
+            {POST_BORDER_RADIUS_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="flex items-center gap-2 text-xs text-slate-200">
+          Border style
+          <select
+            className="input flex-1 py-1.5 text-sm"
+            value={borderLineStyle}
+            onChange={(event) => setBorderLineStyle(event.target.value as typeof borderLineStyle)}
+          >
+            {POST_BORDER_LINE_STYLE_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="flex items-center gap-2 text-xs text-slate-200">
           <input
             type="color"
             className="input_color size-9 p-1"
@@ -288,6 +329,15 @@ export default function PostComposer({ onPosted, onSuccess }: PostComposerProps)
             onChange={(event) => setFontColor(event.target.value)}
           />
           Font color
+        </label>
+        <label className="flex items-center gap-2 text-xs text-slate-200">
+          <input
+            type="color"
+            className="input_color size-9 p-1"
+            value={secondaryTextColor}
+            onChange={(event) => setSecondaryTextColor(event.target.value)}
+          />
+          Secondary text color
         </label>
         <label className="flex items-center gap-2 text-xs text-slate-200">
           Font

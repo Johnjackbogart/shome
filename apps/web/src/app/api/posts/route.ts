@@ -1,4 +1,9 @@
-import { DEFAULT_POST_STYLE, POST_FONT_VALUES } from "@shome/core";
+import {
+  DEFAULT_POST_STYLE,
+  POST_BORDER_LINE_STYLE_VALUES,
+  POST_BORDER_RADIUS_VALUES,
+  POST_FONT_VALUES,
+} from "@shome/core";
 import { mediaUploads, user } from "@shome/db";
 import { and, eq, inArray } from "drizzle-orm";
 import { NextResponse } from "next/server";
@@ -22,9 +27,14 @@ const hexColor = z
 const postFieldsSchema = z.object({
   text: z.string().trim().max(5_000),
   borderStyle: hexColor.default(DEFAULT_POST_STYLE.borderStyle),
+  borderRadius: z.enum(POST_BORDER_RADIUS_VALUES).default(DEFAULT_POST_STYLE.borderRadius),
+  borderLineStyle: z
+    .enum(POST_BORDER_LINE_STYLE_VALUES)
+    .default(DEFAULT_POST_STYLE.borderLineStyle),
   backgroundColor: hexColor.default(DEFAULT_POST_STYLE.backgroundColor),
   font: z.enum(POST_FONT_VALUES).default(DEFAULT_POST_STYLE.font),
   fontColor: hexColor.default(DEFAULT_POST_STYLE.fontColor),
+  secondaryTextColor: hexColor.default(DEFAULT_POST_STYLE.secondaryTextColor),
   blueskyConnectionId: z.string().regex(UUID_RE, "invalid Bluesky connection").optional(),
   mastodonConnectionId: z.string().regex(UUID_RE, "invalid Mastodon connection").optional(),
 });
@@ -75,9 +85,12 @@ export async function POST(req: Request) {
     const parsed = postFieldsSchema.safeParse({
       text: formField(form, "text"),
       borderStyle: formField(form, "borderStyle"),
+      borderRadius: formField(form, "borderRadius"),
+      borderLineStyle: formField(form, "borderLineStyle"),
       backgroundColor: formField(form, "backgroundColor"),
       font: formField(form, "font"),
       fontColor: formField(form, "fontColor"),
+      secondaryTextColor: formField(form, "secondaryTextColor"),
       blueskyConnectionId: formField(form, "blueskyConnectionId"),
       mastodonConnectionId: formField(form, "mastodonConnectionId"),
     });

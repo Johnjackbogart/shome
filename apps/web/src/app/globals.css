@@ -11,12 +11,6 @@
     @apply rounded-2xl border border-white/10 bg-white/[0.035] p-4 shadow-xl shadow-black/20 backdrop-blur-sm;
   }
 
-  /* A post's text color should apply to all of its metadata and links too;
-     Tailwind's per-element text utilities would otherwise override inheritance. */
-  .post--custom.post--custom * {
-    color: inherit;
-  }
-
   .input {
     @apply rounded-xl border border-slate-200/10 bg-slate-950/65 px-3 py-2 text-slate-100 transition placeholder:text-slate-500 focus:border-indigo-300/70 focus:bg-slate-950 focus:outline-none focus:ring-4 focus:ring-indigo-400/10;
   }

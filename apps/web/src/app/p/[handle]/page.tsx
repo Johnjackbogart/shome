@@ -1,4 +1,4 @@
-import { isPostFont } from "@shome/core";
+import { isPostBorderLineStyle, isPostBorderRadius, isPostFont } from "@shome/core";
 import { postMedia, posts, profiles, user } from "@shome/db";
 import { asc, desc, eq, inArray } from "drizzle-orm";
 import type { Metadata } from "next";
@@ -111,11 +111,23 @@ export default async function ProfilePage(ctx: { params: Promise<{ handle: strin
                 const links = crossPostLinks(post);
                 const attachments = mediaByPost.get(post.id) ?? [];
                 const hasCustomStyle = Boolean(
-                  post.borderStyle || post.backgroundColor || post.font || post.fontColor,
+                  post.borderStyle ||
+                    post.borderRadius ||
+                    post.borderLineStyle ||
+                    post.backgroundColor ||
+                    post.font ||
+                    post.fontColor ||
+                    post.secondaryTextColor,
                 );
                 const style = hasCustomStyle
                   ? {
                       borderColor: post.borderStyle ?? undefined,
+                      borderRadius: isPostBorderRadius(post.borderRadius)
+                        ? post.borderRadius
+                        : undefined,
+                      borderStyle: isPostBorderLineStyle(post.borderLineStyle)
+                        ? post.borderLineStyle
+                        : undefined,
                       backgroundColor: post.backgroundColor ?? undefined,
                       color: post.fontColor ?? undefined,
                       fontFamily: isPostFont(post.font) ? post.font : undefined,
@@ -124,9 +136,7 @@ export default async function ProfilePage(ctx: { params: Promise<{ handle: strin
                 return (
                   <article
                     key={post.id}
-                    className={`rounded-xl border border-zinc-800 bg-zinc-900 p-4${
-                      hasCustomStyle ? " post--custom" : ""
-                    }`}
+                    className="rounded-xl border border-zinc-800 bg-zinc-900 p-4"
                     style={style}
                   >
                     <p className="whitespace-pre-wrap [overflow-wrap:anywhere]">{post.text}</p>
@@ -168,7 +178,10 @@ export default async function ProfilePage(ctx: { params: Promise<{ handle: strin
                         )}
                       </div>
                     )}
-                    <footer className="mt-3 flex flex-wrap items-center gap-3 text-sm text-zinc-400">
+                    <footer
+                      className="mt-3 flex flex-wrap items-center gap-3 text-sm text-zinc-400"
+                      style={{ color: post.secondaryTextColor ?? post.fontColor ?? undefined }}
+                    >
                       <time dateTime={post.createdAt.toISOString()}>
                         {post.createdAt.toLocaleDateString(undefined, {
                           month: "short",

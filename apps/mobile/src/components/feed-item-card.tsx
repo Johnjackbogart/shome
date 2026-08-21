@@ -18,16 +18,32 @@ export function FeedItemCard({ item }: { item: FeedItemView }) {
   const body = item.text;
   const image = item.media.find((m) => m.type === "image");
   const video = item.media.find((m) => m.type === "video");
-  const author = item.authorName ?? item.authorHandle;
+  const authorName = item.authorName;
   const hasCustomStyle =
     item.sourceKind === "post" &&
-    Boolean(item.borderStyle || item.backgroundColor || item.font || item.fontColor);
+    Boolean(
+      item.borderStyle ||
+        item.borderRadius ||
+        item.borderLineStyle ||
+        item.backgroundColor ||
+        item.font ||
+        item.fontColor ||
+        item.secondaryTextColor,
+    );
   const postTextStyle = hasCustomStyle
     ? { color: item.fontColor ?? undefined, fontFamily: item.font ?? undefined }
+    : undefined;
+  const postSecondaryTextStyle = hasCustomStyle
+    ? {
+        color: item.secondaryTextColor ?? item.fontColor ?? undefined,
+        fontFamily: item.font ?? undefined,
+      }
     : undefined;
   const postCardStyle = hasCustomStyle
     ? {
         borderColor: item.borderStyle ?? undefined,
+        borderRadius: item.borderRadius ? Number.parseInt(item.borderRadius, 10) : undefined,
+        borderStyle: item.borderLineStyle ?? undefined,
         backgroundColor: item.backgroundColor ?? undefined,
       }
     : undefined;
@@ -43,16 +59,20 @@ export function FeedItemCard({ item }: { item: FeedItemView }) {
           className={`rounded-full bg-indigo-300/10 px-2 py-1 text-xs font-semibold uppercase ${
             KIND_COLORS[item.sourceKind] ?? "text-slate-400"
           }`}
-          style={postTextStyle}
+          style={postSecondaryTextStyle}
         >
           {item.sourceKind}
         </Text>
         {item.sourceTitle ? (
-          <Text className="shrink text-xs text-slate-400" numberOfLines={1} style={postTextStyle}>
+          <Text
+            className="shrink text-xs text-slate-400"
+            numberOfLines={1}
+            style={postSecondaryTextStyle}
+          >
             {item.sourceTitle}
           </Text>
         ) : null}
-        <Text className="text-xs text-slate-500" style={postTextStyle}>
+        <Text className="text-xs text-slate-500" style={postSecondaryTextStyle}>
           {timeAgo(item.publishedAt ?? item.fetchedAt)}
         </Text>
       </View>
@@ -62,9 +82,14 @@ export function FeedItemCard({ item }: { item: FeedItemView }) {
           {item.title}
         </Text>
       ) : null}
-      {author ? (
+      {authorName || item.authorHandle ? (
         <Text className="mb-1 text-xs text-slate-400" style={postTextStyle}>
-          {author}
+          {authorName}
+          {item.authorHandle ? (
+            <Text
+              style={postSecondaryTextStyle}
+            >{`${authorName ? " " : ""}@${item.authorHandle}`}</Text>
+          ) : null}
         </Text>
       ) : null}
       {body ? (
