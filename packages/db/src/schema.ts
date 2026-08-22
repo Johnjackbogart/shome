@@ -1,10 +1,4 @@
-import {
-  DEFAULT_POST_STYLE,
-  type FeedRules,
-  type MediaRef,
-  type PostStyle,
-  type SourceKind,
-} from "@shome/core";
+import type { FeedRules, MediaRef, SourceKind } from "@shome/core";
 import { relations } from "drizzle-orm";
 import {
   boolean,
@@ -32,13 +26,26 @@ export const user = pgTable("user", {
   image: text("image"),
   username: text("username").unique(),
   displayUsername: text("display_username"),
-  defaultPostStyle: jsonb("default_post_style")
-    .notNull()
-    .$type<PostStyle>()
-    .default(DEFAULT_POST_STYLE),
+  borderStyle: text("border_style"),
+  borderRadius: text("border_radius"),
+  borderLineStyle: text("border_line_style"),
+  backgroundColor: text("background_color"),
+  font: text("font"),
+  fontColor: text("font_color"),
+  secondaryTextColor: text("secondary_text_color"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+export const userPostStyleColumns = {
+  borderStyle: user.borderStyle,
+  borderRadius: user.borderRadius,
+  borderLineStyle: user.borderLineStyle,
+  backgroundColor: user.backgroundColor,
+  font: user.font,
+  fontColor: user.fontColor,
+  secondaryTextColor: user.secondaryTextColor,
+};
 
 export const session = pgTable("session", {
   id: text("id").primaryKey(),

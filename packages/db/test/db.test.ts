@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { PGlite } from "@electric-sql/pglite";
 import { DEFAULT_POST_STYLE } from "@shome/core";
 import { count, desc, eq, inArray, sql } from "drizzle-orm";
 import { beforeAll, describe, expect, it } from "vitest";
@@ -24,7 +26,52 @@ beforeAll(async () => {
 });
 
 describe("schema + migrations", () => {
-  it("stores a structured default post style on each user", async () => {
+  it("preserves customized default styles when splitting the JSONB column", async () => {
+    const migrationDb = new PGlite();
+    const customized = {
+      ...DEFAULT_POST_STYLE,
+      borderStyle: "#123456",
+      borderRadius: "24px",
+      borderLineStyle: "dashed",
+      backgroundColor: "#654321",
+      font: "serif",
+      fontColor: "#abcdef",
+      secondaryTextColor: "#fedcba",
+    };
+
+    try {
+      await migrationDb.exec(
+        'CREATE TABLE "user" ("id" text PRIMARY KEY, "default_post_style" jsonb NOT NULL)',
+      );
+      await migrationDb.query(
+        'INSERT INTO "user" ("id", "default_post_style") VALUES ($1, $2::jsonb)',
+        ["migrating-user", JSON.stringify(customized)],
+      );
+      const migration = readFileSync(
+        new URL("../migrations/0017_gorgeous_songbird.sql", import.meta.url),
+        "utf8",
+      );
+      await migrationDb.exec(migration);
+
+      const migrated = await migrationDb.query<typeof customized>(
+        `SELECT
+          "border_style" AS "borderStyle",
+          "border_radius" AS "borderRadius",
+          "border_line_style" AS "borderLineStyle",
+          "background_color" AS "backgroundColor",
+          "font",
+          "font_color" AS "fontColor",
+          "secondary_text_color" AS "secondaryTextColor"
+        FROM "user"
+        WHERE "id" = 'migrating-user'`,
+      );
+      expect(migrated.rows[0]).toEqual(customized);
+    } finally {
+      await migrationDb.close();
+    }
+  });
+
+  it("stores default post styles as scalar user columns", async () => {
     const [member] = await db
       .insert(user)
       .values({
@@ -34,7 +81,15 @@ describe("schema + migrations", () => {
       })
       .returning();
 
-    expect(member?.defaultPostStyle).toEqual(DEFAULT_POST_STYLE);
+    expect(member).toMatchObject({
+      borderStyle: null,
+      borderRadius: null,
+      borderLineStyle: null,
+      backgroundColor: null,
+      font: null,
+      fontColor: null,
+      secondaryTextColor: null,
+    });
 
     const customized = {
       ...DEFAULT_POST_STYLE,
@@ -44,11 +99,19 @@ describe("schema + migrations", () => {
     };
     const [saved] = await db
       .update(user)
-      .set({ defaultPostStyle: customized })
+      .set(customized)
       .where(eq(user.id, "user_post_style"))
-      .returning({ defaultPostStyle: user.defaultPostStyle });
+      .returning({
+        borderStyle: user.borderStyle,
+        borderRadius: user.borderRadius,
+        borderLineStyle: user.borderLineStyle,
+        backgroundColor: user.backgroundColor,
+        font: user.font,
+        fontColor: user.fontColor,
+        secondaryTextColor: user.secondaryTextColor,
+      });
 
-    expect(saved?.defaultPostStyle).toEqual(customized);
+    expect(saved).toEqual(customized);
   });
 
   it("inserts and reads across the core tables", async () => {
