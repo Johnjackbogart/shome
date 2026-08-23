@@ -1,12 +1,19 @@
-import { isPostBorderLineStyle, isPostBorderRadius, isPostFont } from "@shome/core";
+import {
+  isPostBorderLineStyle,
+  isPostBorderRadius,
+  isPostFont,
+  type SocialGraphView,
+  type SocialUserView,
+} from "@shome/core";
 import { type Db, type Post, postMedia, posts, products } from "@shome/db";
 import { asc, desc, eq, inArray } from "drizzle-orm";
 import sanitizeHtml from "sanitize-html";
 import { postMediaUrl } from "./posting";
+import { socialGraph } from "./social";
 
-type ComponentName = "posts" | "products";
+type ComponentName = "posts" | "products" | "followers" | "following" | "stats";
 
-const componentNames: ComponentName[] = ["posts", "products"];
+const componentNames: ComponentName[] = ["posts", "products", "followers", "following", "stats"];
 
 // Components intentionally accept no attributes in v1. That keeps their
 // server-side data contract narrow; later components can add typed attributes
@@ -38,6 +45,18 @@ function isSafeHttpUrl(value: string | null): value is string {
   } catch {
     return false;
   }
+}
+
+/**
+ * Avatars are either a first-party upload served from this origin as a rooted
+ * path, or an absolute URL carried over from an OAuth provider. Everything
+ * else — including protocol-relative `//host/x`, which would smuggle in a
+ * third-party host — falls back to the initial-letter placeholder.
+ */
+function isSafeAvatarUrl(value: string | null): value is string {
+  if (!value) return false;
+  if (value.startsWith("//")) return false;
+  return value.startsWith("/") || isSafeHttpUrl(value);
 }
 
 function isHexColor(value: string | null): value is string {
@@ -205,6 +224,97 @@ async function renderProducts(db: Db, userId: string): Promise<string> {
 </section>`;
 }
 
+/**
+ * The owner's follow relationships, loaded at most once per rendered page:
+ * `<shome-stats />` and both list components read the same graph, and a page is
+ * free to use all three.
+ */
+function socialGraphOnce(db: Db, userId: string): () => Promise<SocialGraphView> {
+  let pending: Promise<SocialGraphView> | null = null;
+  return () => {
+    pending ??= socialGraph(db, userId);
+    return pending;
+  };
+}
+
+function renderPerson(person: SocialUserView): string {
+  const handle = escapeHtml(person.handle);
+  const name = person.displayName?.trim() ? escapeHtml(person.displayName) : handle;
+  const avatar = isSafeAvatarUrl(person.image)
+    ? `<img class="shome-person__avatar" src="${escapeHtml(person.image)}" alt="" width="40" height="40">`
+    : `<span class="shome-person__avatar shome-person__avatar--empty">${escapeHtml(
+        [...person.handle][0]?.toUpperCase() ?? "?",
+      )}</span>`;
+  return `<li class="shome-person">
+  <a class="shome-person__link" href="/p/${encodeURIComponent(person.handle)}">
+    ${avatar}
+    <span class="shome-person__names">
+      <span class="shome-person__name">${name}</span>
+      <span class="shome-person__handle">@${handle}</span>
+    </span>
+  </a>
+</li>`;
+}
+
+/**
+ * The person-card list shared by the two social list components. It owns every
+ * `shome-person` class it emits, including their styles, so the components that
+ * embed it only have to supply the people and the wording of the empty state.
+ */
+function peopleList(people: SocialUserView[], empty: string): string {
+  const content = people.length
+    ? `<ul class="shome-people__list">
+${people.map(renderPerson).join("\n")}
+</ul>`
+    : `<p class="shome-component__empty">${empty}</p>`;
+
+  return `<style>
+    .shome-people__list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 13rem), 1fr)); gap: .75rem; margin: 0; padding: 0; list-style: none; }
+    .shome-person__link { display: flex; align-items: center; gap: .7rem; padding: .6rem .75rem; border: 1px solid currentColor; border-radius: .75rem; color: inherit; text-decoration: none; }
+    .shome-person__avatar { flex: none; width: 2.5rem; height: 2.5rem; border-radius: 50%; object-fit: cover; background: currentColor; }
+    .shome-person__avatar--empty { display: flex; align-items: center; justify-content: center; font-weight: 700; opacity: .55; }
+    .shome-person__names { display: grid; min-width: 0; }
+    .shome-person__name, .shome-person__handle { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .shome-person__name { font-weight: 600; }
+    .shome-person__handle { font-size: .8125rem; opacity: .72; }
+  </style>
+  ${content}`;
+}
+
+async function renderFollowers(loadGraph: () => Promise<SocialGraphView>): Promise<string> {
+  const { followers } = await loadGraph();
+  return `<section class="shome-component shome-people shome-followers" data-shome-component="followers">
+  ${peopleList(followers, "No followers yet.")}
+</section>`;
+}
+
+async function renderFollowing(loadGraph: () => Promise<SocialGraphView>): Promise<string> {
+  const { following } = await loadGraph();
+  return `<section class="shome-component shome-people shome-following" data-shome-component="following">
+  ${peopleList(following, "Not following anyone yet.")}
+</section>`;
+}
+
+async function renderStats(loadGraph: () => Promise<SocialGraphView>): Promise<string> {
+  const graph = await loadGraph();
+  const stat = (label: string, value: number) =>
+    `<div class="shome-stat">
+    <span class="shome-stat__value">${value.toLocaleString()}</span>
+    <span class="shome-stat__label">${label}</span>
+  </div>`;
+
+  return `<section class="shome-component shome-stats" data-shome-component="stats">
+  <style>
+    .shome-stats { display: flex; flex-wrap: wrap; gap: 1.5rem; }
+    .shome-stat { display: grid; gap: .15rem; }
+    .shome-stat__value { font-size: clamp(1.5rem, 4vw, 2.25rem); font-weight: 700; line-height: 1; }
+    .shome-stat__label { font-size: .8rem; letter-spacing: .08em; text-transform: uppercase; opacity: .72; }
+  </style>
+  ${stat("Followers", graph.followerCount)}
+  ${stat("Following", graph.followingCount)}
+</section>`;
+}
+
 export async function renderProfileComponents({
   db,
   userId,
@@ -214,11 +324,19 @@ export async function renderProfileComponents({
   userId: string;
   html: string;
 }): Promise<string> {
+  const loadGraph = socialGraphOnce(db, userId);
+  const renderers: Record<ComponentName, () => Promise<string>> = {
+    posts: () => renderPosts(db, userId),
+    products: () => renderProducts(db, userId),
+    followers: () => renderFollowers(loadGraph),
+    following: () => renderFollowing(loadGraph),
+    stats: () => renderStats(loadGraph),
+  };
+
   let rendered = html;
   for (const name of componentNames) {
     if (!hasProfileComponent(rendered, name)) continue;
-    const markup =
-      name === "posts" ? await renderPosts(db, userId) : await renderProducts(db, userId);
+    const markup = await renderers[name]();
     rendered = rendered.replace(componentPattern(name), () => markup);
   }
   return rendered;

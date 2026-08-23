@@ -97,7 +97,10 @@ export function builderDocument(initial: BuilderBoot) {
     { id: "text", label: "Text", detail: "A simple note", html: '<section class="profile__section">\\n  <p>Write a little more about what you are making, noticing, or sharing.</p>\\n</section>' },
     { id: "divider", label: "Divider", detail: "Add breathing room", html: '<hr class="profile__divider">' },
     { id: "posts", label: "Posts", detail: "Your latest updates", html: '<section class="profile__section profile__posts">\\n  <div class="profile__section-heading">\\n    <h2>From the notebook</h2>\\n    <span>Latest posts</span>\\n  </div>\\n  <shome-posts />\\n</section>' },
-    { id: "shop", label: "Shop", detail: "Your visible products", html: '<section class="profile__section">\\n  <div class="profile__section-heading">\\n    <h2>Shop</h2>\\n    <span>Available now</span>\\n  </div>\\n  <shome-products />\\n</section>' }
+    { id: "shop", label: "Shop", detail: "Your visible products", html: '<section class="profile__section">\\n  <div class="profile__section-heading">\\n    <h2>Shop</h2>\\n    <span>Available now</span>\\n  </div>\\n  <shome-products />\\n</section>' },
+    { id: "stats", label: "Stats", detail: "Your follower counts", html: '<section class="profile__section">\\n  <div class="profile__section-heading">\\n    <h2>By the numbers</h2>\\n    <span>On shome</span>\\n  </div>\\n  <shome-stats />\\n</section>' },
+    { id: "followers", label: "Followers", detail: "People who follow you", html: '<section class="profile__section">\\n  <div class="profile__section-heading">\\n    <h2>Followers</h2>\\n    <span>People who follow me</span>\\n  </div>\\n  <shome-followers />\\n</section>' },
+    { id: "following", label: "Following", detail: "People you follow", html: '<section class="profile__section">\\n  <div class="profile__section-heading">\\n    <h2>Following</h2>\\n    <span>People I follow</span>\\n  </div>\\n  <shome-following />\\n</section>' }
   ];
   const state = { source: "", previewDoc: null, previewError: null, model: null, mode: "blocks", selected: null, editorPane: "text", blockDraft: "", fields: [], removed: null, dragged: null };
 
@@ -137,6 +140,9 @@ export function builderDocument(initial: BuilderBoot) {
     if (tagName === "style") label = "Styles";
     if (html.includes("shome-posts")) label = "Posts";
     if (html.includes("shome-products")) label = "Shop";
+    if (html.includes("shome-stats")) label = "Stats";
+    if (html.includes("shome-followers")) label = "Followers";
+    if (html.includes("shome-following")) label = "Following";
     if (heading && heading.textContent) label = shortText(heading.textContent, label);
     return { id: "block-" + index + "-" + html.length + "-" + html.slice(0, 16), html: html, label: label, detail: tagName === "text" ? text : tagName + " · " + text };
   }

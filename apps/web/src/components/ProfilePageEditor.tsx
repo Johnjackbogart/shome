@@ -103,6 +103,42 @@ const BLOCK_TEMPLATES: BlockTemplate[] = [
   <shome-products />
 </section>`,
   },
+  {
+    id: "stats",
+    label: "Stats",
+    detail: "Your follower counts",
+    html: `<section class="profile__section">
+  <div class="profile__section-heading">
+    <h2>By the numbers</h2>
+    <span>On shome</span>
+  </div>
+  <shome-stats />
+</section>`,
+  },
+  {
+    id: "followers",
+    label: "Followers",
+    detail: "People who follow you",
+    html: `<section class="profile__section">
+  <div class="profile__section-heading">
+    <h2>Followers</h2>
+    <span>People who follow me</span>
+  </div>
+  <shome-followers />
+</section>`,
+  },
+  {
+    id: "following",
+    label: "Following",
+    detail: "People you follow",
+    html: `<section class="profile__section">
+  <div class="profile__section-heading">
+    <h2>Following</h2>
+    <span>People I follow</span>
+  </div>
+  <shome-following />
+</section>`,
+  },
 ];
 
 function shortText(value: string, fallback: string) {
@@ -132,6 +168,9 @@ function blockInfo(node: Node, index: number): BuilderBlock {
   if (tagName === "style") label = "Styles";
   if (html.includes("shome-posts")) label = "Posts";
   if (html.includes("shome-products")) label = "Shop";
+  if (html.includes("shome-stats")) label = "Stats";
+  if (html.includes("shome-followers")) label = "Followers";
+  if (html.includes("shome-following")) label = "Following";
   if (heading?.textContent) label = shortText(heading.textContent, label);
 
   return {
