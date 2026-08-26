@@ -5,6 +5,52 @@
   --color-accent: #c4b5fd;
 }
 
+.app-theme {
+  background-color: var(--app-background-color, #070a18);
+  color: var(--app-font-color, #f8fafc);
+  font-family: var(--app-font-family, sans-serif);
+}
+
+/*
+ * App borders and typography are member-owned design tokens. Inline post
+ * styles keep winning unless the member enables the app-style override.
+ */
+.app-theme :where(*) {
+  border-color: var(--app-border-color, #24293a);
+  border-style: var(--app-border-line-style, solid);
+  font-family: var(--app-font-family, sans-serif);
+}
+
+.app-theme
+  :where(
+    .card,
+    .input,
+    .input_color,
+    .btn:not(.rounded-full),
+    .btn-ghost:not(.rounded-full),
+    button:not(.rounded-full),
+    header,
+    article,
+    fieldset,
+    select,
+    textarea
+  ) {
+  border-radius: var(--app-border-radius, 16px);
+}
+
+.app-theme :where(.text-white, .text-slate-100, .text-slate-200) {
+  color: var(--app-font-color, #f8fafc);
+}
+
+.app-theme :where(.text-slate-300, .text-slate-400, .text-slate-500) {
+  color: var(--app-secondary-text-color, #94a3b8);
+}
+
+/* Cards and other raised surfaces use the member's second background tone. */
+.app-theme :where(.card, .app-secondary-background) {
+  background-color: var(--app-secondary-background-color, #0f172a);
+}
+
 /* Shared primitives; everything else is utility classes in the components. */
 @layer components {
   .card {

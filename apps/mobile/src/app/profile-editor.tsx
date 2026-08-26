@@ -1,5 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import {
+  APP_SPACING_OPTIONS,
+  type AppStyle,
+  DEFAULT_APP_STYLE,
   DEFAULT_POST_STYLE,
   POST_BORDER_LINE_STYLE_OPTIONS,
   POST_BORDER_RADIUS_OPTIONS,
@@ -15,6 +18,7 @@ import {
   Platform,
   Pressable,
   ScrollView,
+  Switch,
   Text,
   TextInput,
   View,
@@ -22,6 +26,12 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { VisualProfileBuilder } from "@/components/visual-profile-builder";
 import { api } from "@/lib/api";
+import {
+  appPrimaryText,
+  appSecondaryText,
+  appSurfaceAppearance,
+  useAppStyle,
+} from "@/lib/app-style";
 import { authClient } from "@/lib/auth-client";
 import { API_URL } from "@/lib/config";
 import { COLORS, UI } from "@/lib/ui";
@@ -54,6 +64,7 @@ function combineProfileSource({ html, css }: ProfileSource) {
 
 export default function ProfileEditorScreen() {
   const router = useRouter();
+  const { appStyle, setAppStyle } = useAppStyle();
   const { data: session } = authClient.useSession();
   const handle = (session?.user as { username?: string | null } | undefined)?.username ?? null;
   const [source, setSource] = useState<ProfileSource | null>(null);
@@ -62,12 +73,14 @@ export default function ProfileEditorScreen() {
     ...DEFAULT_POST_STYLE,
   });
   const [savedPostStyle, setSavedPostStyle] = useState<PostStyle | null>(null);
+  const [savedAppStyle, setSavedAppStyle] = useState<AppStyle | null>(null);
   const [mode, setMode] = useState<EditorMode>("visual");
   const [pane, setPane] = useState<EditorPane>("content");
   const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [styleSaving, setStyleSaving] = useState(false);
+  const [appStyleSaving, setAppStyleSaving] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -76,6 +89,7 @@ export default function ProfileEditorScreen() {
 
   const combinedSource = useMemo(() => (source ? combineProfileSource(source) : ""), [source]);
   const defaultStyleChanged = JSON.stringify(defaultPostStyle) !== JSON.stringify(savedPostStyle);
+  const appStyleChanged = JSON.stringify(appStyle) !== JSON.stringify(savedAppStyle);
   const pageChanged = source !== null && combinedSource !== savedSource;
   const characterCount = combinedSource.length;
 
@@ -83,21 +97,24 @@ export default function ProfileEditorScreen() {
     setLoading(true);
     setError(null);
     try {
-      const [profile, postStyle] = await Promise.all([
+      const [profile, postStyle, memberAppStyle] = await Promise.all([
         api.get<{ html: string }>("/api/profile"),
         api.get<{ defaultPostStyle: PostStyle }>("/api/post-style"),
+        api.get<{ appStyle: AppStyle }>("/api/app-style"),
       ]);
       const next = splitProfileSource(profile.html);
       setSource(next);
       setSavedSource(combineProfileSource(next));
       setDefaultPostStyle(postStyle.defaultPostStyle);
       setSavedPostStyle(postStyle.defaultPostStyle);
+      setAppStyle(memberAppStyle.appStyle);
+      setSavedAppStyle(memberAppStyle.appStyle);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [setAppStyle]);
 
   useEffect(() => {
     void load();
@@ -195,12 +212,32 @@ export default function ProfileEditorScreen() {
     }
   }
 
+  async function saveAppStyle() {
+    if (!appStyleChanged) return;
+    setAppStyleSaving(true);
+    setError(null);
+    setNotice(null);
+    try {
+      await api.put("/api/app-style", { appStyle });
+      setSavedAppStyle(appStyle);
+      setNotice("App style saved.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setAppStyleSaving(false);
+    }
+  }
+
   function openPublicPage() {
     if (handle) void WebBrowser.openBrowserAsync(`${API_URL}/p/${handle}`);
   }
 
   return (
-    <SafeAreaView className={UI.screen} edges={["top", "bottom"]}>
+    <SafeAreaView
+      className={UI.screen}
+      style={{ backgroundColor: appStyle.backgroundColor }}
+      edges={["top", "bottom"]}
+    >
       <KeyboardAvoidingView
         className="flex-1"
         behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -215,8 +252,15 @@ export default function ProfileEditorScreen() {
             <Ionicons name="chevron-back" size={22} color={COLORS.accent} />
           </Pressable>
           <View className="flex-1">
-            <Text className={UI.eyebrow}>Your public page</Text>
-            <Text className="mt-1 text-2xl font-semibold text-white">Edit profile</Text>
+            <Text className={UI.eyebrow} style={appSecondaryText(appStyle)}>
+              Your public page
+            </Text>
+            <Text
+              className="mt-1 text-2xl font-semibold text-white"
+              style={appPrimaryText(appStyle)}
+            >
+              Edit profile
+            </Text>
           </View>
           <Pressable
             onPress={() => void save()}
@@ -243,12 +287,23 @@ export default function ProfileEditorScreen() {
             contentContainerClassName="gap-4 px-5 pb-8"
             keyboardShouldPersistTaps="handled"
           >
-            <Text className="text-sm leading-5 text-slate-400">
+            <Text className="text-sm leading-5 text-slate-400" style={appSecondaryText(appStyle)}>
               Build with HTML and CSS. Your page is rendered in the same safe sandbox as on the web.
             </Text>
 
             {error ? <Text className="text-sm text-rose-300">{error}</Text> : null}
             {notice ? <Text className="text-sm text-emerald-300">{notice}</Text> : null}
+
+            <AppStyleEditor
+              value={appStyle}
+              onChange={(style) => {
+                setAppStyle(style);
+                setNotice(null);
+              }}
+              onSave={() => void saveAppStyle()}
+              saving={appStyleSaving}
+              saved={!appStyleChanged}
+            />
 
             <DefaultPostStyleEditor
               value={defaultPostStyle}
@@ -261,7 +316,7 @@ export default function ProfileEditorScreen() {
               saved={!defaultStyleChanged}
             />
 
-            <View className={`${UI.card} gap-3`}>
+            <View className={`${UI.card} gap-3`} style={appSurfaceAppearance(appStyle)}>
               <Text className="text-base font-semibold text-white">Vibe-code your page</Text>
               <Text className={UI.body}>
                 Describe a look and a starting point. This replaces only the draft, until you save
@@ -313,7 +368,7 @@ export default function ProfileEditorScreen() {
                 }}
               />
             ) : (
-              <View className={`${UI.card} gap-3`}>
+              <View className={`${UI.card} gap-3`} style={appSurfaceAppearance(appStyle)}>
                 <View className="flex-row items-center justify-between gap-3">
                   <Text className="text-base font-semibold text-white">Page source</Text>
                   <Text className="text-xs text-slate-500">
@@ -402,6 +457,246 @@ export default function ProfileEditorScreen() {
   );
 }
 
+function AppStyleEditor({
+  value,
+  onChange,
+  onSave,
+  saving,
+  saved,
+}: {
+  value: AppStyle;
+  onChange: (style: AppStyle) => void;
+  onSave: () => void;
+  saving: boolean;
+  saved: boolean;
+}) {
+  function update<K extends keyof AppStyle>(key: K, next: AppStyle[K]) {
+    onChange({ ...value, [key]: next });
+  }
+
+  return (
+    <View
+      className={`${UI.card} gap-3`}
+      style={{
+        backgroundColor: value.secondaryBackgroundColor,
+        borderColor: value.borderColor,
+        borderRadius: Number.parseInt(value.borderRadius, 10),
+        borderStyle: value.borderLineStyle,
+      }}
+    >
+      <View className="flex-row items-start gap-3">
+        <View className="flex-1">
+          <Text className="text-base font-semibold text-white">App style</Text>
+          <Text className={`mt-1 ${UI.body}`}>
+            Your colors, type, borders, and shape follow you throughout the signed-in app.
+          </Text>
+        </View>
+      </View>
+
+      <View className="flex-row flex-wrap gap-2">
+        <Pressable
+          onPress={() => onChange({ ...DEFAULT_APP_STYLE })}
+          className={`${UI.ghostButton} px-3 py-2`}
+          style={{
+            borderColor: value.borderColor,
+            borderRadius: Number.parseInt(value.borderRadius, 10),
+            borderStyle: value.borderLineStyle,
+          }}
+          accessibilityRole="button"
+          accessibilityLabel="Reset app style"
+        >
+          <Text className="text-sm font-medium text-indigo-200">Reset</Text>
+        </Pressable>
+        <Pressable
+          onPress={onSave}
+          disabled={saving || saved}
+          className="rounded-xl bg-indigo-300 px-3 py-2 active:opacity-80 disabled:opacity-50"
+          accessibilityRole="button"
+          accessibilityLabel="Save app style"
+        >
+          {saving ? (
+            <ActivityIndicator size="small" color={COLORS.background} />
+          ) : (
+            <Text className="text-sm font-semibold text-slate-950">
+              {saved ? "Saved ✓" : "Save app style"}
+            </Text>
+          )}
+        </Pressable>
+      </View>
+
+      <View
+        className="rounded-xl border p-3"
+        style={{
+          backgroundColor: value.backgroundColor,
+          borderColor: value.borderColor,
+          borderRadius: Number.parseInt(value.borderRadius, 10),
+          borderStyle: value.borderLineStyle,
+          gap: Number.parseInt(value.spacing, 10),
+        }}
+      >
+        {["Your shome", "Another post"].map((title) => (
+          <View
+            key={title}
+            className="gap-2 border p-4"
+            style={{
+              backgroundColor: value.secondaryBackgroundColor,
+              borderColor: value.borderColor,
+              borderRadius: Number.parseInt(value.borderRadius, 10),
+              borderStyle: value.borderLineStyle,
+            }}
+          >
+            <Text style={{ color: value.fontColor, fontFamily: value.font, fontWeight: "600" }}>
+              {title}
+            </Text>
+            <Text style={{ color: value.secondaryTextColor, fontFamily: value.font }}>
+              Previewing the space between feed posts.
+            </Text>
+          </View>
+        ))}
+      </View>
+
+      <Text className="text-xs text-slate-400">Use six-digit hex colors, such as #070a18.</Text>
+      <View className="flex-row gap-2">
+        <View className="flex-1 gap-1">
+          <Text className="text-xs text-slate-400">Background color</Text>
+          <TextInput
+            className={`${UI.input} py-2 text-sm`}
+            style={{ borderColor: value.borderColor }}
+            value={value.backgroundColor}
+            onChangeText={(next) => update("backgroundColor", next)}
+            autoCapitalize="characters"
+            maxLength={7}
+            accessibilityLabel="App background color"
+          />
+        </View>
+        <View className="flex-1 gap-1">
+          <Text className="text-xs text-slate-400">Secondary background</Text>
+          <TextInput
+            className={`${UI.input} py-2 text-sm`}
+            style={{ borderColor: value.borderColor }}
+            value={value.secondaryBackgroundColor}
+            onChangeText={(next) => update("secondaryBackgroundColor", next)}
+            autoCapitalize="characters"
+            maxLength={7}
+            accessibilityLabel="App secondary background color"
+          />
+        </View>
+      </View>
+
+      <View className="gap-1">
+        <Text className="text-xs text-slate-400">Border color</Text>
+        <TextInput
+          className={`${UI.input} py-2 text-sm`}
+          style={{ borderColor: value.borderColor }}
+          value={value.borderColor}
+          onChangeText={(next) => update("borderColor", next)}
+          autoCapitalize="characters"
+          maxLength={7}
+          accessibilityLabel="App border color"
+        />
+      </View>
+
+      <Text className="text-xs text-slate-400">Border radius</Text>
+      <View className="flex-row flex-wrap gap-2">
+        {POST_BORDER_RADIUS_OPTIONS.map((option) => (
+          <StyleOption
+            key={option.value}
+            label={option.label}
+            selected={value.borderRadius === option.value}
+            onPress={() => update("borderRadius", option.value)}
+          />
+        ))}
+      </View>
+
+      <Text className="text-xs text-slate-400">Border style</Text>
+      <View className="flex-row flex-wrap gap-2">
+        {POST_BORDER_LINE_STYLE_OPTIONS.map((option) => (
+          <StyleOption
+            key={option.value}
+            label={option.label}
+            selected={value.borderLineStyle === option.value}
+            onPress={() => update("borderLineStyle", option.value)}
+          />
+        ))}
+      </View>
+
+      <View className="flex-row gap-2">
+        <View className="flex-1 gap-1">
+          <Text className="text-xs text-slate-400">Font color</Text>
+          <TextInput
+            className={`${UI.input} py-2 text-sm`}
+            style={{ borderColor: value.borderColor }}
+            value={value.fontColor}
+            onChangeText={(next) => update("fontColor", next)}
+            autoCapitalize="characters"
+            maxLength={7}
+            accessibilityLabel="App font color"
+          />
+        </View>
+        <View className="flex-1 gap-1">
+          <Text className="text-xs text-slate-400">Secondary text</Text>
+          <TextInput
+            className={`${UI.input} py-2 text-sm`}
+            style={{ borderColor: value.borderColor }}
+            value={value.secondaryTextColor}
+            onChangeText={(next) => update("secondaryTextColor", next)}
+            autoCapitalize="characters"
+            maxLength={7}
+            accessibilityLabel="App secondary text color"
+          />
+        </View>
+      </View>
+
+      <Text className="text-xs text-slate-400">Font</Text>
+      <View className="flex-row flex-wrap gap-2">
+        {POST_FONT_OPTIONS.map((option) => (
+          <StyleOption
+            key={option.value}
+            label={option.label}
+            selected={value.font === option.value}
+            onPress={() => update("font", option.value)}
+          />
+        ))}
+      </View>
+
+      <Text className="text-xs text-slate-400">Post spacing</Text>
+      <View className="flex-row flex-wrap gap-2">
+        {APP_SPACING_OPTIONS.map((option) => (
+          <StyleOption
+            key={option.value}
+            label={option.label}
+            selected={value.spacing === option.value}
+            onPress={() => update("spacing", option.value)}
+          />
+        ))}
+      </View>
+
+      <View
+        className="flex-row items-center gap-3 rounded-xl border p-3"
+        style={{
+          borderColor: value.borderColor,
+          borderRadius: Number.parseInt(value.borderRadius, 10),
+          borderStyle: value.borderLineStyle,
+        }}
+      >
+        <Switch
+          value={value.overridePostStyles}
+          onValueChange={(next) => update("overridePostStyles", next)}
+          trackColor={{ false: "#334155", true: "#a5b4fc" }}
+          thumbColor={value.overridePostStyles ? "#312e81" : "#cbd5e1"}
+          accessibilityLabel="Override post styles"
+        />
+        <View className="flex-1">
+          <Text className="text-sm font-medium text-slate-100">Override post styles</Text>
+          <Text className="mt-0.5 text-xs leading-5 text-slate-400">
+            Use this complete app style on first-party posts instead of each post’s saved look.
+          </Text>
+        </View>
+      </View>
+    </View>
+  );
+}
+
 function DefaultPostStyleEditor({
   value,
   onChange,
@@ -415,12 +710,14 @@ function DefaultPostStyleEditor({
   saving: boolean;
   saved: boolean;
 }) {
+  const { appStyle } = useAppStyle();
+
   function update<K extends keyof PostStyle>(key: K, next: PostStyle[K]) {
     onChange({ ...value, [key]: next });
   }
 
   return (
-    <View className={`${UI.card} gap-3`}>
+    <View className={`${UI.card} gap-3`} style={appSurfaceAppearance(appStyle)}>
       <View className="flex-row items-start gap-3">
         <View className="flex-1">
           <Text className="text-base font-semibold text-white">Default post style</Text>

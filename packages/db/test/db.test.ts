@@ -1,6 +1,6 @@
+import { DEFAULT_APP_STYLE, DEFAULT_POST_STYLE } from "@shome/core";
 import { readFileSync } from "node:fs";
 import { PGlite } from "@electric-sql/pglite";
-import { DEFAULT_POST_STYLE } from "@shome/core";
 import { count, desc, eq, inArray, sql } from "drizzle-orm";
 import { beforeAll, describe, expect, it } from "vitest";
 import {
@@ -114,6 +114,60 @@ describe("schema + migrations", () => {
     expect(saved).toEqual(customized);
   });
 
+  it("stores app style properties in separate user columns", async () => {
+    const [member] = await db
+      .insert(user)
+      .values({
+        id: "user_app_style",
+        name: "App styled user",
+        email: "app-styled-user@example.com",
+      })
+      .returning();
+
+    expect(member).toMatchObject({
+      appBackgroundColor: DEFAULT_APP_STYLE.backgroundColor,
+      appSecondaryBackgroundColor: DEFAULT_APP_STYLE.secondaryBackgroundColor,
+      appBorderColor: DEFAULT_APP_STYLE.borderColor,
+      appBorderRadius: DEFAULT_APP_STYLE.borderRadius,
+      appBorderLineStyle: DEFAULT_APP_STYLE.borderLineStyle,
+      appFont: DEFAULT_APP_STYLE.font,
+      appFontColor: DEFAULT_APP_STYLE.fontColor,
+      appSecondaryTextColor: DEFAULT_APP_STYLE.secondaryTextColor,
+      appSpacing: DEFAULT_APP_STYLE.spacing,
+      appOverridePostStyles: DEFAULT_APP_STYLE.overridePostStyles,
+    });
+
+    const [saved] = await db
+      .update(user)
+      .set({
+        appBackgroundColor: "#123456",
+        appSecondaryBackgroundColor: "#234567",
+        appBorderColor: "#abcdef",
+        appBorderRadius: "24px",
+        appBorderLineStyle: "dashed",
+        appFont: "serif",
+        appFontColor: "#fedcba",
+        appSecondaryTextColor: "#654321",
+        appSpacing: "20px",
+        appOverridePostStyles: true,
+      })
+      .where(eq(user.id, "user_app_style"))
+      .returning();
+
+    expect(saved).toMatchObject({
+      appBackgroundColor: "#123456",
+      appSecondaryBackgroundColor: "#234567",
+      appBorderColor: "#abcdef",
+      appBorderRadius: "24px",
+      appBorderLineStyle: "dashed",
+      appFont: "serif",
+      appFontColor: "#fedcba",
+      appSecondaryTextColor: "#654321",
+      appSpacing: "20px",
+      appOverridePostStyles: true,
+    });
+  });
+
   it("inserts and reads across the core tables", async () => {
     const [alice] = await db
       .insert(user)
@@ -137,7 +191,9 @@ describe("schema + migrations", () => {
       .returning();
     if (!source) throw new Error("unreachable");
 
-    await db.insert(subscriptions).values({ userId: alice.id, sourceId: source.id });
+    await db
+      .insert(subscriptions)
+      .values({ userId: alice.id, sourceId: source.id });
 
     await db.insert(items).values({
       sourceId: source.id,
@@ -154,7 +210,9 @@ describe("schema + migrations", () => {
       .where(eq(subscriptions.userId, alice.id));
     expect(rows).toHaveLength(1);
     expect(rows[0]?.title).toBe("hello");
-    expect(rows[0]?.media).toEqual([{ type: "image", url: "https://example.com/x.png" }]);
+    expect(rows[0]?.media).toEqual([
+      { type: "image", url: "https://example.com/x.png" },
+    ]);
 
     const [post] = await db
       .insert(posts)
@@ -224,7 +282,10 @@ describe("schema + migrations", () => {
       .values({ ...row, title: "second" })
       .onConflictDoNothing({ target: [items.sourceId, items.externalId] });
 
-    const rows = await db.select().from(items).where(eq(items.sourceId, source.id));
+    const rows = await db
+      .select()
+      .from(items)
+      .where(eq(items.sourceId, source.id));
     expect(rows).toHaveLength(1);
     expect(rows[0]?.title).toBe("first");
   });
@@ -281,7 +342,9 @@ describe("schema + migrations", () => {
 
   it("stores waitlist and newsletter interest once per email", async () => {
     const email = "early@example.com";
-    await db.insert(interestSignups).values({ email, waitlist: true, newsletter: false });
+    await db
+      .insert(interestSignups)
+      .values({ email, waitlist: true, newsletter: false });
     await db
       .insert(interestSignups)
       .values({ email, waitlist: false, newsletter: true })
@@ -311,6 +374,10 @@ describe("schema + migrations", () => {
         checkoutUrl: "https://checkout.example.com/print",
       })
       .returning();
-    expect(product).toMatchObject({ title: "Small print", visible: true, sortOrder: 0 });
+    expect(product).toMatchObject({
+      title: "Small print",
+      visible: true,
+      sortOrder: 0,
+    });
   });
 });

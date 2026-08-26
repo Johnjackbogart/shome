@@ -1,6 +1,9 @@
 "use client";
 
 import {
+  APP_SPACING_OPTIONS,
+  type AppStyle,
+  DEFAULT_APP_STYLE,
   DEFAULT_POST_STYLE,
   POST_BORDER_LINE_STYLE_OPTIONS,
   POST_BORDER_RADIUS_OPTIONS,
@@ -31,6 +34,210 @@ type ProductDraft = {
   visible: boolean;
   sortOrder: string;
 };
+
+function AppStyleEditor({
+  value,
+  onChange,
+  onSave,
+  saving,
+  saved,
+}: {
+  value: AppStyle;
+  onChange: (style: AppStyle) => void;
+  onSave: () => void;
+  saving: boolean;
+  saved: boolean;
+}) {
+  function update<K extends keyof AppStyle>(key: K, next: AppStyle[K]) {
+    onChange({ ...value, [key]: next });
+  }
+
+  return (
+    <div className="card mb-4">
+      <div className="mb-4 flex flex-wrap items-start gap-3">
+        <div>
+          <h3 className="font-semibold">App style</h3>
+          <p className="mt-1 text-sm text-slate-400">
+            Choose the colors, type, borders, and shape that follow you across the signed-in app.
+          </p>
+        </div>
+        <div className="ml-auto flex gap-2">
+          <button
+            type="button"
+            className="btn-ghost"
+            onClick={() => onChange({ ...DEFAULT_APP_STYLE })}
+          >
+            reset
+          </button>
+          <button type="button" className="btn" onClick={onSave} disabled={saving || saved}>
+            {saving ? "saving…" : saved ? "saved ✓" : "save app style"}
+          </button>
+        </div>
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(16rem,0.7fr)]">
+        <fieldset className="grid gap-3 rounded-xl border bg-white/[0.02] p-3 sm:grid-cols-2">
+          <legend className="px-1 text-sm font-medium text-slate-100">Style controls</legend>
+          <label className="flex items-center gap-2 text-xs text-slate-200">
+            <input
+              type="color"
+              className="input_color size-9 p-1"
+              value={value.backgroundColor}
+              onChange={(event) => update("backgroundColor", event.target.value)}
+            />
+            Background color
+          </label>
+          <label className="flex items-center gap-2 text-xs text-slate-200">
+            <input
+              type="color"
+              className="input_color size-9 p-1"
+              value={value.secondaryBackgroundColor}
+              onChange={(event) => update("secondaryBackgroundColor", event.target.value)}
+            />
+            Secondary background
+          </label>
+          <label className="flex items-center gap-2 text-xs text-slate-200">
+            <input
+              type="color"
+              className="input_color size-9 p-1"
+              value={value.borderColor}
+              onChange={(event) => update("borderColor", event.target.value)}
+            />
+            Border color
+          </label>
+          <label className="flex items-center gap-2 text-xs text-slate-200">
+            Border radius
+            <select
+              className="input flex-1 py-1.5 text-sm"
+              value={value.borderRadius}
+              onChange={(event) =>
+                update("borderRadius", event.target.value as AppStyle["borderRadius"])
+              }
+            >
+              {POST_BORDER_RADIUS_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="flex items-center gap-2 text-xs text-slate-200">
+            Border style
+            <select
+              className="input flex-1 py-1.5 text-sm"
+              value={value.borderLineStyle}
+              onChange={(event) =>
+                update("borderLineStyle", event.target.value as AppStyle["borderLineStyle"])
+              }
+            >
+              {POST_BORDER_LINE_STYLE_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="flex items-center gap-2 text-xs text-slate-200">
+            <input
+              type="color"
+              className="input_color size-9 p-1"
+              value={value.fontColor}
+              onChange={(event) => update("fontColor", event.target.value)}
+            />
+            Font color
+          </label>
+          <label className="flex items-center gap-2 text-xs text-slate-200">
+            <input
+              type="color"
+              className="input_color size-9 p-1"
+              value={value.secondaryTextColor}
+              onChange={(event) => update("secondaryTextColor", event.target.value)}
+            />
+            Secondary text
+          </label>
+          <label className="flex items-center gap-2 text-xs text-slate-200">
+            Font
+            <select
+              className="input flex-1 py-1.5 text-sm"
+              value={value.font}
+              onChange={(event) => update("font", event.target.value as AppStyle["font"])}
+            >
+              {POST_FONT_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="flex items-center gap-2 text-xs text-slate-200">
+            Post spacing
+            <select
+              className="input flex-1 py-1.5 text-sm"
+              value={value.spacing}
+              onChange={(event) => update("spacing", event.target.value as AppStyle["spacing"])}
+            >
+              {APP_SPACING_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="flex items-start gap-2 text-sm text-slate-200 sm:col-span-2">
+            <input
+              type="checkbox"
+              className="mt-0.5 size-4 accent-indigo-300"
+              checked={value.overridePostStyles}
+              onChange={(event) => update("overridePostStyles", event.target.checked)}
+            />
+            <span>
+              Override post styles
+              <span className="mt-0.5 block text-xs leading-5 text-slate-400">
+                Use this complete app style on first-party posts instead of each post’s saved look.
+              </span>
+            </span>
+          </label>
+        </fieldset>
+
+        <div
+          className="grid min-h-40 place-items-center border p-4"
+          style={{
+            borderColor: value.borderColor,
+            borderRadius: value.borderRadius,
+            borderStyle: value.borderLineStyle,
+            backgroundColor: value.backgroundColor,
+            color: value.fontColor,
+            fontFamily: value.font,
+          }}
+        >
+          <div className="flex w-full flex-col" style={{ gap: value.spacing }}>
+            {["Your shome", "Another post"].map((title) => (
+              <div
+                key={title}
+                className="w-full rounded-xl border bg-white/[0.035] p-4 text-slate-100"
+                style={{
+                  borderColor: value.borderColor,
+                  borderRadius: value.borderRadius,
+                  borderStyle: value.borderLineStyle,
+                  backgroundColor: value.secondaryBackgroundColor,
+                  color: value.fontColor,
+                  fontFamily: value.font,
+                }}
+              >
+                <p className="font-semibold" style={{ color: value.fontColor }}>
+                  {title}
+                </p>
+                <p className="mt-2 text-sm" style={{ color: value.secondaryTextColor }}>
+                  Previewing the space between feed posts.
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function emptyDraft(): ProductDraft {
   return {
@@ -374,9 +581,13 @@ function ProductEditor({
 export function ProfileView({
   handle,
   onAvatarChange,
+  appStyle,
+  onAppStyleChange,
 }: {
   handle: string | null;
   onAvatarChange: (image: string | null) => void;
+  appStyle: AppStyle;
+  onAppStyleChange: (style: AppStyle) => void;
 }) {
   const [html, setHtml] = useState<string | null>(null);
   const [defaultPostStyle, setDefaultPostStyle] = useState<PostStyle>({
@@ -391,8 +602,10 @@ export function ProfileView({
   const [prompt, setPrompt] = useState("");
   const [busy, setBusy] = useState(false);
   const [styleBusy, setStyleBusy] = useState(false);
+  const [appStyleBusy, setAppStyleBusy] = useState(false);
   const [saved, setSaved] = useState(false);
   const [styleSaved, setStyleSaved] = useState(false);
+  const [appStyleSaved, setAppStyleSaved] = useState(false);
   const [generated, setGenerated] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -405,18 +618,21 @@ export function ProfileView({
     Promise.all([
       api.get<{ html: string; image: string | null }>("/api/profile"),
       api.get<{ defaultPostStyle: PostStyle }>("/api/post-style"),
+      api.get<{ appStyle: AppStyle }>("/api/app-style"),
       api.get<{ products: ProductView[] }>("/api/products"),
     ])
-      .then(([profile, postStyle, catalog]) => {
+      .then(([profile, postStyle, savedAppStyle, catalog]) => {
         setHtml(profile.html);
         setAvatarUrl(profile.image);
         setDefaultPostStyle(postStyle.defaultPostStyle);
         setStyleSaved(true);
+        onAppStyleChange(savedAppStyle.appStyle);
+        setAppStyleSaved(true);
         onAvatarChange(profile.image);
         setProducts(catalog.products);
       })
       .catch((err) => setError(err instanceof Error ? err.message : String(err)));
-  }, [onAvatarChange]);
+  }, [onAvatarChange, onAppStyleChange]);
 
   // The preview renders the current draft through the same server-side
   // component + sanitize pipeline as the published page, so generated or
@@ -587,6 +803,19 @@ export function ProfileView({
     }
   }
 
+  async function saveAppStyle() {
+    setAppStyleBusy(true);
+    setError(null);
+    try {
+      await api.put("/api/app-style", { appStyle });
+      setAppStyleSaved(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setAppStyleBusy(false);
+    }
+  }
+
   async function generatePortfolio() {
     setGenerating(true);
     setError(null);
@@ -692,6 +921,17 @@ export function ProfileView({
           )}
         </div>
       </div>
+
+      <AppStyleEditor
+        value={appStyle}
+        onChange={(style) => {
+          onAppStyleChange(style);
+          setAppStyleSaved(false);
+        }}
+        onSave={() => void saveAppStyle()}
+        saving={appStyleBusy}
+        saved={appStyleSaved}
+      />
 
       <DefaultPostStyleEditor
         value={defaultPostStyle}

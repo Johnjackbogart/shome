@@ -14,6 +14,12 @@ import * as ImagePicker from "expo-image-picker";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Platform, Pressable, Text, TextInput, View } from "react-native";
 import { api } from "@/lib/api";
+import {
+  appPrimaryText,
+  appSecondaryText,
+  appSurfaceAppearance,
+  useAppStyle,
+} from "@/lib/app-style";
 import { COLORS, UI } from "@/lib/ui";
 
 const MAX_PHOTOS_PER_POST = 10;
@@ -65,6 +71,7 @@ type PostComposerProps = {
 };
 
 export function PostComposer({ onPosted, onSuccess }: PostComposerProps) {
+  const { appStyle } = useAppStyle();
   const [text, setText] = useState("");
   const [borderStyle, setBorderStyle] = useState(DEFAULT_POST_STYLE.borderStyle);
   const [borderRadius, setBorderRadius] = useState<PostBorderRadius>(
@@ -266,10 +273,14 @@ export function PostComposer({ onPosted, onSuccess }: PostComposerProps) {
   }
 
   return (
-    <View className={`${UI.card} mb-5 gap-3`}>
+    <View className={`${UI.card} mb-5 gap-3`} style={appSurfaceAppearance(appStyle)}>
       <View className="flex-row items-center justify-between gap-3">
-        <Text className="text-lg font-bold text-white">Write a post</Text>
-        <Text className="text-xs text-slate-500">shows on your public profile</Text>
+        <Text className="text-lg font-bold text-white" style={appPrimaryText(appStyle)}>
+          Write a post
+        </Text>
+        <Text className="text-xs text-slate-500" style={appSecondaryText(appStyle)}>
+          shows on your public profile
+        </Text>
       </View>
       <TextInput
         className={`${UI.input} min-h-28 text-base`}
@@ -282,8 +293,13 @@ export function PostComposer({ onPosted, onSuccess }: PostComposerProps) {
         placeholderTextColor="#64748b"
         accessibilityLabel="Post text"
       />
-      <View className="gap-2 rounded-xl border border-white/10 bg-white/5 p-3">
-        <Text className="text-sm font-medium text-white">Post style</Text>
+      <View
+        className="gap-2 rounded-xl border border-white/10 bg-white/5 p-3"
+        style={appSurfaceAppearance(appStyle)}
+      >
+        <Text className="text-sm font-medium text-white" style={appPrimaryText(appStyle)}>
+          Post style
+        </Text>
         <Text className="text-xs text-slate-400">Use six-digit hex colors, such as #f8fafc.</Text>
         <View className="flex-row gap-2">
           <TextInput
@@ -410,8 +426,13 @@ export function PostComposer({ onPosted, onSuccess }: PostComposerProps) {
       <Text className="text-xs text-slate-500">
         Up to 10 photos · MP4/WebM/MOV videos up to 3 min
       </Text>
-      <View className="gap-3 rounded-xl border border-white/10 bg-white/5 p-3">
-        <Text className="text-sm font-medium text-white">Cross-post</Text>
+      <View
+        className="gap-3 rounded-xl border border-white/10 bg-white/5 p-3"
+        style={appSurfaceAppearance(appStyle)}
+      >
+        <Text className="text-sm font-medium text-white" style={appPrimaryText(appStyle)}>
+          Cross-post
+        </Text>
         <View className="flex-row flex-wrap gap-2">
           <Pressable
             onPress={() =>

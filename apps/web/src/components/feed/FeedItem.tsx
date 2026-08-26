@@ -1,3 +1,4 @@
+import type { AppStyle } from "@shome/core";
 import { timeAgo, truncate } from "#/lib/format";
 import type { FeedItemView } from "#/lib/types";
 
@@ -24,7 +25,7 @@ function MediaState({ status, type }: { status: string; type: "photo" | "video" 
   );
 }
 
-export default function FeedItem({ item }: { item: FeedItemView }) {
+export default function FeedItem({ item, appStyle }: { item: FeedItemView; appStyle: AppStyle }) {
   const images = item.media.filter((m) => m.type === "image");
   const videos = item.media.filter((m) => m.type === "video");
   const other = item.media.filter((m) => m.type !== "image" && m.type !== "video");
@@ -40,20 +41,32 @@ export default function FeedItem({ item }: { item: FeedItemView }) {
         item.fontColor ||
         item.secondaryTextColor,
     );
-  const articleStyle = hasCustomStyle
-    ? {
-        borderColor: item.borderStyle ?? undefined,
-        borderRadius: item.borderRadius ?? undefined,
-        borderStyle: item.borderLineStyle ?? undefined,
-        backgroundColor: item.backgroundColor ?? undefined,
-        color: item.fontColor ?? undefined,
-        fontFamily: item.font ?? undefined,
-      }
-    : undefined;
-  const primaryTextStyle = hasCustomStyle ? { color: item.fontColor ?? undefined } : undefined;
-  const secondaryTextStyle = hasCustomStyle
-    ? { color: item.secondaryTextColor ?? item.fontColor ?? undefined }
-    : undefined;
+  const appOverridesPost = item.sourceKind === "post" && appStyle.overridePostStyles;
+  const articleStyle =
+    hasCustomStyle || appOverridesPost
+      ? {
+          borderColor: appOverridesPost ? appStyle.borderColor : (item.borderStyle ?? undefined),
+          borderRadius: appOverridesPost ? appStyle.borderRadius : (item.borderRadius ?? undefined),
+          borderStyle: appOverridesPost
+            ? appStyle.borderLineStyle
+            : (item.borderLineStyle ?? undefined),
+          backgroundColor: appOverridesPost
+            ? appStyle.secondaryBackgroundColor
+            : (item.backgroundColor ?? undefined),
+          color: appOverridesPost ? appStyle.fontColor : (item.fontColor ?? undefined),
+          fontFamily: appOverridesPost ? appStyle.font : (item.font ?? undefined),
+        }
+      : undefined;
+  const primaryTextStyle = appOverridesPost
+    ? { color: appStyle.fontColor }
+    : hasCustomStyle
+      ? { color: item.fontColor ?? undefined }
+      : undefined;
+  const secondaryTextStyle = appOverridesPost
+    ? { color: appStyle.secondaryTextColor }
+    : hasCustomStyle
+      ? { color: item.secondaryTextColor ?? item.fontColor ?? undefined }
+      : undefined;
 
   return (
     <article className="card" style={articleStyle}>

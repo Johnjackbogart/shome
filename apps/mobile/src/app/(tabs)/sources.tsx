@@ -11,6 +11,12 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { api } from "@/lib/api";
+import {
+  appPrimaryText,
+  appSecondaryText,
+  appSurfaceAppearance,
+  useAppStyle,
+} from "@/lib/app-style";
 import { originalSourceLabel, SOURCE_FETCH_ERROR, sourceLabel, timeAgo } from "@/lib/format";
 import { COLORS, UI } from "@/lib/ui";
 
@@ -31,6 +37,7 @@ const KIND_COLORS: Record<string, string> = {
 };
 
 export default function SourcesScreen() {
+  const { appStyle } = useAppStyle();
   const [sources, setSources] = useState<SourceView[] | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -90,7 +97,11 @@ export default function SourcesScreen() {
   }
 
   return (
-    <SafeAreaView className={UI.screen} edges={["top"]}>
+    <SafeAreaView
+      className={UI.screen}
+      style={{ backgroundColor: appStyle.backgroundColor }}
+      edges={["top"]}
+    >
       <FlatList
         data={sources ?? []}
         keyExtractor={(source) => source.id}
@@ -105,9 +116,19 @@ export default function SourcesScreen() {
         }
         ListHeaderComponent={
           <View>
-            <Text className={`pb-2 pt-2 ${UI.eyebrow}`}>Shape your feed</Text>
-            <Text className="pb-5 text-3xl font-semibold text-white">Sources</Text>
-            <Text className="pb-4 text-base leading-6 text-slate-400">
+            <Text className={`pb-2 pt-2 ${UI.eyebrow}`} style={appSecondaryText(appStyle)}>
+              Shape your feed
+            </Text>
+            <Text
+              className="pb-5 text-3xl font-semibold text-white"
+              style={appPrimaryText(appStyle)}
+            >
+              Sources
+            </Text>
+            <Text
+              className="pb-4 text-base leading-6 text-slate-400"
+              style={appSecondaryText(appStyle)}
+            >
               Review, refresh, or remove the sources already in your feed. Find new ones in
               Discover.
             </Text>
@@ -153,6 +174,7 @@ function SourceRow({
   onRefresh: () => void;
   onRemove: () => void;
 }) {
+  const { appStyle } = useAppStyle();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
@@ -181,7 +203,7 @@ function SourceRow({
 
   if (editing) {
     return (
-      <View className={`mb-3 gap-3 px-4 py-4 ${UI.card}`}>
+      <View className={`mb-3 gap-3 px-4 py-4 ${UI.card}`} style={appSurfaceAppearance(appStyle)}>
         <TextInput
           className={UI.input}
           value={draft}
@@ -225,7 +247,7 @@ function SourceRow({
   }
 
   return (
-    <View className={`mb-3 px-4 py-4 ${UI.card}`}>
+    <View className={`mb-3 px-4 py-4 ${UI.card}`} style={appSurfaceAppearance(appStyle)}>
       <View className="flex-row flex-wrap items-center gap-2">
         <Text
           className={`rounded-full bg-indigo-300/10 px-2 py-1 text-xs font-semibold uppercase ${
@@ -280,6 +302,7 @@ function AddSourceForm({
   onAdded: (message: string) => void;
   onError: (message: string) => void;
 }) {
+  const { appStyle } = useAppStyle();
   const [kind, setKind] = useState<Kind>("rss");
   const [busy, setBusy] = useState(false);
   const [url, setUrl] = useState("");
@@ -325,7 +348,7 @@ function AddSourceForm({
   const inputClass = UI.input;
 
   return (
-    <View className={`mb-4 gap-3 ${UI.card}`}>
+    <View className={`mb-4 gap-3 ${UI.card}`} style={appSurfaceAppearance(appStyle)}>
       <View className="flex-row flex-wrap gap-2">
         {(Object.keys(KIND_LABELS) as Kind[]).map((k) => (
           <Pressable
