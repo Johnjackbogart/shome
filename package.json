@@ -22,7 +22,8 @@
     "db:generate": "npm run generate -w packages/db",
     "db:sql": "npm run sql -w packages/db --",
     "db:studio": "npm run studio -w packages/db",
-    "db:migrate": "npm run migrate -w packages/db"
+    "db:migrate": "npm run migrate -w packages/db",
+    "db:seed": "npm run seed -w apps/web --"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.7",
