@@ -123,16 +123,16 @@ function resolvePostStyle(author: SeedUser, override: Partial<PostStyle> = {}): 
  */
 function appStyleColumns(style: AppStyle) {
   return {
-    appBackgroundColor: style.backgroundColor,
-    appSecondaryBackgroundColor: style.secondaryBackgroundColor,
-    appBorderColor: style.borderColor,
-    appBorderRadius: style.borderRadius,
-    appBorderLineStyle: style.borderLineStyle,
-    appFont: style.font,
-    appFontColor: style.fontColor,
-    appSecondaryTextColor: style.secondaryTextColor,
-    appSpacing: style.spacing,
-    appOverridePostStyles: style.overridePostStyles,
+    appBackgroundColor: style.appBackgroundColor,
+    appSecondaryBackgroundColor: style.appSecondaryBackgroundColor,
+    appBorderStyle: style.appBorderStyle,
+    appBorderRadius: style.appBorderRadius,
+    appBorderLineStyle: style.appBorderLineStyle,
+    appFont: style.appFont,
+    appFontColor: style.appFontColor,
+    appSecondaryTextColor: style.appSecondaryTextColor,
+    appSpacing: style.appSpacing,
+    appOverridePostStyles: style.appOverridePostStyles,
   };
 }
 

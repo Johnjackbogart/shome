@@ -40,9 +40,9 @@ function RootNavigator({
         ...DarkTheme,
         colors: {
           ...DarkTheme.colors,
-          background: appStyle.backgroundColor,
-          border: appStyle.borderColor,
-          text: appStyle.fontColor,
+          background: appStyle.appBackgroundColor,
+          border: appStyle.appBorderStyle,
+          text: appStyle.appFontColor,
         },
       }}
     >
@@ -50,7 +50,7 @@ function RootNavigator({
       <Stack
         screenOptions={{
           headerShown: false,
-          contentStyle: { backgroundColor: appStyle.backgroundColor },
+          contentStyle: { backgroundColor: appStyle.appBackgroundColor },
         }}
       >
         <Stack.Protected guard={session !== null}>

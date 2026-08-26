@@ -18,27 +18,27 @@ export const APP_SPACING_OPTIONS: readonly { label: string; value: AppSpacing }[
  * signed-in experience only; it is never applied to their public profile.
  */
 export type AppStyle = {
-  backgroundColor: string;
-  secondaryBackgroundColor: string;
-  borderColor: string;
-  borderRadius: PostBorderRadius;
-  borderLineStyle: PostBorderLineStyle;
-  font: PostFont;
-  fontColor: string;
-  secondaryTextColor: string;
-  spacing: AppSpacing;
-  overridePostStyles: boolean;
+  appBackgroundColor: string;
+  appSecondaryBackgroundColor: string;
+  appBorderStyle: string;
+  appBorderRadius: PostBorderRadius;
+  appBorderLineStyle: PostBorderLineStyle;
+  appFont: PostFont;
+  appFontColor: string;
+  appSecondaryTextColor: string;
+  appSpacing: AppSpacing;
+  appOverridePostStyles: boolean;
 };
 
 export const DEFAULT_APP_STYLE: Readonly<AppStyle> = {
-  backgroundColor: "#070a18",
-  secondaryBackgroundColor: "#0f172a",
-  borderColor: "#24293a",
-  borderRadius: "16px",
-  borderLineStyle: "solid",
-  font: "sans-serif",
-  fontColor: "#f8fafc",
-  secondaryTextColor: "#94a3b8",
-  spacing: "12px",
-  overridePostStyles: false,
+  appBackgroundColor: "#070a18",
+  appSecondaryBackgroundColor: "#0f172a",
+  appBorderStyle: "#24293a",
+  appBorderRadius: "16px",
+  appBorderLineStyle: "solid",
+  appFont: "sans-serif",
+  appFontColor: "#f8fafc",
+  appSecondaryTextColor: "#94a3b8",
+  appSpacing: "12px",
+  appOverridePostStyles: false,
 };

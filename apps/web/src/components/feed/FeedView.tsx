@@ -206,7 +206,7 @@ export function FeedView({ appStyle }: { appStyle: AppStyle }) {
           )}
         </div>
       ) : (
-        <div className="flex flex-col" style={{ gap: appStyle.spacing }}>
+        <div className="flex flex-col" style={{ gap: appStyle.appSpacing }}>
           {items.map((item) => (
             <FeedItem key={item.id} item={item} appStyle={appStyle} />
           ))}
