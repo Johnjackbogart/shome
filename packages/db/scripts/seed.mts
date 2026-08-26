@@ -366,11 +366,7 @@ const SEED_USERS: SeedUser[] = [
       "test1",
       "Film photography, mostly expired stock, mostly at the wrong exposure.",
     ),
-    subscriptions: [
-      { source: "verge" },
-      { source: "xkcd" },
-      { source: "masto" },
-    ],
+    subscriptions: [{ source: "verge" }, { source: "xkcd" }, { source: "masto" }],
     posts: [
       {
         text: "shot a roll of expired film and half of it came out. the half that did is the good half.",
@@ -489,12 +485,7 @@ const SEED_USERS: SeedUser[] = [
     displayName: "Test Five",
     style: CITRUS,
     appStyle: APP_DEFAULT,
-    subscriptions: [
-      { source: "verge" },
-      { source: "ars" },
-      { source: "hn" },
-      { source: "masto" },
-    ],
+    subscriptions: [{ source: "verge" }, { source: "ars" }, { source: "hn" }, { source: "masto" }],
     feeds: [
       {
         name: "Just the news",
@@ -933,8 +924,7 @@ const SEED_SOURCES: SeedSource[] = [
     title: "@bsky.app on Bluesky",
     items: [
       {
-        externalId:
-          "at://did:plc:z72i7hdynmk6r22z27h6tvur/app.bsky.feed.post/3ksd1",
+        externalId: "at://did:plc:z72i7hdynmk6r22z27h6tvur/app.bsky.feed.post/3ksd1",
         url: "https://bsky.app/profile/bsky.app/post/3ksd1",
         text: "Custom feeds are rolling out to everyone this week.",
         authorName: "Bluesky",
@@ -942,8 +932,7 @@ const SEED_SOURCES: SeedSource[] = [
         hoursAgo: 13,
       },
       {
-        externalId:
-          "at://did:plc:z72i7hdynmk6r22z27h6tvur/app.bsky.feed.post/3ksd2",
+        externalId: "at://did:plc:z72i7hdynmk6r22z27h6tvur/app.bsky.feed.post/3ksd2",
         url: "https://bsky.app/profile/bsky.app/post/3ksd2",
         text: "A short thread on how the firehose works, and why you can run your own.",
         authorName: "Bluesky",
@@ -951,8 +940,7 @@ const SEED_SOURCES: SeedSource[] = [
         hoursAgo: 28,
       },
       {
-        externalId:
-          "at://did:plc:z72i7hdynmk6r22z27h6tvur/app.bsky.feed.post/3ksd3",
+        externalId: "at://did:plc:z72i7hdynmk6r22z27h6tvur/app.bsky.feed.post/3ksd3",
         url: "https://bsky.app/profile/bsky.app/post/3ksd3",
         text: "Reminder that your handle can be your own domain.",
         authorName: "Bluesky",
@@ -961,8 +949,7 @@ const SEED_SOURCES: SeedSource[] = [
         hoursAgo: 49,
       },
       {
-        externalId:
-          "at://did:plc:z72i7hdynmk6r22z27h6tvur/app.bsky.feed.post/3ksd4",
+        externalId: "at://did:plc:z72i7hdynmk6r22z27h6tvur/app.bsky.feed.post/3ksd4",
         url: "https://bsky.app/profile/bsky.app/post/3ksd4",
         text: "Maintenance is done. Thanks for waiting.",
         authorName: "Bluesky",
@@ -1038,10 +1025,7 @@ function ago(hours: number): Date {
 function seedUuid(name: string): string {
   const hex = createHash("sha1").update(`shome-seed:${name}`).digest("hex");
   // Pin the version-5 and RFC 4122 variant nibbles so these are valid UUIDs.
-  const variant = (
-    (Number.parseInt(hex.slice(16, 17), 16) & 0x3) |
-    0x8
-  ).toString(16);
+  const variant = ((Number.parseInt(hex.slice(16, 17), 16) & 0x3) | 0x8).toString(16);
   return [
     hex.slice(0, 8),
     hex.slice(8, 12),
@@ -1083,10 +1067,7 @@ function sourceBySlug(slug: string): (typeof preparedSources)[number] {
  * The style stored on a post. Mirrors what POST /api/posts resolves: the
  * author's saved style over the defaults, then the composer's overrides.
  */
-function resolvePostStyle(
-  author: SeedUser,
-  override: Partial<PostStyle> = {},
-): PostStyle {
+function resolvePostStyle(author: SeedUser, override: Partial<PostStyle> = {}): PostStyle {
   return { ...DEFAULT_POST_STYLE, ...author.style, ...override };
 }
 
@@ -1129,8 +1110,7 @@ function followEdges(): {
       if (target) targets.push(target);
     }
     for (const target of targets) {
-      if (target !== follower)
-        pairs.set(`${follower}>${target}`, [follower, target]);
+      if (target !== follower) pairs.set(`${follower}>${target}`, [follower, target]);
     }
   }
   return [...pairs.values()].map(([follower, following], index) => ({
@@ -1145,8 +1125,7 @@ function followEdges(): {
 // ---------------------------------------------------------------------------
 
 const color = process.stdout.isTTY && !process.env.NO_COLOR;
-const paint = (code: number) => (s: string) =>
-  color ? `\x1b[${code}m${s}\x1b[0m` : s;
+const paint = (code: number) => (s: string) => (color ? `\x1b[${code}m${s}\x1b[0m` : s);
 const bold = paint(1);
 const dim = paint(2);
 const green = paint(32);
@@ -1163,15 +1142,22 @@ function describeUrl(url: string): string {
   }
 }
 
-/** Names the database `createDatabase()` is about to pick, using its own rules. */
+/**
+ * The embedded database the app itself uses. `createDatabase()` would default
+ * to `<cwd>/.data/pglite`, which from this package is a private, empty
+ * database nobody reads — so the dir is resolved here and passed in, the same
+ * way sql.mjs and migrate.mjs address it. Assumes this package's own cwd,
+ * which is what `npm run db:seed` gives it.
+ */
+const PGLITE_DIR =
+  process.env.SHOME_PGLITE_DIR ?? path.resolve(process.cwd(), "../../apps/web/.data/pglite");
+
+/** Names the database this run will write to. */
 function describeTarget(): string {
   const url = process.env.DATABASE_URL;
   if (url) return `Postgres at ${describeUrl(url)}`;
-  const dir =
-    process.env.SHOME_PGLITE_DIR ??
-    path.resolve(process.cwd(), "../../apps/web/.data/pglite");
-  const relative = path.relative(process.cwd(), dir);
-  return `embedded PGlite at ${relative && !relative.startsWith("..") ? relative : dir}`;
+  const relative = path.relative(process.cwd(), PGLITE_DIR);
+  return `embedded PGlite at ${relative && !relative.startsWith("..") ? relative : PGLITE_DIR}`;
 }
 
 /** Removes what an earlier run wrote. Cascades take the dependent rows. */
@@ -1211,9 +1197,7 @@ async function insertSeed(db: Db): Promise<SeedCounts> {
   // Hashed with Better Auth's own function rather than a hand-rolled scrypt,
   // so these rows stay valid if it ever changes its format. One hash per
   // account: the salt differs even though the password does not.
-  const passwords = await Promise.all(
-    SEED_USERS.map(() => hashPassword(PASSWORD)),
-  );
+  const passwords = await Promise.all(SEED_USERS.map(() => hashPassword(PASSWORD)));
 
   await db.insert(user).values(
     SEED_USERS.map((seedUser, index) => ({
@@ -1348,16 +1332,14 @@ async function insertSeed(db: Db): Promise<SeedCounts> {
 
 async function main(): Promise<void> {
   if (process.env.NODE_ENV === "production") {
-    console.error(
-      red("db:seed refuses to run with NODE_ENV=production — it deletes rows."),
-    );
+    console.error(red("db:seed refuses to run with NODE_ENV=production — it deletes rows."));
     process.exitCode = 1;
     return;
   }
   const cleanOnly = process.argv.slice(2).includes("--clean");
 
   console.log(`${bold("db:seed")} → ${describeTarget()}`);
-  const handle = createDatabase();
+  const handle = createDatabase({ pgliteDir: PGLITE_DIR });
   try {
     // Idempotent, and it means a brand-new database is usable in one command.
     await handle.migrate();
@@ -1365,9 +1347,7 @@ async function main(): Promise<void> {
     const removed = await removeSeed(handle.db);
     if (removed.users > 0 || removed.sources > 0) {
       console.log(
-        dim(
-          `  removed a previous seed: ${removed.users} user(s), ${removed.sources} source(s)`,
-        ),
+        dim(`  removed a previous seed: ${removed.users} user(s), ${removed.sources} source(s)`),
       );
     }
     if (cleanOnly) {
@@ -1383,9 +1363,7 @@ async function main(): Promise<void> {
           `${counts.feeds} feeds · ${counts.follows} follows`,
       ),
     );
-    console.log(
-      dim(`  sign in as test0 … test10 with the password ${PASSWORD}`),
-    );
+    console.log(dim(`  sign in as test0 … test10 with the password ${PASSWORD}`));
   } catch (error) {
     console.error(red("  ✗ seeding failed"));
     console.error(error);
