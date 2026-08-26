@@ -235,7 +235,7 @@ export default function ProfileEditorScreen() {
   return (
     <SafeAreaView
       className={UI.screen}
-      style={{ backgroundColor: appStyle.backgroundColor }}
+      style={{ backgroundColor: appStyle.appBackgroundColor }}
       edges={["top", "bottom"]}
     >
       <KeyboardAvoidingView
@@ -478,10 +478,10 @@ function AppStyleEditor({
     <View
       className={`${UI.card} gap-3`}
       style={{
-        backgroundColor: value.secondaryBackgroundColor,
-        borderColor: value.borderColor,
-        borderRadius: Number.parseInt(value.borderRadius, 10),
-        borderStyle: value.borderLineStyle,
+        backgroundColor: value.appSecondaryBackgroundColor,
+        borderColor: value.appBorderStyle,
+        borderRadius: Number.parseInt(value.appBorderRadius, 10),
+        borderStyle: value.appBorderLineStyle,
       }}
     >
       <View className="flex-row items-start gap-3">
@@ -498,9 +498,9 @@ function AppStyleEditor({
           onPress={() => onChange({ ...DEFAULT_APP_STYLE })}
           className={`${UI.ghostButton} px-3 py-2`}
           style={{
-            borderColor: value.borderColor,
-            borderRadius: Number.parseInt(value.borderRadius, 10),
-            borderStyle: value.borderLineStyle,
+            borderColor: value.appBorderStyle,
+            borderRadius: Number.parseInt(value.appBorderRadius, 10),
+            borderStyle: value.appBorderLineStyle,
           }}
           accessibilityRole="button"
           accessibilityLabel="Reset app style"
@@ -527,11 +527,11 @@ function AppStyleEditor({
       <View
         className="rounded-xl border p-3"
         style={{
-          backgroundColor: value.backgroundColor,
-          borderColor: value.borderColor,
-          borderRadius: Number.parseInt(value.borderRadius, 10),
-          borderStyle: value.borderLineStyle,
-          gap: Number.parseInt(value.spacing, 10),
+          backgroundColor: value.appBackgroundColor,
+          borderColor: value.appBorderStyle,
+          borderRadius: Number.parseInt(value.appBorderRadius, 10),
+          borderStyle: value.appBorderLineStyle,
+          gap: Number.parseInt(value.appSpacing, 10),
         }}
       >
         {["Your shome", "Another post"].map((title) => (
@@ -539,16 +539,16 @@ function AppStyleEditor({
             key={title}
             className="gap-2 border p-4"
             style={{
-              backgroundColor: value.secondaryBackgroundColor,
-              borderColor: value.borderColor,
-              borderRadius: Number.parseInt(value.borderRadius, 10),
-              borderStyle: value.borderLineStyle,
+              backgroundColor: value.appSecondaryBackgroundColor,
+              borderColor: value.appBorderStyle,
+              borderRadius: Number.parseInt(value.appBorderRadius, 10),
+              borderStyle: value.appBorderLineStyle,
             }}
           >
-            <Text style={{ color: value.fontColor, fontFamily: value.font, fontWeight: "600" }}>
+            <Text style={{ color: value.appFontColor, fontFamily: value.appFont, fontWeight: "600" }}>
               {title}
             </Text>
-            <Text style={{ color: value.secondaryTextColor, fontFamily: value.font }}>
+            <Text style={{ color: value.appSecondaryTextColor, fontFamily: value.appFont }}>
               Previewing the space between feed posts.
             </Text>
           </View>
@@ -561,9 +561,9 @@ function AppStyleEditor({
           <Text className="text-xs text-slate-400">Background color</Text>
           <TextInput
             className={`${UI.input} py-2 text-sm`}
-            style={{ borderColor: value.borderColor }}
-            value={value.backgroundColor}
-            onChangeText={(next) => update("backgroundColor", next)}
+            style={{ borderColor: value.appBorderStyle }}
+            value={value.appBackgroundColor}
+            onChangeText={(next) => update("appBackgroundColor", next)}
             autoCapitalize="characters"
             maxLength={7}
             accessibilityLabel="App background color"
@@ -573,9 +573,9 @@ function AppStyleEditor({
           <Text className="text-xs text-slate-400">Secondary background</Text>
           <TextInput
             className={`${UI.input} py-2 text-sm`}
-            style={{ borderColor: value.borderColor }}
-            value={value.secondaryBackgroundColor}
-            onChangeText={(next) => update("secondaryBackgroundColor", next)}
+            style={{ borderColor: value.appBorderStyle }}
+            value={value.appSecondaryBackgroundColor}
+            onChangeText={(next) => update("appSecondaryBackgroundColor", next)}
             autoCapitalize="characters"
             maxLength={7}
             accessibilityLabel="App secondary background color"
@@ -587,9 +587,9 @@ function AppStyleEditor({
         <Text className="text-xs text-slate-400">Border color</Text>
         <TextInput
           className={`${UI.input} py-2 text-sm`}
-          style={{ borderColor: value.borderColor }}
-          value={value.borderColor}
-          onChangeText={(next) => update("borderColor", next)}
+          style={{ borderColor: value.appBorderStyle }}
+          value={value.appBorderStyle}
+          onChangeText={(next) => update("appBorderStyle", next)}
           autoCapitalize="characters"
           maxLength={7}
           accessibilityLabel="App border color"
@@ -602,8 +602,8 @@ function AppStyleEditor({
           <StyleOption
             key={option.value}
             label={option.label}
-            selected={value.borderRadius === option.value}
-            onPress={() => update("borderRadius", option.value)}
+            selected={value.appBorderRadius === option.value}
+            onPress={() => update("appBorderRadius", option.value)}
           />
         ))}
       </View>
@@ -614,8 +614,8 @@ function AppStyleEditor({
           <StyleOption
             key={option.value}
             label={option.label}
-            selected={value.borderLineStyle === option.value}
-            onPress={() => update("borderLineStyle", option.value)}
+            selected={value.appBorderLineStyle === option.value}
+            onPress={() => update("appBorderLineStyle", option.value)}
           />
         ))}
       </View>
@@ -625,9 +625,9 @@ function AppStyleEditor({
           <Text className="text-xs text-slate-400">Font color</Text>
           <TextInput
             className={`${UI.input} py-2 text-sm`}
-            style={{ borderColor: value.borderColor }}
-            value={value.fontColor}
-            onChangeText={(next) => update("fontColor", next)}
+            style={{ borderColor: value.appBorderStyle }}
+            value={value.appFontColor}
+            onChangeText={(next) => update("appFontColor", next)}
             autoCapitalize="characters"
             maxLength={7}
             accessibilityLabel="App font color"
@@ -637,9 +637,9 @@ function AppStyleEditor({
           <Text className="text-xs text-slate-400">Secondary text</Text>
           <TextInput
             className={`${UI.input} py-2 text-sm`}
-            style={{ borderColor: value.borderColor }}
-            value={value.secondaryTextColor}
-            onChangeText={(next) => update("secondaryTextColor", next)}
+            style={{ borderColor: value.appBorderStyle }}
+            value={value.appSecondaryTextColor}
+            onChangeText={(next) => update("appSecondaryTextColor", next)}
             autoCapitalize="characters"
             maxLength={7}
             accessibilityLabel="App secondary text color"
@@ -653,8 +653,8 @@ function AppStyleEditor({
           <StyleOption
             key={option.value}
             label={option.label}
-            selected={value.font === option.value}
-            onPress={() => update("font", option.value)}
+            selected={value.appFont === option.value}
+            onPress={() => update("appFont", option.value)}
           />
         ))}
       </View>
@@ -665,8 +665,8 @@ function AppStyleEditor({
           <StyleOption
             key={option.value}
             label={option.label}
-            selected={value.spacing === option.value}
-            onPress={() => update("spacing", option.value)}
+            selected={value.appSpacing === option.value}
+            onPress={() => update("appSpacing", option.value)}
           />
         ))}
       </View>
@@ -674,16 +674,16 @@ function AppStyleEditor({
       <View
         className="flex-row items-center gap-3 rounded-xl border p-3"
         style={{
-          borderColor: value.borderColor,
-          borderRadius: Number.parseInt(value.borderRadius, 10),
-          borderStyle: value.borderLineStyle,
+          borderColor: value.appBorderStyle,
+          borderRadius: Number.parseInt(value.appBorderRadius, 10),
+          borderStyle: value.appBorderLineStyle,
         }}
       >
         <Switch
-          value={value.overridePostStyles}
-          onValueChange={(next) => update("overridePostStyles", next)}
+          value={value.appOverridePostStyles}
+          onValueChange={(next) => update("appOverridePostStyles", next)}
           trackColor={{ false: "#334155", true: "#a5b4fc" }}
-          thumbColor={value.overridePostStyles ? "#312e81" : "#cbd5e1"}
+          thumbColor={value.appOverridePostStyles ? "#312e81" : "#cbd5e1"}
           accessibilityLabel="Override post styles"
         />
         <View className="flex-1">

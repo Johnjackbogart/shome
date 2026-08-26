@@ -134,7 +134,7 @@ export default function FeedScreen() {
   return (
     <SafeAreaView
       className={UI.screen}
-      style={{ backgroundColor: appStyle.backgroundColor }}
+      style={{ backgroundColor: appStyle.appBackgroundColor }}
       edges={["top"]}
     >
       <View className="flex-row items-end justify-between px-5 pt-2 pb-3">
@@ -279,12 +279,12 @@ export default function FeedScreen() {
           onPress={() => setFiltersVisible(false)}
           accessibilityLabel="Close filters"
         />
-        <SafeAreaView style={{ backgroundColor: appStyle.backgroundColor }} edges={["bottom"]}>
+        <SafeAreaView style={{ backgroundColor: appStyle.appBackgroundColor }} edges={["bottom"]}>
           <View
             className="max-h-[70vh] rounded-t-3xl border-t px-5 pt-4 pb-2"
             style={{
-              backgroundColor: appStyle.backgroundColor,
-              borderColor: appStyle.borderColor,
+              backgroundColor: appStyle.appBackgroundColor,
+              borderColor: appStyle.appBorderStyle,
             }}
           >
             <View className="flex-row items-center justify-between pb-2">
@@ -351,7 +351,7 @@ export default function FeedScreen() {
       >
         <SafeAreaView
           className={UI.screen}
-          style={{ backgroundColor: appStyle.backgroundColor }}
+          style={{ backgroundColor: appStyle.appBackgroundColor }}
           edges={["top", "bottom"]}
         >
           <View className="flex-row items-center justify-end px-5 pt-2 pb-3">

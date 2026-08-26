@@ -45,14 +45,14 @@ export default function TabsLayout() {
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: "#c4b5fd",
-        tabBarInactiveTintColor: appStyle.secondaryTextColor,
+        tabBarInactiveTintColor: appStyle.appSecondaryTextColor,
         tabBarStyle: {
-          backgroundColor: appStyle.secondaryBackgroundColor,
-          borderTopColor: appStyle.borderColor,
-          borderStyle: appStyle.borderLineStyle,
+          backgroundColor: appStyle.appSecondaryBackgroundColor,
+          borderTopColor: appStyle.appBorderStyle,
+          borderStyle: appStyle.appBorderLineStyle,
           paddingTop: 6,
         },
-        tabBarLabelStyle: { fontFamily: appStyle.font, fontSize: 12, fontWeight: "600" },
+        tabBarLabelStyle: { fontFamily: appStyle.appFont, fontSize: 12, fontWeight: "600" },
       }}
     >
       <Tabs.Screen

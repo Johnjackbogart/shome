@@ -153,15 +153,15 @@ export function AppShell({ initialUser }: { initialUser: PublicUser | null }) {
       className="app-theme relative isolate min-h-dvh overflow-hidden text-slate-100"
       style={
         {
-          "--app-background-color": appStyle.backgroundColor,
-          "--app-secondary-background-color": appStyle.secondaryBackgroundColor,
-          "--app-border-color": appStyle.borderColor,
-          "--app-border-radius": appStyle.borderRadius,
-          "--app-border-line-style": appStyle.borderLineStyle,
-          "--app-font-family": appStyle.font,
-          "--app-font-color": appStyle.fontColor,
-          "--app-secondary-text-color": appStyle.secondaryTextColor,
-          "--app-spacing": appStyle.spacing,
+          "--app-background-color": appStyle.appBackgroundColor,
+          "--app-secondary-background-color": appStyle.appSecondaryBackgroundColor,
+          "--app-border-color": appStyle.appBorderStyle,
+          "--app-border-radius": appStyle.appBorderRadius,
+          "--app-border-line-style": appStyle.appBorderLineStyle,
+          "--app-font-family": appStyle.appFont,
+          "--app-font-color": appStyle.appFontColor,
+          "--app-secondary-text-color": appStyle.appSecondaryTextColor,
+          "--app-spacing": appStyle.appSpacing,
         } as CSSProperties
       }
     >

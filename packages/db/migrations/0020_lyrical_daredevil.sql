@@ -1,0 +1,1 @@
+ALTER TABLE "user" RENAME COLUMN "app_border_color" TO "app_border_style";

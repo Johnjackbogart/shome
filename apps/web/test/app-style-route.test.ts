@@ -31,7 +31,7 @@ beforeEach(() => {
 
 describe("app-style API", () => {
   it("reads the signed-in member's saved app style", async () => {
-    const customized = { ...DEFAULT_APP_STYLE, backgroundColor: "#123456" };
+    const customized = { ...DEFAULT_APP_STYLE, appBackgroundColor: "#123456" };
     mocks.selectLimit.mockResolvedValue([customized]);
 
     const response = await GET();
@@ -41,7 +41,11 @@ describe("app-style API", () => {
   });
 
   it("validates and updates only the signed-in member's app style", async () => {
-    const customized = { ...DEFAULT_APP_STYLE, borderColor: "#abcdef", overridePostStyles: true };
+    const customized = {
+      ...DEFAULT_APP_STYLE,
+      appBorderStyle: "#abcdef",
+      appOverridePostStyles: true,
+    };
     const response = await PUT(
       new Request("http://localhost/api/app-style", {
         method: "PUT",
@@ -52,16 +56,16 @@ describe("app-style API", () => {
 
     expect(response.status).toBe(200);
     expect(mocks.updateSet).toHaveBeenCalledWith({
-      appBackgroundColor: customized.backgroundColor,
-      appSecondaryBackgroundColor: customized.secondaryBackgroundColor,
-      appBorderColor: customized.borderColor,
-      appBorderRadius: customized.borderRadius,
-      appBorderLineStyle: customized.borderLineStyle,
-      appFont: customized.font,
-      appFontColor: customized.fontColor,
-      appSecondaryTextColor: customized.secondaryTextColor,
-      appSpacing: customized.spacing,
-      appOverridePostStyles: customized.overridePostStyles,
+      appBackgroundColor: customized.appBackgroundColor,
+      appSecondaryBackgroundColor: customized.appSecondaryBackgroundColor,
+      appBorderStyle: customized.appBorderStyle,
+      appBorderRadius: customized.appBorderRadius,
+      appBorderLineStyle: customized.appBorderLineStyle,
+      appFont: customized.appFont,
+      appFontColor: customized.appFontColor,
+      appSecondaryTextColor: customized.appSecondaryTextColor,
+      appSpacing: customized.appSpacing,
+      appOverridePostStyles: customized.appOverridePostStyles,
       updatedAt: expect.any(Date),
     });
     expect(mocks.updateWhere).toHaveBeenCalledOnce();
@@ -74,7 +78,7 @@ describe("app-style API", () => {
         method: "PUT",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          appStyle: { ...DEFAULT_APP_STYLE, borderColor: "transparent" },
+          appStyle: { ...DEFAULT_APP_STYLE, appBorderStyle: "transparent" },
         }),
       }),
     );

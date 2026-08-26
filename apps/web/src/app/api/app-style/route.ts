@@ -14,16 +14,16 @@ export async function GET() {
 
   const [owner] = await db
     .select({
-      backgroundColor: user.appBackgroundColor,
-      secondaryBackgroundColor: user.appSecondaryBackgroundColor,
-      borderColor: user.appBorderColor,
-      borderRadius: user.appBorderRadius,
-      borderLineStyle: user.appBorderLineStyle,
-      font: user.appFont,
-      fontColor: user.appFontColor,
-      secondaryTextColor: user.appSecondaryTextColor,
-      spacing: user.appSpacing,
-      overridePostStyles: user.appOverridePostStyles,
+      appBackgroundColor: user.appBackgroundColor,
+      appSecondaryBackgroundColor: user.appSecondaryBackgroundColor,
+      appBorderStyle: user.appBorderStyle,
+      appBorderRadius: user.appBorderRadius,
+      appBorderLineStyle: user.appBorderLineStyle,
+      appFont: user.appFont,
+      appFontColor: user.appFontColor,
+      appSecondaryTextColor: user.appSecondaryTextColor,
+      appSpacing: user.appSpacing,
+      appOverridePostStyles: user.appOverridePostStyles,
     })
     .from(user)
     .where(eq(user.id, session.user.id))
@@ -44,16 +44,16 @@ export async function PUT(req: Request) {
   await db
     .update(user)
     .set({
-      appBackgroundColor: body.data.appStyle.backgroundColor,
-      appSecondaryBackgroundColor: body.data.appStyle.secondaryBackgroundColor,
-      appBorderColor: body.data.appStyle.borderColor,
-      appBorderRadius: body.data.appStyle.borderRadius,
-      appBorderLineStyle: body.data.appStyle.borderLineStyle,
-      appFont: body.data.appStyle.font,
-      appFontColor: body.data.appStyle.fontColor,
-      appSecondaryTextColor: body.data.appStyle.secondaryTextColor,
-      appSpacing: body.data.appStyle.spacing,
-      appOverridePostStyles: body.data.appStyle.overridePostStyles,
+      appBackgroundColor: body.data.appStyle.appBackgroundColor,
+      appSecondaryBackgroundColor: body.data.appStyle.appSecondaryBackgroundColor,
+      appBorderStyle: body.data.appStyle.appBorderStyle,
+      appBorderRadius: body.data.appStyle.appBorderRadius,
+      appBorderLineStyle: body.data.appStyle.appBorderLineStyle,
+      appFont: body.data.appStyle.appFont,
+      appFontColor: body.data.appStyle.appFontColor,
+      appSecondaryTextColor: body.data.appStyle.appSecondaryTextColor,
+      appSpacing: body.data.appStyle.appSpacing,
+      appOverridePostStyles: body.data.appStyle.appOverridePostStyles,
       updatedAt: new Date(),
     })
     .where(eq(user.id, session.user.id));

@@ -10,16 +10,16 @@ import { z } from "zod";
 import { hexColorSchema } from "./post-style";
 
 export const appStyleSchema = z.object({
-  backgroundColor: hexColorSchema,
-  secondaryBackgroundColor: hexColorSchema,
-  borderColor: hexColorSchema,
-  borderRadius: z.enum(POST_BORDER_RADIUS_VALUES),
-  borderLineStyle: z.enum(POST_BORDER_LINE_STYLE_VALUES),
-  font: z.enum(POST_FONT_VALUES),
-  fontColor: hexColorSchema,
-  secondaryTextColor: hexColorSchema,
-  spacing: z.enum(APP_SPACING_VALUES),
-  overridePostStyles: z.boolean(),
+  appBackgroundColor: hexColorSchema,
+  appSecondaryBackgroundColor: hexColorSchema,
+  appBorderStyle: hexColorSchema,
+  appBorderRadius: z.enum(POST_BORDER_RADIUS_VALUES),
+  appBorderLineStyle: z.enum(POST_BORDER_LINE_STYLE_VALUES),
+  appFont: z.enum(POST_FONT_VALUES),
+  appFontColor: hexColorSchema,
+  appSecondaryTextColor: hexColorSchema,
+  appSpacing: z.enum(APP_SPACING_VALUES),
+  appOverridePostStyles: z.boolean(),
 });
 
 /** Keep malformed database values out of client-side style props. */

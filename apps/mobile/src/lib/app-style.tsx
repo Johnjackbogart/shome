@@ -45,23 +45,23 @@ export function useAppStyle() {
 
 export function appBorderAppearance(appStyle: AppStyle): ViewStyle {
   return {
-    borderColor: appStyle.borderColor,
-    borderRadius: Number.parseInt(appStyle.borderRadius, 10),
-    borderStyle: appStyle.borderLineStyle,
+    borderColor: appStyle.appBorderStyle,
+    borderRadius: Number.parseInt(appStyle.appBorderRadius, 10),
+    borderStyle: appStyle.appBorderLineStyle,
   };
 }
 
 export function appSurfaceAppearance(appStyle: AppStyle): ViewStyle {
   return {
     ...appBorderAppearance(appStyle),
-    backgroundColor: appStyle.secondaryBackgroundColor,
+    backgroundColor: appStyle.appSecondaryBackgroundColor,
   };
 }
 
 export function appPrimaryText(appStyle: AppStyle): TextStyle {
-  return { color: appStyle.fontColor, fontFamily: appStyle.font };
+  return { color: appStyle.appFontColor, fontFamily: appStyle.appFont };
 }
 
 export function appSecondaryText(appStyle: AppStyle): TextStyle {
-  return { color: appStyle.secondaryTextColor, fontFamily: appStyle.font };
+  return { color: appStyle.appSecondaryTextColor, fontFamily: appStyle.appFont };
 }

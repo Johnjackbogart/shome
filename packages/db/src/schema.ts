@@ -34,38 +34,38 @@ export const user = pgTable("user", {
   displayUsername: text("display_username"),
   appBackgroundColor: text("app_background_color")
     .notNull()
-    .default(DEFAULT_APP_STYLE.backgroundColor),
+    .default(DEFAULT_APP_STYLE.appBackgroundColor),
   appSecondaryBackgroundColor: text("app_secondary_background_color")
     .notNull()
-    .default(DEFAULT_APP_STYLE.secondaryBackgroundColor),
-  appBorderColor: text("app_border_color")
+    .default(DEFAULT_APP_STYLE.appSecondaryBackgroundColor),
+  appBorderStyle: text("app_border_style")
     .notNull()
-    .default(DEFAULT_APP_STYLE.borderColor),
+    .default(DEFAULT_APP_STYLE.appBorderStyle),
   appBorderRadius: text("app_border_radius")
     .notNull()
-    .$type<AppStyle["borderRadius"]>()
-    .default(DEFAULT_APP_STYLE.borderRadius),
+    .$type<AppStyle["appBorderRadius"]>()
+    .default(DEFAULT_APP_STYLE.appBorderRadius),
   appBorderLineStyle: text("app_border_line_style")
     .notNull()
-    .$type<AppStyle["borderLineStyle"]>()
-    .default(DEFAULT_APP_STYLE.borderLineStyle),
+    .$type<AppStyle["appBorderLineStyle"]>()
+    .default(DEFAULT_APP_STYLE.appBorderLineStyle),
   appFont: text("app_font")
     .notNull()
-    .$type<AppStyle["font"]>()
-    .default(DEFAULT_APP_STYLE.font),
+    .$type<AppStyle["appFont"]>()
+    .default(DEFAULT_APP_STYLE.appFont),
   appFontColor: text("app_font_color")
     .notNull()
-    .default(DEFAULT_APP_STYLE.fontColor),
+    .default(DEFAULT_APP_STYLE.appFontColor),
   appSecondaryTextColor: text("app_secondary_text_color")
     .notNull()
-    .default(DEFAULT_APP_STYLE.secondaryTextColor),
+    .default(DEFAULT_APP_STYLE.appSecondaryTextColor),
   appSpacing: text("app_spacing")
     .notNull()
-    .$type<AppStyle["spacing"]>()
-    .default(DEFAULT_APP_STYLE.spacing),
+    .$type<AppStyle["appSpacing"]>()
+    .default(DEFAULT_APP_STYLE.appSpacing),
   appOverridePostStyles: boolean("app_override_post_styles")
     .notNull()
-    .default(DEFAULT_APP_STYLE.overridePostStyles),
+    .default(DEFAULT_APP_STYLE.appOverridePostStyles),
   postBorderStyle: text("post_border_style"),
   postBorderRadius: text("post_border_radius"),
   postBorderLineStyle: text("post_border_line_style"),

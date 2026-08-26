@@ -85,7 +85,7 @@ export function VisualProfileBuilder({ source, previewDoc, previewError, onChang
           height: 720,
           border: 0,
           borderRadius: 16,
-          background: appStyle.secondaryBackgroundColor,
+          background: appStyle.appSecondaryBackgroundColor,
         }}
       />
       <Text className={`mt-2 ${UI.body}`}>

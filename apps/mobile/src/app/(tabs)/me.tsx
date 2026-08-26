@@ -159,10 +159,10 @@ export default function MeScreen() {
   return (
     <SafeAreaView
       className={UI.screen}
-      style={{ backgroundColor: appStyle.backgroundColor }}
+      style={{ backgroundColor: appStyle.appBackgroundColor }}
       edges={["top"]}
     >
-      <View className={UI.screenContent} style={{ backgroundColor: appStyle.backgroundColor }}>
+      <View className={UI.screenContent} style={{ backgroundColor: appStyle.appBackgroundColor }}>
         <Text className={`pb-2 pt-2 ${UI.eyebrow}`} style={appSecondaryText(appStyle)}>
           Your corner of the web
         </Text>

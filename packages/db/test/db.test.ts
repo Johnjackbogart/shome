@@ -81,6 +81,34 @@ describe("schema + migrations", () => {
     }
   });
 
+  it("preserves the app border color when renaming its column", async () => {
+    const migrationDb = new PGlite();
+
+    try {
+      await migrationDb.exec(
+        'CREATE TABLE "user" ("id" text PRIMARY KEY, "app_border_color" text NOT NULL)',
+      );
+      await migrationDb.exec(
+        `INSERT INTO "user" ("id", "app_border_color") VALUES ('app-style-user', '#123456')`,
+      );
+      const migration = readFileSync(
+        new URL("../migrations/0020_lyrical_daredevil.sql", import.meta.url),
+        "utf8",
+      );
+
+      await migrationDb.exec(migration);
+
+      const migrated = await migrationDb.query(
+        `SELECT "app_border_style" AS "appBorderStyle"
+        FROM "user"
+        WHERE "id" = 'app-style-user'`,
+      );
+      expect(migrated.rows[0]).toEqual({ appBorderStyle: "#123456" });
+    } finally {
+      await migrationDb.close();
+    }
+  });
+
   it("stores default post styles as scalar user columns", async () => {
     const [member] = await db
       .insert(user)
@@ -127,16 +155,16 @@ describe("schema + migrations", () => {
       .returning();
 
     expect(member).toMatchObject({
-      appBackgroundColor: DEFAULT_APP_STYLE.backgroundColor,
-      appSecondaryBackgroundColor: DEFAULT_APP_STYLE.secondaryBackgroundColor,
-      appBorderColor: DEFAULT_APP_STYLE.borderColor,
-      appBorderRadius: DEFAULT_APP_STYLE.borderRadius,
-      appBorderLineStyle: DEFAULT_APP_STYLE.borderLineStyle,
-      appFont: DEFAULT_APP_STYLE.font,
-      appFontColor: DEFAULT_APP_STYLE.fontColor,
-      appSecondaryTextColor: DEFAULT_APP_STYLE.secondaryTextColor,
-      appSpacing: DEFAULT_APP_STYLE.spacing,
-      appOverridePostStyles: DEFAULT_APP_STYLE.overridePostStyles,
+      appBackgroundColor: DEFAULT_APP_STYLE.appBackgroundColor,
+      appSecondaryBackgroundColor: DEFAULT_APP_STYLE.appSecondaryBackgroundColor,
+      appBorderStyle: DEFAULT_APP_STYLE.appBorderStyle,
+      appBorderRadius: DEFAULT_APP_STYLE.appBorderRadius,
+      appBorderLineStyle: DEFAULT_APP_STYLE.appBorderLineStyle,
+      appFont: DEFAULT_APP_STYLE.appFont,
+      appFontColor: DEFAULT_APP_STYLE.appFontColor,
+      appSecondaryTextColor: DEFAULT_APP_STYLE.appSecondaryTextColor,
+      appSpacing: DEFAULT_APP_STYLE.appSpacing,
+      appOverridePostStyles: DEFAULT_APP_STYLE.appOverridePostStyles,
     });
 
     const [saved] = await db
@@ -144,7 +172,7 @@ describe("schema + migrations", () => {
       .set({
         appBackgroundColor: "#123456",
         appSecondaryBackgroundColor: "#234567",
-        appBorderColor: "#abcdef",
+        appBorderStyle: "#abcdef",
         appBorderRadius: "24px",
         appBorderLineStyle: "dashed",
         appFont: "serif",
@@ -159,7 +187,7 @@ describe("schema + migrations", () => {
     expect(saved).toMatchObject({
       appBackgroundColor: "#123456",
       appSecondaryBackgroundColor: "#234567",
-      appBorderColor: "#abcdef",
+      appBorderStyle: "#abcdef",
       appBorderRadius: "24px",
       appBorderLineStyle: "dashed",
       appFont: "serif",

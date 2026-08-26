@@ -82,8 +82,8 @@ function AppStyleEditor({
             <input
               type="color"
               className="input_color size-9 p-1"
-              value={value.backgroundColor}
-              onChange={(event) => update("backgroundColor", event.target.value)}
+              value={value.appBackgroundColor}
+              onChange={(event) => update("appBackgroundColor", event.target.value)}
             />
             Background color
           </label>
@@ -91,8 +91,8 @@ function AppStyleEditor({
             <input
               type="color"
               className="input_color size-9 p-1"
-              value={value.secondaryBackgroundColor}
-              onChange={(event) => update("secondaryBackgroundColor", event.target.value)}
+              value={value.appSecondaryBackgroundColor}
+              onChange={(event) => update("appSecondaryBackgroundColor", event.target.value)}
             />
             Secondary background
           </label>
@@ -100,8 +100,8 @@ function AppStyleEditor({
             <input
               type="color"
               className="input_color size-9 p-1"
-              value={value.borderColor}
-              onChange={(event) => update("borderColor", event.target.value)}
+              value={value.appBorderStyle}
+              onChange={(event) => update("appBorderStyle", event.target.value)}
             />
             Border color
           </label>
@@ -109,9 +109,9 @@ function AppStyleEditor({
             Border radius
             <select
               className="input flex-1 py-1.5 text-sm"
-              value={value.borderRadius}
+              value={value.appBorderRadius}
               onChange={(event) =>
-                update("borderRadius", event.target.value as AppStyle["borderRadius"])
+                update("appBorderRadius", event.target.value as AppStyle["appBorderRadius"])
               }
             >
               {POST_BORDER_RADIUS_OPTIONS.map((option) => (
@@ -125,9 +125,9 @@ function AppStyleEditor({
             Border style
             <select
               className="input flex-1 py-1.5 text-sm"
-              value={value.borderLineStyle}
+              value={value.appBorderLineStyle}
               onChange={(event) =>
-                update("borderLineStyle", event.target.value as AppStyle["borderLineStyle"])
+                update("appBorderLineStyle", event.target.value as AppStyle["appBorderLineStyle"])
               }
             >
               {POST_BORDER_LINE_STYLE_OPTIONS.map((option) => (
@@ -141,8 +141,8 @@ function AppStyleEditor({
             <input
               type="color"
               className="input_color size-9 p-1"
-              value={value.fontColor}
-              onChange={(event) => update("fontColor", event.target.value)}
+              value={value.appFontColor}
+              onChange={(event) => update("appFontColor", event.target.value)}
             />
             Font color
           </label>
@@ -150,8 +150,8 @@ function AppStyleEditor({
             <input
               type="color"
               className="input_color size-9 p-1"
-              value={value.secondaryTextColor}
-              onChange={(event) => update("secondaryTextColor", event.target.value)}
+              value={value.appSecondaryTextColor}
+              onChange={(event) => update("appSecondaryTextColor", event.target.value)}
             />
             Secondary text
           </label>
@@ -159,8 +159,8 @@ function AppStyleEditor({
             Font
             <select
               className="input flex-1 py-1.5 text-sm"
-              value={value.font}
-              onChange={(event) => update("font", event.target.value as AppStyle["font"])}
+              value={value.appFont}
+              onChange={(event) => update("appFont", event.target.value as AppStyle["appFont"])}
             >
               {POST_FONT_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -173,8 +173,8 @@ function AppStyleEditor({
             Post spacing
             <select
               className="input flex-1 py-1.5 text-sm"
-              value={value.spacing}
-              onChange={(event) => update("spacing", event.target.value as AppStyle["spacing"])}
+              value={value.appSpacing}
+              onChange={(event) => update("appSpacing", event.target.value as AppStyle["appSpacing"])}
             >
               {APP_SPACING_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -187,8 +187,8 @@ function AppStyleEditor({
             <input
               type="checkbox"
               className="mt-0.5 size-4 accent-indigo-300"
-              checked={value.overridePostStyles}
-              onChange={(event) => update("overridePostStyles", event.target.checked)}
+              checked={value.appOverridePostStyles}
+              onChange={(event) => update("appOverridePostStyles", event.target.checked)}
             />
             <span>
               Override post styles
@@ -202,32 +202,32 @@ function AppStyleEditor({
         <div
           className="grid min-h-40 place-items-center border p-4"
           style={{
-            borderColor: value.borderColor,
-            borderRadius: value.borderRadius,
-            borderStyle: value.borderLineStyle,
-            backgroundColor: value.backgroundColor,
-            color: value.fontColor,
-            fontFamily: value.font,
+            borderColor: value.appBorderStyle,
+            borderRadius: value.appBorderRadius,
+            borderStyle: value.appBorderLineStyle,
+            backgroundColor: value.appBackgroundColor,
+            color: value.appFontColor,
+            fontFamily: value.appFont,
           }}
         >
-          <div className="flex w-full flex-col" style={{ gap: value.spacing }}>
+          <div className="flex w-full flex-col" style={{ gap: value.appSpacing }}>
             {["Your shome", "Another post"].map((title) => (
               <div
                 key={title}
                 className="w-full rounded-xl border bg-white/[0.035] p-4 text-slate-100"
                 style={{
-                  borderColor: value.borderColor,
-                  borderRadius: value.borderRadius,
-                  borderStyle: value.borderLineStyle,
-                  backgroundColor: value.secondaryBackgroundColor,
-                  color: value.fontColor,
-                  fontFamily: value.font,
+                  borderColor: value.appBorderStyle,
+                  borderRadius: value.appBorderRadius,
+                  borderStyle: value.appBorderLineStyle,
+                  backgroundColor: value.appSecondaryBackgroundColor,
+                  color: value.appFontColor,
+                  fontFamily: value.appFont,
                 }}
               >
-                <p className="font-semibold" style={{ color: value.fontColor }}>
+                <p className="font-semibold" style={{ color: value.appFontColor }}>
                   {title}
                 </p>
-                <p className="mt-2 text-sm" style={{ color: value.secondaryTextColor }}>
+                <p className="mt-2 text-sm" style={{ color: value.appSecondaryTextColor }}>
                   Previewing the space between feed posts.
                 </p>
               </div>
