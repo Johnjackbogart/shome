@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { Tabs } from "expo-router";
 import type { ColorValue } from "react-native";
+import { useAppStyle } from "@/lib/app-style";
 import { authClient } from "@/lib/auth-client";
 import { apiUrl } from "@/lib/config";
 
@@ -38,18 +39,20 @@ function MeTabIcon({
 }
 
 export default function TabsLayout() {
+  const { appStyle } = useAppStyle();
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: "#c4b5fd",
-        tabBarInactiveTintColor: "#94a3b8",
+        tabBarInactiveTintColor: appStyle.secondaryTextColor,
         tabBarStyle: {
-          backgroundColor: "#0b1022",
-          borderTopColor: "rgba(255, 255, 255, 0.1)",
+          backgroundColor: appStyle.secondaryBackgroundColor,
+          borderTopColor: appStyle.borderColor,
+          borderStyle: appStyle.borderLineStyle,
           paddingTop: 6,
         },
-        tabBarLabelStyle: { fontSize: 12, fontWeight: "600" },
+        tabBarLabelStyle: { fontFamily: appStyle.font, fontSize: 12, fontWeight: "600" },
       }}
     >
       <Tabs.Screen

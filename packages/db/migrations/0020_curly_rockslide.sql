@@ -1,0 +1,1 @@
+ALTER TABLE "user" ADD COLUMN "app_secondary_background_color" text DEFAULT '#0f172a' NOT NULL;

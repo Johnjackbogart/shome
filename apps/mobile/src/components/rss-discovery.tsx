@@ -7,6 +7,12 @@ import type {
 import { useState } from "react";
 import { ActivityIndicator, Linking, Pressable, Text, TextInput, View } from "react-native";
 import { api } from "@/lib/api";
+import {
+  appPrimaryText,
+  appSecondaryText,
+  appSurfaceAppearance,
+  useAppStyle,
+} from "@/lib/app-style";
 import { COLORS, UI } from "@/lib/ui";
 
 function addedMessage(
@@ -34,6 +40,7 @@ export function RssDiscovery({
   onAdded: (message: string) => void;
   onError: (message: string) => void;
 }) {
+  const { appStyle } = useAppStyle();
   const [website, setWebsite] = useState("");
   const [feeds, setFeeds] = useState<DiscoveredRssFeed[] | null>(null);
   const [discovering, setDiscovering] = useState(false);
@@ -70,10 +77,12 @@ export function RssDiscovery({
   }
 
   return (
-    <View className={`mb-4 gap-3 ${UI.card}`}>
+    <View className={`mb-4 gap-3 ${UI.card}`} style={appSurfaceAppearance(appStyle)}>
       <View>
-        <Text className="text-lg font-semibold text-white">Discover RSS</Text>
-        <Text className="mt-1 text-sm leading-5 text-slate-400">
+        <Text className="text-lg font-semibold text-white" style={appPrimaryText(appStyle)}>
+          Discover RSS
+        </Text>
+        <Text className="mt-1 text-sm leading-5 text-slate-400" style={appSecondaryText(appStyle)}>
           Search by name or paste a publication, blog, or podcast website—we’ll find its public
           feeds.
         </Text>

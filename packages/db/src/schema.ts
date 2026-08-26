@@ -1,4 +1,6 @@
 import {
+  type AppStyle,
+  DEFAULT_APP_STYLE,
   DEFAULT_POST_STYLE,
   type FeedRules,
   type MediaRef,
@@ -36,6 +38,33 @@ export const user = pgTable("user", {
     .notNull()
     .$type<PostStyle>()
     .default(DEFAULT_POST_STYLE),
+  appBackgroundColor: text("app_background_color")
+    .notNull()
+    .default(DEFAULT_APP_STYLE.backgroundColor),
+  appSecondaryBackgroundColor: text("app_secondary_background_color")
+    .notNull()
+    .default(DEFAULT_APP_STYLE.secondaryBackgroundColor),
+  appBorderColor: text("app_border_color").notNull().default(DEFAULT_APP_STYLE.borderColor),
+  appBorderRadius: text("app_border_radius")
+    .notNull()
+    .$type<AppStyle["borderRadius"]>()
+    .default(DEFAULT_APP_STYLE.borderRadius),
+  appBorderLineStyle: text("app_border_line_style")
+    .notNull()
+    .$type<AppStyle["borderLineStyle"]>()
+    .default(DEFAULT_APP_STYLE.borderLineStyle),
+  appFont: text("app_font").notNull().$type<AppStyle["font"]>().default(DEFAULT_APP_STYLE.font),
+  appFontColor: text("app_font_color").notNull().default(DEFAULT_APP_STYLE.fontColor),
+  appSecondaryTextColor: text("app_secondary_text_color")
+    .notNull()
+    .default(DEFAULT_APP_STYLE.secondaryTextColor),
+  appSpacing: text("app_spacing")
+    .notNull()
+    .$type<AppStyle["spacing"]>()
+    .default(DEFAULT_APP_STYLE.spacing),
+  appOverridePostStyles: boolean("app_override_post_styles")
+    .notNull()
+    .default(DEFAULT_APP_STYLE.overridePostStyles),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });

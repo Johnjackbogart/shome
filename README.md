@@ -150,5 +150,6 @@ restart Metro.
 ### Docs
 
 - [Architecture & decisions](docs/architecture.md)
+- [Personal app styling & paid rollout](docs/app-styling.md)
 - [Discovery roadmap](docs/discovery.md)
 - [Closed-platform access research](docs/platform-access.md) — what's possible with X, Facebook, Instagram, LinkedIn

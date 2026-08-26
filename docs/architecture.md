@@ -87,6 +87,10 @@ server-side. Pieces:
   stages — scoring, user-authored sandboxed scripts — slot in behind the same
   interface later. v0 UI exposes live filtering; saved-feed routes are next.
 - **Profile** — the user's vibe-coded page: raw HTML/CSS stored as written.
+- **App style** — the signed-in member's private, account-synced application
+  canvas/surface colors, typography, border shape/line, feed spacing, and complete
+  first-party post override preference. See the
+  [paid rollout plan](app-styling.md).
 - **Product** — a creator-owned catalog item (title, description, price label,
   image, external checkout URL, visibility, order). shome displays products but
   does not handle payment, inventory, orders, customer data, tax, or refunds.

@@ -1,4 +1,4 @@
-import { DEFAULT_POST_STYLE } from "@shome/core";
+import { DEFAULT_APP_STYLE, DEFAULT_POST_STYLE } from "@shome/core";
 import { count, desc, eq, inArray, sql } from "drizzle-orm";
 import { beforeAll, describe, expect, it } from "vitest";
 import {
@@ -49,6 +49,60 @@ describe("schema + migrations", () => {
       .returning({ defaultPostStyle: user.defaultPostStyle });
 
     expect(saved?.defaultPostStyle).toEqual(customized);
+  });
+
+  it("stores app style properties in separate user columns", async () => {
+    const [member] = await db
+      .insert(user)
+      .values({
+        id: "user_app_style",
+        name: "App styled user",
+        email: "app-styled-user@example.com",
+      })
+      .returning();
+
+    expect(member).toMatchObject({
+      appBackgroundColor: DEFAULT_APP_STYLE.backgroundColor,
+      appSecondaryBackgroundColor: DEFAULT_APP_STYLE.secondaryBackgroundColor,
+      appBorderColor: DEFAULT_APP_STYLE.borderColor,
+      appBorderRadius: DEFAULT_APP_STYLE.borderRadius,
+      appBorderLineStyle: DEFAULT_APP_STYLE.borderLineStyle,
+      appFont: DEFAULT_APP_STYLE.font,
+      appFontColor: DEFAULT_APP_STYLE.fontColor,
+      appSecondaryTextColor: DEFAULT_APP_STYLE.secondaryTextColor,
+      appSpacing: DEFAULT_APP_STYLE.spacing,
+      appOverridePostStyles: DEFAULT_APP_STYLE.overridePostStyles,
+    });
+
+    const [saved] = await db
+      .update(user)
+      .set({
+        appBackgroundColor: "#123456",
+        appSecondaryBackgroundColor: "#234567",
+        appBorderColor: "#abcdef",
+        appBorderRadius: "24px",
+        appBorderLineStyle: "dashed",
+        appFont: "serif",
+        appFontColor: "#fedcba",
+        appSecondaryTextColor: "#654321",
+        appSpacing: "20px",
+        appOverridePostStyles: true,
+      })
+      .where(eq(user.id, "user_app_style"))
+      .returning();
+
+    expect(saved).toMatchObject({
+      appBackgroundColor: "#123456",
+      appSecondaryBackgroundColor: "#234567",
+      appBorderColor: "#abcdef",
+      appBorderRadius: "24px",
+      appBorderLineStyle: "dashed",
+      appFont: "serif",
+      appFontColor: "#fedcba",
+      appSecondaryTextColor: "#654321",
+      appSpacing: "20px",
+      appOverridePostStyles: true,
+    });
   });
 
   it("inserts and reads across the core tables", async () => {
