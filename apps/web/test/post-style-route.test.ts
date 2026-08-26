@@ -32,7 +32,7 @@ beforeEach(() => {
 describe("default post-style API", () => {
   it("reads the signed-in user's saved default", async () => {
     const customized = { ...DEFAULT_POST_STYLE, backgroundColor: "#123456" };
-    mocks.selectLimit.mockResolvedValue([{ defaultPostStyle: customized }]);
+    mocks.selectLimit.mockResolvedValue([customized]);
 
     const response = await GET();
 
@@ -56,7 +56,7 @@ describe("default post-style API", () => {
 
     expect(response.status).toBe(200);
     expect(mocks.updateSet).toHaveBeenCalledWith({
-      defaultPostStyle: customized,
+      ...customized,
       updatedAt: expect.any(Date),
     });
     expect(mocks.updateWhere).toHaveBeenCalledOnce();

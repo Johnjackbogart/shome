@@ -1,1 +1,0 @@
-ALTER TABLE "user" ADD COLUMN "app_style" jsonb DEFAULT '{"backgroundColor":"#070a18","borderColor":"#24293a","overridePostStyles":false}'::jsonb NOT NULL;

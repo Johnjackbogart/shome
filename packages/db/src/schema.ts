@@ -34,17 +34,15 @@ export const user = pgTable("user", {
   image: text("image"),
   username: text("username").unique(),
   displayUsername: text("display_username"),
-  defaultPostStyle: jsonb("default_post_style")
-    .notNull()
-    .$type<PostStyle>()
-    .default(DEFAULT_POST_STYLE),
   appBackgroundColor: text("app_background_color")
     .notNull()
     .default(DEFAULT_APP_STYLE.backgroundColor),
   appSecondaryBackgroundColor: text("app_secondary_background_color")
     .notNull()
     .default(DEFAULT_APP_STYLE.secondaryBackgroundColor),
-  appBorderColor: text("app_border_color").notNull().default(DEFAULT_APP_STYLE.borderColor),
+  appBorderColor: text("app_border_color")
+    .notNull()
+    .default(DEFAULT_APP_STYLE.borderColor),
   appBorderRadius: text("app_border_radius")
     .notNull()
     .$type<AppStyle["borderRadius"]>()
@@ -53,8 +51,13 @@ export const user = pgTable("user", {
     .notNull()
     .$type<AppStyle["borderLineStyle"]>()
     .default(DEFAULT_APP_STYLE.borderLineStyle),
-  appFont: text("app_font").notNull().$type<AppStyle["font"]>().default(DEFAULT_APP_STYLE.font),
-  appFontColor: text("app_font_color").notNull().default(DEFAULT_APP_STYLE.fontColor),
+  appFont: text("app_font")
+    .notNull()
+    .$type<AppStyle["font"]>()
+    .default(DEFAULT_APP_STYLE.font),
+  appFontColor: text("app_font_color")
+    .notNull()
+    .default(DEFAULT_APP_STYLE.fontColor),
   appSecondaryTextColor: text("app_secondary_text_color")
     .notNull()
     .default(DEFAULT_APP_STYLE.secondaryTextColor),
@@ -65,9 +68,30 @@ export const user = pgTable("user", {
   appOverridePostStyles: boolean("app_override_post_styles")
     .notNull()
     .default(DEFAULT_APP_STYLE.overridePostStyles),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  borderStyle: text("border_style"),
+  borderRadius: text("border_radius"),
+  borderLineStyle: text("border_line_style"),
+  backgroundColor: text("background_color"),
+  font: text("font"),
+  fontColor: text("font_color"),
+  secondaryTextColor: text("secondary_text_color"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
 });
+
+export const userPostStyleColumns = {
+  borderStyle: user.borderStyle,
+  borderRadius: user.borderRadius,
+  borderLineStyle: user.borderLineStyle,
+  backgroundColor: user.backgroundColor,
+  font: user.font,
+  fontColor: user.fontColor,
+  secondaryTextColor: user.secondaryTextColor,
+};
 
 export const session = pgTable("session", {
   id: text("id").primaryKey(),
@@ -78,8 +102,12 @@ export const session = pgTable("session", {
   userId: text("user_id")
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
 });
 
 export const account = pgTable("account", {
@@ -100,8 +128,12 @@ export const account = pgTable("account", {
   }),
   scope: text("scope"),
   password: text("password"),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
 });
 
 export const verification = pgTable("verification", {
@@ -109,8 +141,12 @@ export const verification = pgTable("verification", {
   identifier: text("identifier").notNull(),
   value: text("value").notNull(),
   expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
 });
 
 // ---------------------------------------------------------------------------
@@ -135,9 +171,17 @@ export const connections = pgTable(
     // null for rows created before it existed and when resolution failed.
     account: text("account"),
     credentials: text("credentials").notNull(),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
-  (t) => [uniqueIndex("connections_user_provider_label_ux").on(t.userId, t.provider, t.label)],
+  (t) => [
+    uniqueIndex("connections_user_provider_label_ux").on(
+      t.userId,
+      t.provider,
+      t.label,
+    ),
+  ],
 );
 
 // Sources are global and deduped by canonical key; users attach via
@@ -149,7 +193,9 @@ export const sources = pgTable("sources", {
   canonicalKey: text("canonical_key").notNull().unique(),
   config: jsonb("config").notNull().$type<Record<string, unknown>>(),
   title: text("title"),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
   lastFetchedAt: timestamp("last_fetched_at", { withTimezone: true }),
   lastError: text("last_error"),
 });
@@ -170,7 +216,9 @@ export const subscriptions = pgTable(
     // shared `sources` row so one person's rename cannot rewrite the name for
     // everyone else, and so `sources.title` keeps the name the feed reported.
     customTitle: text("custom_title"),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   (t) => [primaryKey({ columns: [t.userId, t.sourceId] })],
 );
@@ -191,7 +239,9 @@ export const items = pgTable(
     authorAvatarUrl: text("author_avatar_url"),
     media: jsonb("media").notNull().$type<MediaRef[]>().default([]),
     publishedAt: timestamp("published_at", { withTimezone: true }),
-    fetchedAt: timestamp("fetched_at", { withTimezone: true }).notNull().defaultNow(),
+    fetchedAt: timestamp("fetched_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   (t) => [
     uniqueIndex("items_source_external_ux").on(t.sourceId, t.externalId),
@@ -220,7 +270,9 @@ export const posts = pgTable(
     secondaryTextColor: text("secondary_text_color"),
     blueskyUrl: text("bluesky_url"),
     mastodonUrl: text("mastodon_url"),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   (t) => [index("posts_user_created_ix").on(t.userId, t.createdAt)],
 );
@@ -245,12 +297,17 @@ export const postMedia = pgTable(
     // server-side limit exact without depending on the browser's metadata.
     durationMs: integer("duration_ms"),
     originalName: text("original_name").notNull(),
-    provider: text("provider").notNull().$type<MediaProvider>().default("local"),
+    provider: text("provider")
+      .notNull()
+      .$type<MediaProvider>()
+      .default("local"),
     providerAssetId: text("provider_asset_id"),
     status: text("status").notNull().$type<MediaStatus>().default("ready"),
     playbackUrl: text("playback_url"),
     thumbnailUrl: text("thumbnail_url"),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   (t) => [index("post_media_post_created_ix").on(t.postId, t.createdAt)],
 );
@@ -276,12 +333,23 @@ export const mediaUploads = pgTable(
     playbackUrl: text("playback_url"),
     thumbnailUrl: text("thumbnail_url"),
     expiresAt: timestamp("expires_at", { withTimezone: true }),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   (t) => [
-    uniqueIndex("media_uploads_provider_asset_ux").on(t.provider, t.providerAssetId),
-    index("media_uploads_user_status_created_ix").on(t.userId, t.status, t.createdAt),
+    uniqueIndex("media_uploads_provider_asset_ux").on(
+      t.provider,
+      t.providerAssetId,
+    ),
+    index("media_uploads_user_status_created_ix").on(
+      t.userId,
+      t.status,
+      t.createdAt,
+    ),
   ],
 );
 
@@ -292,7 +360,9 @@ export const feeds = pgTable("feeds", {
     .references(() => user.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
   rules: jsonb("rules").notNull().$type<FeedRules>().default({}),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
 });
 
 export const profiles = pgTable("profiles", {
@@ -302,7 +372,9 @@ export const profiles = pgTable("profiles", {
   // Stored as the user wrote it; sanitized at serve time so sanitizer
   // improvements apply retroactively to existing profiles.
   html: text("html").notNull().default(""),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
 });
 
 // A directed, first-party relationship between two shome accounts. Keeping
@@ -317,7 +389,9 @@ export const follows = pgTable(
     followingId: text("following_id")
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   (t) => [
     primaryKey({ columns: [t.followerId, t.followingId] }),
@@ -341,10 +415,16 @@ export const products = pgTable(
     checkoutUrl: text("checkout_url").notNull(),
     visible: boolean("visible").notNull().default(true),
     sortOrder: integer("sort_order").notNull().default(0),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
-  (t) => [index("products_user_visible_sort_ix").on(t.userId, t.visible, t.sortOrder)],
+  (t) => [
+    index("products_user_visible_sort_ix").on(t.userId, t.visible, t.sortOrder),
+  ],
 );
 
 // Launch interest is intentionally separate from accounts: visitors can join
@@ -353,8 +433,12 @@ export const interestSignups = pgTable("interest_signups", {
   email: text("email").primaryKey(),
   waitlist: boolean("waitlist").notNull().default(false),
   newsletter: boolean("newsletter").notNull().default(false),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
 });
 
 // ---------------------------------------------------------------------------

@@ -1,1 +1,0 @@
-ALTER TABLE "user" ADD COLUMN "app_spacing" text DEFAULT '12px' NOT NULL;

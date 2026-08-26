@@ -1,6 +1,6 @@
 {
-  "id": "ef75c060-c561-4fa4-8e00-b29b1ef09f2a",
-  "prevId": "3469442a-e8d0-4332-b25c-a9a5da18c5c5",
+  "id": "6dbce197-1159-40bb-92e8-25becdda4866",
+  "prevId": "8503e613-7ca1-4e90-a4e2-69e589dd5fc6",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -1448,19 +1448,117 @@
           "primaryKey": false,
           "notNull": false
         },
-        "default_post_style": {
-          "name": "default_post_style",
-          "type": "jsonb",
+        "app_background_color": {
+          "name": "app_background_color",
+          "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "default": "'{\"borderStyle\":\"#ffffff\",\"borderRadius\":\"16px\",\"borderLineStyle\":\"solid\",\"backgroundColor\":\"#0f172a\",\"font\":\"sans-serif\",\"fontColor\":\"#f8fafc\",\"secondaryTextColor\":\"#94a3b8\"}'::jsonb"
+          "default": "'#070a18'"
         },
-        "app_style": {
-          "name": "app_style",
-          "type": "jsonb",
+        "app_secondary_background_color": {
+          "name": "app_secondary_background_color",
+          "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "default": "'{\"backgroundColor\":\"#070a18\",\"borderColor\":\"#24293a\",\"borderRadius\":\"16px\",\"borderLineStyle\":\"solid\",\"font\":\"sans-serif\",\"fontColor\":\"#f8fafc\",\"secondaryTextColor\":\"#94a3b8\",\"overridePostStyles\":false}'::jsonb"
+          "default": "'#0f172a'"
+        },
+        "app_border_color": {
+          "name": "app_border_color",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'#24293a'"
+        },
+        "app_border_radius": {
+          "name": "app_border_radius",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'16px'"
+        },
+        "app_border_line_style": {
+          "name": "app_border_line_style",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'solid'"
+        },
+        "app_font": {
+          "name": "app_font",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'sans-serif'"
+        },
+        "app_font_color": {
+          "name": "app_font_color",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'#f8fafc'"
+        },
+        "app_secondary_text_color": {
+          "name": "app_secondary_text_color",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'#94a3b8'"
+        },
+        "app_spacing": {
+          "name": "app_spacing",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'12px'"
+        },
+        "app_override_post_styles": {
+          "name": "app_override_post_styles",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "border_style": {
+          "name": "border_style",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "border_radius": {
+          "name": "border_radius",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "border_line_style": {
+          "name": "border_line_style",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "background_color": {
+          "name": "background_color",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "font": {
+          "name": "font",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "font_color": {
+          "name": "font_color",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "secondary_text_color": {
+          "name": "secondary_text_color",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         },
         "created_at": {
           "name": "created_at",
