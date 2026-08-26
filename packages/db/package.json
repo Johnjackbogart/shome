@@ -21,10 +21,10 @@
     "pg": "^8.22.0"
   },
   "devDependencies": {
+    "@shome/connectors": "*",
     "@types/pg": "^8.20.4",
+    "better-auth": "1.6.26",
     "drizzle-kit": "^0.31.10",
-    "tsx": "^4.23.11",
-    "better-auth": "^1.6.26",
-    "@shome/connectors": "*"
+    "tsx": "^4.23.11"
   }
 }
