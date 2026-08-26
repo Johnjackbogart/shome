@@ -1168,7 +1168,8 @@ function describeTarget(): string {
   const url = process.env.DATABASE_URL;
   if (url) return `Postgres at ${describeUrl(url)}`;
   const dir =
-    process.env.SHOME_PGLITE_DIR ?? path.join(process.cwd(), ".data", "pglite");
+    process.env.SHOME_PGLITE_DIR ??
+    path.resolve(process.cwd(), "../../apps/web/.data/pglite");
   const relative = path.relative(process.cwd(), dir);
   return `embedded PGlite at ${relative && !relative.startsWith("..") ? relative : dir}`;
 }

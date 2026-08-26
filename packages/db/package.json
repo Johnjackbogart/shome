@@ -24,6 +24,7 @@
     "@types/pg": "^8.20.4",
     "drizzle-kit": "^0.31.10",
     "tsx": "^4.23.11",
-    "better-auth": "^1.6.26"
+    "better-auth": "^1.6.26",
+    "@shome/connectors": "*"
   }
 }
