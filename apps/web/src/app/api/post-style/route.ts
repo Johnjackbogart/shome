@@ -1,4 +1,4 @@
-import { user } from "@shome/db";
+import { user, userPostStyleColumns } from "@shome/db";
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -13,13 +13,13 @@ export async function GET() {
   const db = await getDb();
 
   const [owner] = await db
-    .select({ defaultPostStyle: user.defaultPostStyle })
+    .select(userPostStyleColumns)
     .from(user)
     .where(eq(user.id, session.user.id))
     .limit(1);
 
   return NextResponse.json({
-    defaultPostStyle: postStyleOrDefault(owner?.defaultPostStyle),
+    defaultPostStyle: postStyleOrDefault(owner),
   });
 }
 
@@ -36,7 +36,7 @@ export async function PUT(req: Request) {
 
   await db
     .update(user)
-    .set({ defaultPostStyle: body.data.defaultPostStyle, updatedAt: new Date() })
+    .set({ ...body.data.defaultPostStyle, updatedAt: new Date() })
     .where(eq(user.id, session.user.id));
 
   return NextResponse.json({

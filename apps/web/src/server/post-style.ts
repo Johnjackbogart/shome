@@ -23,9 +23,9 @@ export const postStyleSchema = z.object({
 });
 
 /**
- * Database values still cross a trust boundary: an older migration stored
- * this column as free-form text, and an operator can edit JSON directly. Keep
- * malformed values from reaching either client as styling data.
+ * Database values still cross a trust boundary: older migrations stored the
+ * defaults as free-form text/JSON, and an operator can edit the scalar columns
+ * directly. Keep malformed values from reaching either client as styling data.
  */
 export function postStyleOrDefault(value: unknown): PostStyle {
   const parsed = postStyleSchema.safeParse(value);

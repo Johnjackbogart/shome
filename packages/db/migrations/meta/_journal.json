@@ -124,36 +124,8 @@
     {
       "idx": 17,
       "version": "7",
-      "when": 1787405861351,
-      "tag": "0017_closed_pyro",
-      "breakpoints": true
-    },
-    {
-      "idx": 18,
-      "version": "7",
-      "when": 1787490772674,
-      "tag": "0018_sharp_lord_tyger",
-      "breakpoints": true
-    },
-    {
-      "idx": 19,
-      "version": "7",
-      "when": 1787491551483,
-      "tag": "0019_colorful_thor",
-      "breakpoints": true
-    },
-    {
-      "idx": 20,
-      "version": "7",
-      "when": 1787754912791,
-      "tag": "0020_curly_rockslide",
-      "breakpoints": true
-    },
-    {
-      "idx": 21,
-      "version": "7",
-      "when": 1787756499400,
-      "tag": "0021_glamorous_alex_wilder",
+      "when": 1787405148814,
+      "tag": "0017_gorgeous_songbird",
       "breakpoints": true
     }
   ]

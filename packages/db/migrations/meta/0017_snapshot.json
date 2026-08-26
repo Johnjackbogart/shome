@@ -1,5 +1,5 @@
 {
-  "id": "3469442a-e8d0-4332-b25c-a9a5da18c5c5",
+  "id": "8503e613-7ca1-4e90-a4e2-69e589dd5fc6",
   "prevId": "81f04891-ce85-4e1f-abcc-036defccbb08",
   "version": "7",
   "dialect": "postgresql",
@@ -1448,19 +1448,47 @@
           "primaryKey": false,
           "notNull": false
         },
-        "default_post_style": {
-          "name": "default_post_style",
-          "type": "jsonb",
+        "border_style": {
+          "name": "border_style",
+          "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "default": "'{\"borderStyle\":\"#ffffff\",\"borderRadius\":\"16px\",\"borderLineStyle\":\"solid\",\"backgroundColor\":\"#0f172a\",\"font\":\"sans-serif\",\"fontColor\":\"#f8fafc\",\"secondaryTextColor\":\"#94a3b8\"}'::jsonb"
+          "notNull": false
         },
-        "app_style": {
-          "name": "app_style",
-          "type": "jsonb",
+        "border_radius": {
+          "name": "border_radius",
+          "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "default": "'{\"backgroundColor\":\"#070a18\",\"borderColor\":\"#24293a\",\"overridePostStyles\":false}'::jsonb"
+          "notNull": false
+        },
+        "border_line_style": {
+          "name": "border_line_style",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "background_color": {
+          "name": "background_color",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "font": {
+          "name": "font",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "font_color": {
+          "name": "font_color",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "secondary_text_color": {
+          "name": "secondary_text_color",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         },
         "created_at": {
           "name": "created_at",

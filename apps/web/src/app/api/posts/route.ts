@@ -1,5 +1,5 @@
 import type { PostStyle } from "@shome/core";
-import { mediaUploads, user } from "@shome/db";
+import { mediaUploads, user, userPostStyleColumns } from "@shome/db";
 import { and, eq, inArray } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -105,12 +105,12 @@ export async function POST(req: Request) {
         name: user.name,
         username: user.username,
         image: user.image,
-        defaultPostStyle: user.defaultPostStyle,
+        ...userPostStyleColumns,
       })
       .from(user)
       .where(eq(user.id, session.user.id))
       .limit(1);
-    const savedStyle = postStyleOrDefault(author?.defaultPostStyle);
+    const savedStyle = postStyleOrDefault(author);
     const style: PostStyle = {
       borderStyle: fields.borderStyle ?? savedStyle.borderStyle,
       borderRadius: fields.borderRadius ?? savedStyle.borderRadius,
