@@ -123,6 +123,11 @@ interface AuthResponse {
   user: { id: string };
 }
 
+/** A duplicate email or username, i.e. an account an earlier run created. */
+function isAlreadyRegistered(error: unknown): error is ApiError {
+  return error instanceof ApiError && /already|taken|exists/i.test(error.message);
+}
+
 /**
  * Signs the account up, or signs in when it is already there. Better Auth
  * hashes the password itself, which is the whole point of seeding this way.
