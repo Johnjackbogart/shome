@@ -61,15 +61,7 @@ function videoDuration(file: File): Promise<number> {
 
 export default function PostComposer({ onPosted, onSuccess }: PostComposerProps) {
   const [text, setText] = useState("");
-  const [borderStyle, setBorderStyle] = useState(DEFAULT_POST_STYLE.borderStyle);
-  const [borderRadius, setBorderRadius] = useState(DEFAULT_POST_STYLE.borderRadius);
-  const [borderLineStyle, setBorderLineStyle] = useState(DEFAULT_POST_STYLE.borderLineStyle);
-  const [backgroundColor, setBackgroundColor] = useState(DEFAULT_POST_STYLE.backgroundColor);
-  const [font, setFont] = useState(DEFAULT_POST_STYLE.font);
-  const [fontColor, setFontColor] = useState(DEFAULT_POST_STYLE.fontColor);
-  const [secondaryTextColor, setSecondaryTextColor] = useState(
-    DEFAULT_POST_STYLE.secondaryTextColor,
-  );
+  const [postStyle, setPostStyle] = useState<PostStyle>({ ...DEFAULT_POST_STYLE });
   const [profilePostStyle, setProfilePostStyle] = useState<PostStyle>({
     ...DEFAULT_POST_STYLE,
   });
@@ -90,13 +82,7 @@ export default function PostComposer({ onPosted, onSuccess }: PostComposerProps)
       .then(([connectionResult, profile]) => {
         setConnections(connectionResult.connections);
         setProfilePostStyle(profile.defaultPostStyle);
-        setBorderStyle(profile.defaultPostStyle.borderStyle);
-        setBorderRadius(profile.defaultPostStyle.borderRadius);
-        setBorderLineStyle(profile.defaultPostStyle.borderLineStyle);
-        setBackgroundColor(profile.defaultPostStyle.backgroundColor);
-        setFont(profile.defaultPostStyle.font);
-        setFontColor(profile.defaultPostStyle.fontColor);
-        setSecondaryTextColor(profile.defaultPostStyle.secondaryTextColor);
+        setPostStyle(profile.defaultPostStyle);
       })
       .catch((err) => setError(err instanceof Error ? err.message : String(err)));
   }, []);
@@ -111,6 +97,10 @@ export default function PostComposer({ onPosted, onSuccess }: PostComposerProps)
   const incompleteMedia = selectedMedia.some(
     (media) => !media.attachmentId || media.status === "uploading",
   );
+
+  function updatePostStyle<K extends keyof PostStyle>(key: K, value: PostStyle[K]) {
+    setPostStyle((current) => ({ ...current, [key]: value }));
+  }
 
   function updateMedia(localId: string, next: Partial<SelectedMedia>) {
     setSelectedMedia((current) =>
@@ -226,13 +216,7 @@ export default function PostComposer({ onPosted, onSuccess }: PostComposerProps)
         deliveries: Delivery[];
       }>("/api/posts", {
         text,
-        borderStyle,
-        borderRadius,
-        borderLineStyle,
-        backgroundColor,
-        font,
-        fontColor,
-        secondaryTextColor,
+        ...postStyle,
         blueskyConnectionId: blueskyConnectionId || undefined,
         mastodonConnectionId: mastodonConnectionId || undefined,
         attachmentIds: selectedMedia.flatMap((media) =>
@@ -241,13 +225,7 @@ export default function PostComposer({ onPosted, onSuccess }: PostComposerProps)
       });
       setText("");
       setSelectedMedia([]);
-      setBorderStyle(profilePostStyle.borderStyle);
-      setBorderRadius(profilePostStyle.borderRadius);
-      setBorderLineStyle(profilePostStyle.borderLineStyle);
-      setBackgroundColor(profilePostStyle.backgroundColor);
-      setFont(profilePostStyle.font);
-      setFontColor(profilePostStyle.fontColor);
-      setSecondaryTextColor(profilePostStyle.secondaryTextColor);
+      setPostStyle(profilePostStyle);
       onPosted(res.post);
       if (onSuccess) {
         onSuccess();
@@ -300,8 +278,8 @@ export default function PostComposer({ onPosted, onSuccess }: PostComposerProps)
           <input
             type="color"
             className="input_color size-9 p-1"
-            value={borderStyle}
-            onChange={(event) => setBorderStyle(event.target.value)}
+            value={postStyle.postBorderStyle}
+            onChange={(event) => updatePostStyle("postBorderStyle", event.target.value)}
           />
           Border color
         </label>
@@ -309,8 +287,13 @@ export default function PostComposer({ onPosted, onSuccess }: PostComposerProps)
           Border radius
           <select
             className="input flex-1 py-1.5 text-sm"
-            value={borderRadius}
-            onChange={(event) => setBorderRadius(event.target.value as typeof borderRadius)}
+            value={postStyle.postBorderRadius}
+            onChange={(event) =>
+              updatePostStyle(
+                "postBorderRadius",
+                event.target.value as PostStyle["postBorderRadius"],
+              )
+            }
           >
             {POST_BORDER_RADIUS_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
@@ -323,8 +306,13 @@ export default function PostComposer({ onPosted, onSuccess }: PostComposerProps)
           Border style
           <select
             className="input flex-1 py-1.5 text-sm"
-            value={borderLineStyle}
-            onChange={(event) => setBorderLineStyle(event.target.value as typeof borderLineStyle)}
+            value={postStyle.postBorderLineStyle}
+            onChange={(event) =>
+              updatePostStyle(
+                "postBorderLineStyle",
+                event.target.value as PostStyle["postBorderLineStyle"],
+              )
+            }
           >
             {POST_BORDER_LINE_STYLE_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
@@ -337,8 +325,8 @@ export default function PostComposer({ onPosted, onSuccess }: PostComposerProps)
           <input
             type="color"
             className="input_color size-9 p-1"
-            value={backgroundColor}
-            onChange={(event) => setBackgroundColor(event.target.value)}
+            value={postStyle.postBackgroundColor}
+            onChange={(event) => updatePostStyle("postBackgroundColor", event.target.value)}
           />
           Background color
         </label>
@@ -346,8 +334,8 @@ export default function PostComposer({ onPosted, onSuccess }: PostComposerProps)
           <input
             type="color"
             className="input_color size-9 p-1"
-            value={fontColor}
-            onChange={(event) => setFontColor(event.target.value)}
+            value={postStyle.postFontColor}
+            onChange={(event) => updatePostStyle("postFontColor", event.target.value)}
           />
           Font color
         </label>
@@ -355,8 +343,8 @@ export default function PostComposer({ onPosted, onSuccess }: PostComposerProps)
           <input
             type="color"
             className="input_color size-9 p-1"
-            value={secondaryTextColor}
-            onChange={(event) => setSecondaryTextColor(event.target.value)}
+            value={postStyle.postSecondaryTextColor}
+            onChange={(event) => updatePostStyle("postSecondaryTextColor", event.target.value)}
           />
           Secondary text color
         </label>
@@ -364,8 +352,10 @@ export default function PostComposer({ onPosted, onSuccess }: PostComposerProps)
           Font
           <select
             className="input flex-1 py-1.5 text-sm"
-            value={font}
-            onChange={(event) => setFont(event.target.value as typeof font)}
+            value={postStyle.postFont}
+            onChange={(event) =>
+              updatePostStyle("postFont", event.target.value as PostStyle["postFont"])
+            }
           >
             {POST_FONT_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>

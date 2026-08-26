@@ -5,9 +5,6 @@ import {
   POST_BORDER_LINE_STYLE_OPTIONS,
   POST_BORDER_RADIUS_OPTIONS,
   POST_FONT_OPTIONS,
-  type PostBorderLineStyle,
-  type PostBorderRadius,
-  type PostFont,
   type PostStyle,
 } from "@shome/core";
 import * as ImagePicker from "expo-image-picker";
@@ -73,19 +70,7 @@ type PostComposerProps = {
 export function PostComposer({ onPosted, onSuccess }: PostComposerProps) {
   const { appStyle } = useAppStyle();
   const [text, setText] = useState("");
-  const [borderStyle, setBorderStyle] = useState(DEFAULT_POST_STYLE.borderStyle);
-  const [borderRadius, setBorderRadius] = useState<PostBorderRadius>(
-    DEFAULT_POST_STYLE.borderRadius,
-  );
-  const [borderLineStyle, setBorderLineStyle] = useState<PostBorderLineStyle>(
-    DEFAULT_POST_STYLE.borderLineStyle,
-  );
-  const [backgroundColor, setBackgroundColor] = useState(DEFAULT_POST_STYLE.backgroundColor);
-  const [font, setFont] = useState<PostFont>(DEFAULT_POST_STYLE.font);
-  const [fontColor, setFontColor] = useState(DEFAULT_POST_STYLE.fontColor);
-  const [secondaryTextColor, setSecondaryTextColor] = useState(
-    DEFAULT_POST_STYLE.secondaryTextColor,
-  );
+  const [postStyle, setPostStyle] = useState<PostStyle>({ ...DEFAULT_POST_STYLE });
   const [profilePostStyle, setProfilePostStyle] = useState<PostStyle>({
     ...DEFAULT_POST_STYLE,
   });
@@ -147,13 +132,7 @@ export function PostComposer({ onPosted, onSuccess }: PostComposerProps) {
       .then(([connectionResult, profile]) => {
         setConnections(connectionResult.connections);
         setProfilePostStyle(profile.defaultPostStyle);
-        setBorderStyle(profile.defaultPostStyle.borderStyle);
-        setBorderRadius(profile.defaultPostStyle.borderRadius);
-        setBorderLineStyle(profile.defaultPostStyle.borderLineStyle);
-        setBackgroundColor(profile.defaultPostStyle.backgroundColor);
-        setFont(profile.defaultPostStyle.font);
-        setFontColor(profile.defaultPostStyle.fontColor);
-        setSecondaryTextColor(profile.defaultPostStyle.secondaryTextColor);
+        setPostStyle(profile.defaultPostStyle);
       })
       .catch((connectionError) =>
         setError(
@@ -161,6 +140,10 @@ export function PostComposer({ onPosted, onSuccess }: PostComposerProps) {
         ),
       );
   }, []);
+
+  function updatePostStyle<K extends keyof PostStyle>(key: K, value: PostStyle[K]) {
+    setPostStyle((current) => ({ ...current, [key]: value }));
+  }
 
   async function chooseMedia() {
     setError(null);
@@ -209,13 +192,13 @@ export function PostComposer({ onPosted, onSuccess }: PostComposerProps) {
     try {
       const form = new FormData();
       form.set("text", text);
-      form.set("borderStyle", borderStyle);
-      form.set("borderRadius", borderRadius);
-      form.set("borderLineStyle", borderLineStyle);
-      form.set("backgroundColor", backgroundColor);
-      form.set("font", font);
-      form.set("fontColor", fontColor);
-      form.set("secondaryTextColor", secondaryTextColor);
+      form.set("postBorderStyle", postStyle.postBorderStyle);
+      form.set("postBorderRadius", postStyle.postBorderRadius);
+      form.set("postBorderLineStyle", postStyle.postBorderLineStyle);
+      form.set("postBackgroundColor", postStyle.postBackgroundColor);
+      form.set("postFont", postStyle.postFont);
+      form.set("postFontColor", postStyle.postFontColor);
+      form.set("postSecondaryTextColor", postStyle.postSecondaryTextColor);
       if (blueskyConnectionId) form.set("blueskyConnectionId", blueskyConnectionId);
       if (mastodonConnectionId) form.set("mastodonConnectionId", mastodonConnectionId);
       for (const media of selectedMedia) {
@@ -238,13 +221,7 @@ export function PostComposer({ onPosted, onSuccess }: PostComposerProps) {
       );
       setText("");
       setSelectedMedia([]);
-      setBorderStyle(profilePostStyle.borderStyle);
-      setBorderRadius(profilePostStyle.borderRadius);
-      setBorderLineStyle(profilePostStyle.borderLineStyle);
-      setBackgroundColor(profilePostStyle.backgroundColor);
-      setFont(profilePostStyle.font);
-      setFontColor(profilePostStyle.fontColor);
-      setSecondaryTextColor(profilePostStyle.secondaryTextColor);
+      setPostStyle(profilePostStyle);
       onPosted(result.post);
       if (onSuccess) {
         onSuccess();
@@ -304,8 +281,8 @@ export function PostComposer({ onPosted, onSuccess }: PostComposerProps) {
         <View className="flex-row gap-2">
           <TextInput
             className={`${UI.input} flex-1 py-2 text-sm`}
-            value={borderStyle}
-            onChangeText={setBorderStyle}
+            value={postStyle.postBorderStyle}
+            onChangeText={(value) => updatePostStyle("postBorderStyle", value)}
             autoCapitalize="characters"
             maxLength={7}
             placeholder="#ffffff"
@@ -314,8 +291,8 @@ export function PostComposer({ onPosted, onSuccess }: PostComposerProps) {
           />
           <TextInput
             className={`${UI.input} flex-1 py-2 text-sm`}
-            value={backgroundColor}
-            onChangeText={setBackgroundColor}
+            value={postStyle.postBackgroundColor}
+            onChangeText={(value) => updatePostStyle("postBackgroundColor", value)}
             autoCapitalize="characters"
             maxLength={7}
             placeholder="#0f172a"
@@ -328,17 +305,23 @@ export function PostComposer({ onPosted, onSuccess }: PostComposerProps) {
           {POST_BORDER_RADIUS_OPTIONS.map((option) => (
             <Pressable
               key={option.value}
-              onPress={() => setBorderRadius(option.value)}
+              onPress={() => updatePostStyle("postBorderRadius", option.value)}
               className={`rounded-lg px-3 py-2 ${
-                borderRadius === option.value
+                postStyle.postBorderRadius === option.value
                   ? "bg-indigo-300"
                   : "border border-white/10 bg-white/5"
               }`}
               accessibilityRole="radio"
               accessibilityLabel={`${option.label} border radius`}
-              accessibilityState={{ selected: borderRadius === option.value }}
+              accessibilityState={{ selected: postStyle.postBorderRadius === option.value }}
             >
-              <Text className={borderRadius === option.value ? "text-slate-950" : "text-slate-200"}>
+              <Text
+                className={
+                  postStyle.postBorderRadius === option.value
+                    ? "text-slate-950"
+                    : "text-slate-200"
+                }
+              >
                 {option.label}
               </Text>
             </Pressable>
@@ -349,18 +332,22 @@ export function PostComposer({ onPosted, onSuccess }: PostComposerProps) {
           {POST_BORDER_LINE_STYLE_OPTIONS.map((option) => (
             <Pressable
               key={option.value}
-              onPress={() => setBorderLineStyle(option.value)}
+              onPress={() => updatePostStyle("postBorderLineStyle", option.value)}
               className={`rounded-lg px-3 py-2 ${
-                borderLineStyle === option.value
+                postStyle.postBorderLineStyle === option.value
                   ? "bg-indigo-300"
                   : "border border-white/10 bg-white/5"
               }`}
               accessibilityRole="radio"
               accessibilityLabel={`${option.label} border style`}
-              accessibilityState={{ selected: borderLineStyle === option.value }}
+              accessibilityState={{ selected: postStyle.postBorderLineStyle === option.value }}
             >
               <Text
-                className={borderLineStyle === option.value ? "text-slate-950" : "text-slate-200"}
+                className={
+                  postStyle.postBorderLineStyle === option.value
+                    ? "text-slate-950"
+                    : "text-slate-200"
+                }
               >
                 {option.label}
               </Text>
@@ -369,8 +356,8 @@ export function PostComposer({ onPosted, onSuccess }: PostComposerProps) {
         </View>
         <TextInput
           className={`${UI.input} py-2 text-sm`}
-          value={fontColor}
-          onChangeText={setFontColor}
+          value={postStyle.postFontColor}
+          onChangeText={(value) => updatePostStyle("postFontColor", value)}
           autoCapitalize="characters"
           maxLength={7}
           placeholder="#f8fafc"
@@ -379,8 +366,8 @@ export function PostComposer({ onPosted, onSuccess }: PostComposerProps) {
         />
         <TextInput
           className={`${UI.input} py-2 text-sm`}
-          value={secondaryTextColor}
-          onChangeText={setSecondaryTextColor}
+          value={postStyle.postSecondaryTextColor}
+          onChangeText={(value) => updatePostStyle("postSecondaryTextColor", value)}
           autoCapitalize="characters"
           maxLength={7}
           placeholder="#94a3b8"
@@ -391,15 +378,21 @@ export function PostComposer({ onPosted, onSuccess }: PostComposerProps) {
           {POST_FONT_OPTIONS.map((option) => (
             <Pressable
               key={option.value}
-              onPress={() => setFont(option.value)}
+              onPress={() => updatePostStyle("postFont", option.value)}
               className={`rounded-lg px-3 py-2 ${
-                font === option.value ? "bg-indigo-300" : "border border-white/10 bg-white/5"
+                postStyle.postFont === option.value
+                  ? "bg-indigo-300"
+                  : "border border-white/10 bg-white/5"
               }`}
               accessibilityRole="radio"
               accessibilityLabel={`${option.label} font`}
-              accessibilityState={{ selected: font === option.value }}
+              accessibilityState={{ selected: postStyle.postFont === option.value }}
             >
-              <Text className={font === option.value ? "text-slate-950" : "text-slate-200"}>
+              <Text
+                className={
+                  postStyle.postFont === option.value ? "text-slate-950" : "text-slate-200"
+                }
+              >
                 {option.label}
               </Text>
             </Pressable>

@@ -13,13 +13,13 @@ export const hexColorSchema = z
   .regex(/^#[0-9a-fA-F]{6}$/, "must be a six-digit hex color");
 
 export const postStyleSchema = z.object({
-  borderStyle: hexColorSchema,
-  borderRadius: z.enum(POST_BORDER_RADIUS_VALUES),
-  borderLineStyle: z.enum(POST_BORDER_LINE_STYLE_VALUES),
-  backgroundColor: hexColorSchema,
-  font: z.enum(POST_FONT_VALUES),
-  fontColor: hexColorSchema,
-  secondaryTextColor: hexColorSchema,
+  postBorderStyle: hexColorSchema,
+  postBorderRadius: z.enum(POST_BORDER_RADIUS_VALUES),
+  postBorderLineStyle: z.enum(POST_BORDER_LINE_STYLE_VALUES),
+  postBackgroundColor: hexColorSchema,
+  postFont: z.enum(POST_FONT_VALUES),
+  postFontColor: hexColorSchema,
+  postSecondaryTextColor: hexColorSchema,
 });
 
 /**

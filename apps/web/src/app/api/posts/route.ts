@@ -15,7 +15,9 @@ import {
 import { postStyleOrDefault, postStyleSchema } from "#/server/post-style";
 import { createPost, type NewPostMedia, postToFeedItem } from "#/server/posting";
 
-const postFieldsSchema = postStyleSchema.partial().extend({
+const partialPostStyleSchema = postStyleSchema.partial();
+
+const postFieldsSchema = partialPostStyleSchema.extend({
   text: z.string().trim().max(5_000),
   blueskyConnectionId: z.string().regex(UUID_RE, "invalid Bluesky connection").optional(),
   mastodonConnectionId: z.string().regex(UUID_RE, "invalid Mastodon connection").optional(),
@@ -66,13 +68,13 @@ export async function POST(req: Request) {
     }
     const parsed = postFieldsSchema.safeParse({
       text: formField(form, "text"),
-      borderStyle: formField(form, "borderStyle"),
-      borderRadius: formField(form, "borderRadius"),
-      borderLineStyle: formField(form, "borderLineStyle"),
-      backgroundColor: formField(form, "backgroundColor"),
-      font: formField(form, "font"),
-      fontColor: formField(form, "fontColor"),
-      secondaryTextColor: formField(form, "secondaryTextColor"),
+      postBorderStyle: formField(form, "postBorderStyle"),
+      postBorderRadius: formField(form, "postBorderRadius"),
+      postBorderLineStyle: formField(form, "postBorderLineStyle"),
+      postBackgroundColor: formField(form, "postBackgroundColor"),
+      postFont: formField(form, "postFont"),
+      postFontColor: formField(form, "postFontColor"),
+      postSecondaryTextColor: formField(form, "postSecondaryTextColor"),
       blueskyConnectionId: formField(form, "blueskyConnectionId"),
       mastodonConnectionId: formField(form, "mastodonConnectionId"),
     });
@@ -111,15 +113,7 @@ export async function POST(req: Request) {
       .where(eq(user.id, session.user.id))
       .limit(1);
     const savedStyle = postStyleOrDefault(author);
-    const style: PostStyle = {
-      borderStyle: fields.borderStyle ?? savedStyle.borderStyle,
-      borderRadius: fields.borderRadius ?? savedStyle.borderRadius,
-      borderLineStyle: fields.borderLineStyle ?? savedStyle.borderLineStyle,
-      backgroundColor: fields.backgroundColor ?? savedStyle.backgroundColor,
-      font: fields.font ?? savedStyle.font,
-      fontColor: fields.fontColor ?? savedStyle.fontColor,
-      secondaryTextColor: fields.secondaryTextColor ?? savedStyle.secondaryTextColor,
-    };
+    const style: PostStyle = { ...savedStyle, ...partialPostStyleSchema.parse(fields) };
     let uploadedMedia: NewPostMedia[] = [];
     if (attachmentIds.length > 0) {
       const uploads = await db

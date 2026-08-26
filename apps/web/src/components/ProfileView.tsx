@@ -323,8 +323,8 @@ function DefaultPostStyleEditor({
             <input
               type="color"
               className="input_color size-9 p-1"
-              value={value.borderStyle}
-              onChange={(event) => update("borderStyle", event.target.value)}
+              value={value.postBorderStyle}
+              onChange={(event) => update("postBorderStyle", event.target.value)}
             />
             Border color
           </label>
@@ -332,9 +332,12 @@ function DefaultPostStyleEditor({
             Border radius
             <select
               className="input flex-1 py-1.5 text-sm"
-              value={value.borderRadius}
+              value={value.postBorderRadius}
               onChange={(event) =>
-                update("borderRadius", event.target.value as PostStyle["borderRadius"])
+                update(
+                  "postBorderRadius",
+                  event.target.value as PostStyle["postBorderRadius"],
+                )
               }
             >
               {POST_BORDER_RADIUS_OPTIONS.map((option) => (
@@ -348,9 +351,12 @@ function DefaultPostStyleEditor({
             Border style
             <select
               className="input flex-1 py-1.5 text-sm"
-              value={value.borderLineStyle}
+              value={value.postBorderLineStyle}
               onChange={(event) =>
-                update("borderLineStyle", event.target.value as PostStyle["borderLineStyle"])
+                update(
+                  "postBorderLineStyle",
+                  event.target.value as PostStyle["postBorderLineStyle"],
+                )
               }
             >
               {POST_BORDER_LINE_STYLE_OPTIONS.map((option) => (
@@ -364,8 +370,8 @@ function DefaultPostStyleEditor({
             <input
               type="color"
               className="input_color size-9 p-1"
-              value={value.backgroundColor}
-              onChange={(event) => update("backgroundColor", event.target.value)}
+              value={value.postBackgroundColor}
+              onChange={(event) => update("postBackgroundColor", event.target.value)}
             />
             Background color
           </label>
@@ -373,8 +379,8 @@ function DefaultPostStyleEditor({
             <input
               type="color"
               className="input_color size-9 p-1"
-              value={value.fontColor}
-              onChange={(event) => update("fontColor", event.target.value)}
+              value={value.postFontColor}
+              onChange={(event) => update("postFontColor", event.target.value)}
             />
             Font color
           </label>
@@ -382,8 +388,8 @@ function DefaultPostStyleEditor({
             <input
               type="color"
               className="input_color size-9 p-1"
-              value={value.secondaryTextColor}
-              onChange={(event) => update("secondaryTextColor", event.target.value)}
+              value={value.postSecondaryTextColor}
+              onChange={(event) => update("postSecondaryTextColor", event.target.value)}
             />
             Secondary text
           </label>
@@ -391,8 +397,10 @@ function DefaultPostStyleEditor({
             Font
             <select
               className="input flex-1 py-1.5 text-sm"
-              value={value.font}
-              onChange={(event) => update("font", event.target.value as PostStyle["font"])}
+              value={value.postFont}
+              onChange={(event) =>
+                update("postFont", event.target.value as PostStyle["postFont"])
+              }
             >
               {POST_FONT_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -406,17 +414,17 @@ function DefaultPostStyleEditor({
         <article
           className="border p-4"
           style={{
-            borderColor: value.borderStyle,
-            borderRadius: value.borderRadius,
-            borderStyle: value.borderLineStyle,
-            backgroundColor: value.backgroundColor,
-            color: value.fontColor,
-            fontFamily: value.font,
+            borderColor: value.postBorderStyle,
+            borderRadius: value.postBorderRadius,
+            borderStyle: value.postBorderLineStyle,
+            backgroundColor: value.postBackgroundColor,
+            color: value.postFontColor,
+            fontFamily: value.postFont,
           }}
         >
           <p className="font-semibold">Your next post</p>
           <p className="mt-2">This preview updates as you edit your default style.</p>
-          <p className="mt-3 text-xs" style={{ color: value.secondaryTextColor }}>
+          <p className="mt-3 text-xs" style={{ color: value.postSecondaryTextColor }}>
             @you · just now
           </p>
         </article>

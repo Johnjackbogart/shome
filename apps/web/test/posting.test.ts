@@ -7,26 +7,26 @@ describe("post style API view", () => {
     const post = {
       id: "post-1",
       text: "Styled post",
-      borderStyle: "#123456",
-      borderRadius: "24px",
-      borderLineStyle: "dashed",
-      backgroundColor: "#abcdef",
-      font: "serif",
-      fontColor: "#fedcba",
-      secondaryTextColor: "#aabbcc",
+      postBorderStyle: "#123456",
+      postBorderRadius: "24px",
+      postBorderLineStyle: "dashed",
+      postBackgroundColor: "#abcdef",
+      postFont: "serif",
+      postFontColor: "#fedcba",
+      postSecondaryTextColor: "#aabbcc",
       blueskyUrl: null,
       mastodonUrl: null,
       createdAt: new Date("2026-01-01T00:00:00.000Z"),
     } as Post;
 
     expect(postToFeedItem(post, { name: "Sam", username: "sam", image: null })).toMatchObject({
-      borderStyle: "#123456",
-      borderRadius: "24px",
-      borderLineStyle: "dashed",
-      backgroundColor: "#abcdef",
-      font: "serif",
-      fontColor: "#fedcba",
-      secondaryTextColor: "#aabbcc",
+      postBorderStyle: "#123456",
+      postBorderRadius: "24px",
+      postBorderLineStyle: "dashed",
+      postBackgroundColor: "#abcdef",
+      postFont: "serif",
+      postFontColor: "#fedcba",
+      postSecondaryTextColor: "#aabbcc",
     });
   });
 
@@ -34,18 +34,18 @@ describe("post style API view", () => {
     const post = {
       id: "post-1",
       text: "Styled post",
-      borderStyle: null,
-      borderRadius: null,
-      borderLineStyle: null,
-      backgroundColor: null,
-      font: "url(https://example.test/font)",
-      fontColor: null,
-      secondaryTextColor: null,
+      postBorderStyle: null,
+      postBorderRadius: null,
+      postBorderLineStyle: null,
+      postBackgroundColor: null,
+      postFont: "url(https://example.test/font)",
+      postFontColor: null,
+      postSecondaryTextColor: null,
       blueskyUrl: null,
       mastodonUrl: null,
       createdAt: new Date("2026-01-01T00:00:00.000Z"),
     } as Post;
 
-    expect(postToFeedItem(post, { name: "Sam", username: "sam", image: null }).font).toBeNull();
+    expect(postToFeedItem(post, { name: "Sam", username: "sam", image: null }).postFont).toBeNull();
   });
 });

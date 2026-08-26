@@ -121,13 +121,13 @@ export interface FeedItemView {
   sourceId: string;
   sourceKind: string;
   /** Per-post visual settings. Source items leave these unset. */
-  borderStyle: string | null;
-  borderRadius: PostBorderRadius | null;
-  borderLineStyle: PostBorderLineStyle | null;
-  backgroundColor: string | null;
-  font: PostFont | null;
-  fontColor: string | null;
-  secondaryTextColor: string | null;
+  postBorderStyle: string | null;
+  postBorderRadius: PostBorderRadius | null;
+  postBorderLineStyle: PostBorderLineStyle | null;
+  postBackgroundColor: string | null;
+  postFont: PostFont | null;
+  postFontColor: string | null;
+  postSecondaryTextColor: string | null;
   sourceTitle: string | null;
   url: string | null;
   title: string | null;

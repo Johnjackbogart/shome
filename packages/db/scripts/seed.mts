@@ -239,9 +239,9 @@ async function insertSeed(db: Db): Promise<SeedCounts> {
       emailVerified: true,
       username: seedUser.handle,
       displayUsername: seedUser.handle,
-      // Both styles land on the user row: the post style in the bare columns,
-      // the app style in the `app_*` ones. Written out for every account, so
-      // none of them depends on a null fallback or a column default.
+      // Both styles land on the user row: the post style in the `post_*`
+      // columns, the app style in the `app_*` ones. Written out for every
+      // account, so none depends on a null fallback or a column default.
       ...seedUser.style,
       ...appStyleColumns(seedUser.appStyle),
       createdAt: ago(240 - index),

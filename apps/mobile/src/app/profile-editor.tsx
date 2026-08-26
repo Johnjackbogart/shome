@@ -756,21 +756,26 @@ function DefaultPostStyleEditor({
       <View
         className="gap-1 border p-4"
         style={{
-          borderColor: value.borderStyle,
-          borderRadius: Number.parseInt(value.borderRadius, 10),
-          borderStyle: value.borderLineStyle,
-          backgroundColor: value.backgroundColor,
+          borderColor: value.postBorderStyle,
+          borderRadius: Number.parseInt(value.postBorderRadius, 10),
+          borderStyle: value.postBorderLineStyle,
+          backgroundColor: value.postBackgroundColor,
         }}
       >
-        <Text style={{ color: value.fontColor, fontFamily: value.font, fontWeight: "600" }}>
+        <Text
+          style={{ color: value.postFontColor, fontFamily: value.postFont, fontWeight: "600" }}
+        >
           Your next post
         </Text>
-        <Text className="mt-1" style={{ color: value.fontColor, fontFamily: value.font }}>
+        <Text
+          className="mt-1"
+          style={{ color: value.postFontColor, fontFamily: value.postFont }}
+        >
           This preview updates as you edit your default style.
         </Text>
         <Text
           className="mt-2 text-xs"
-          style={{ color: value.secondaryTextColor, fontFamily: value.font }}
+          style={{ color: value.postSecondaryTextColor, fontFamily: value.postFont }}
         >
           @you · just now
         </Text>
@@ -782,8 +787,8 @@ function DefaultPostStyleEditor({
           <Text className="text-xs text-slate-400">Border color</Text>
           <TextInput
             className={`${UI.input} py-2 text-sm`}
-            value={value.borderStyle}
-            onChangeText={(next) => update("borderStyle", next)}
+            value={value.postBorderStyle}
+            onChangeText={(next) => update("postBorderStyle", next)}
             autoCapitalize="characters"
             maxLength={7}
             accessibilityLabel="Default post border color"
@@ -793,8 +798,8 @@ function DefaultPostStyleEditor({
           <Text className="text-xs text-slate-400">Background color</Text>
           <TextInput
             className={`${UI.input} py-2 text-sm`}
-            value={value.backgroundColor}
-            onChangeText={(next) => update("backgroundColor", next)}
+            value={value.postBackgroundColor}
+            onChangeText={(next) => update("postBackgroundColor", next)}
             autoCapitalize="characters"
             maxLength={7}
             accessibilityLabel="Default post background color"
@@ -808,8 +813,8 @@ function DefaultPostStyleEditor({
           <StyleOption
             key={option.value}
             label={option.label}
-            selected={value.borderRadius === option.value}
-            onPress={() => update("borderRadius", option.value)}
+            selected={value.postBorderRadius === option.value}
+            onPress={() => update("postBorderRadius", option.value)}
           />
         ))}
       </View>
@@ -820,8 +825,8 @@ function DefaultPostStyleEditor({
           <StyleOption
             key={option.value}
             label={option.label}
-            selected={value.borderLineStyle === option.value}
-            onPress={() => update("borderLineStyle", option.value)}
+            selected={value.postBorderLineStyle === option.value}
+            onPress={() => update("postBorderLineStyle", option.value)}
           />
         ))}
       </View>
@@ -831,8 +836,8 @@ function DefaultPostStyleEditor({
           <Text className="text-xs text-slate-400">Font color</Text>
           <TextInput
             className={`${UI.input} py-2 text-sm`}
-            value={value.fontColor}
-            onChangeText={(next) => update("fontColor", next)}
+            value={value.postFontColor}
+            onChangeText={(next) => update("postFontColor", next)}
             autoCapitalize="characters"
             maxLength={7}
             accessibilityLabel="Default post font color"
@@ -842,8 +847,8 @@ function DefaultPostStyleEditor({
           <Text className="text-xs text-slate-400">Secondary text</Text>
           <TextInput
             className={`${UI.input} py-2 text-sm`}
-            value={value.secondaryTextColor}
-            onChangeText={(next) => update("secondaryTextColor", next)}
+            value={value.postSecondaryTextColor}
+            onChangeText={(next) => update("postSecondaryTextColor", next)}
             autoCapitalize="characters"
             maxLength={7}
             accessibilityLabel="Default post secondary text color"
@@ -857,8 +862,8 @@ function DefaultPostStyleEditor({
           <StyleOption
             key={option.value}
             label={option.label}
-            selected={value.font === option.value}
-            onPress={() => update("font", option.value)}
+            selected={value.postFont === option.value}
+            onPress={() => update("postFont", option.value)}
           />
         ))}
       </View>
