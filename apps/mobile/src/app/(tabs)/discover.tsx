@@ -54,7 +54,7 @@ export default function DiscoverScreen() {
   return (
     <SafeAreaView
       className={UI.screen}
-      style={{ backgroundColor: appStyle.backgroundColor }}
+      style={{ backgroundColor: appStyle.appBackgroundColor }}
       edges={["top"]}
     >
       <ScrollView

@@ -193,62 +193,62 @@ const FOREST: PostStyle = {
 // App styles — the signed-in chrome, which is a separate choice from post
 // styles. Most accounts run the shipped default; a few are customized so the
 // feature has something to show, including the two settings with no equivalent
-// on the post side: `spacing`, and `overridePostStyles`.
+// on the post side: `appSpacing`, and `appOverridePostStyles`.
 // ---------------------------------------------------------------------------
 
 const APP_DEFAULT: AppStyle = { ...DEFAULT_APP_STYLE };
 
 const APP_PAPER: AppStyle = {
-  backgroundColor: "#f6f1e7",
-  secondaryBackgroundColor: "#fdf6e3",
-  borderColor: "#d9cfae",
-  borderRadius: "8px",
-  borderLineStyle: "solid",
-  font: "serif",
-  fontColor: "#073642",
-  secondaryTextColor: "#657b83",
-  spacing: "20px",
-  overridePostStyles: false,
+  appBackgroundColor: "#f6f1e7",
+  appSecondaryBackgroundColor: "#fdf6e3",
+  appBorderStyle: "#d9cfae",
+  appBorderRadius: "8px",
+  appBorderLineStyle: "solid",
+  appFont: "serif",
+  appFontColor: "#073642",
+  appSecondaryTextColor: "#657b83",
+  appSpacing: "20px",
+  appOverridePostStyles: false,
 };
 
 const APP_TERMINAL: AppStyle = {
-  backgroundColor: "#000000",
-  secondaryBackgroundColor: "#aaaaaa",
-  borderColor: "#1f3d2b",
-  borderRadius: "0px",
-  borderLineStyle: "dashed",
-  font: "monospace",
-  fontColor: "#7ef29d",
-  secondaryTextColor: "#3f9c62",
-  spacing: "4px",
-  overridePostStyles: false,
+  appBackgroundColor: "#000000",
+  appSecondaryBackgroundColor: "#aaaaaa",
+  appBorderStyle: "#1f3d2b",
+  appBorderRadius: "0px",
+  appBorderLineStyle: "dashed",
+  appFont: "monospace",
+  appFontColor: "#7ef29d",
+  appSecondaryTextColor: "#3f9c62",
+  appSpacing: "4px",
+  appOverridePostStyles: false,
 };
 
 /** The one account that flattens every post into its own chrome. */
 const APP_DEEP_SEA: AppStyle = {
-  backgroundColor: "#021d1c",
-  secondaryBackgroundColor: "#042f2e",
-  borderColor: "#0f766e",
-  borderRadius: "24px",
-  borderLineStyle: "solid",
-  font: "sans-serif",
-  fontColor: "#ccfbf1",
-  secondaryTextColor: "#5eead4",
-  spacing: "12px",
-  overridePostStyles: true,
+  appBackgroundColor: "#021d1c",
+  appSecondaryBackgroundColor: "#042f2e",
+  appBorderStyle: "#0f766e",
+  appBorderRadius: "24px",
+  appBorderLineStyle: "solid",
+  appFont: "sans-serif",
+  appFontColor: "#ccfbf1",
+  appSecondaryTextColor: "#5eead4",
+  appSpacing: "12px",
+  appOverridePostStyles: true,
 };
 
 const APP_NEON: AppStyle = {
-  backgroundColor: "#0f0a1e",
-  secondaryBackgroundColor: "#1a0b2e",
-  borderColor: "#7e22ce",
-  borderRadius: "16px",
-  borderLineStyle: "dotted",
-  font: "monospace",
-  fontColor: "#f0abfc",
-  secondaryTextColor: "#a855f7",
-  spacing: "32px",
-  overridePostStyles: false,
+  appBackgroundColor: "#0f0a1e",
+  appSecondaryBackgroundColor: "#1a0b2e",
+  appBorderStyle: "#7e22ce",
+  appBorderRadius: "16px",
+  appBorderLineStyle: "dotted",
+  appFont: "monospace",
+  appFontColor: "#f0abfc",
+  appSecondaryTextColor: "#a855f7",
+  appSpacing: "32px",
+  appOverridePostStyles: false,
 };
 
 /** A profile that replaces the default document, so both render paths get used. */

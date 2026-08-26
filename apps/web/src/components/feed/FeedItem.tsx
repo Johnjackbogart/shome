@@ -41,33 +41,33 @@ export default function FeedItem({ item, appStyle }: { item: FeedItemView; appSt
         item.postFontColor ||
         item.postSecondaryTextColor,
     );
-  const appOverridesPost = item.sourceKind === "post" && appStyle.overridePostStyles;
+  const appOverridesPost = item.sourceKind === "post" && appStyle.appOverridePostStyles;
   const articleStyle =
     hasCustomStyle || appOverridesPost
       ? {
           borderColor: appOverridesPost
-            ? appStyle.borderColor
+            ? appStyle.appBorderStyle
             : (item.postBorderStyle ?? undefined),
           borderRadius: appOverridesPost
-            ? appStyle.borderRadius
+            ? appStyle.appBorderRadius
             : (item.postBorderRadius ?? undefined),
           borderStyle: appOverridesPost
-            ? appStyle.borderLineStyle
+            ? appStyle.appBorderLineStyle
             : (item.postBorderLineStyle ?? undefined),
           backgroundColor: appOverridesPost
-            ? appStyle.secondaryBackgroundColor
+            ? appStyle.appSecondaryBackgroundColor
             : (item.postBackgroundColor ?? undefined),
-          color: appOverridesPost ? appStyle.fontColor : (item.postFontColor ?? undefined),
-          fontFamily: appOverridesPost ? appStyle.font : (item.postFont ?? undefined),
+          color: appOverridesPost ? appStyle.appFontColor : (item.postFontColor ?? undefined),
+          fontFamily: appOverridesPost ? appStyle.appFont : (item.postFont ?? undefined),
         }
       : undefined;
   const primaryTextStyle = appOverridesPost
-    ? { color: appStyle.fontColor }
+    ? { color: appStyle.appFontColor }
     : hasCustomStyle
       ? { color: item.postFontColor ?? undefined }
       : undefined;
   const secondaryTextStyle = appOverridesPost
-    ? { color: appStyle.secondaryTextColor }
+    ? { color: appStyle.appSecondaryTextColor }
     : hasCustomStyle
       ? { color: item.postSecondaryTextColor ?? item.postFontColor ?? undefined }
       : undefined;

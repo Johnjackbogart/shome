@@ -32,13 +32,13 @@ export function FeedItemCard({ item }: { item: FeedItemView }) {
         item.postFontColor ||
         item.postSecondaryTextColor,
     );
-  const appOverridesPost = item.sourceKind === "post" && appStyle.overridePostStyles;
+  const appOverridesPost = item.sourceKind === "post" && appStyle.appOverridePostStyles;
   const usesAppStyle = !hasCustomStyle || appOverridesPost;
   const postTextStyle = usesAppStyle
-    ? { color: appStyle.fontColor, fontFamily: appStyle.font }
+    ? { color: appStyle.appFontColor, fontFamily: appStyle.appFont }
     : { color: item.postFontColor ?? undefined, fontFamily: item.postFont ?? undefined };
   const postSecondaryTextStyle = usesAppStyle
-    ? { color: appStyle.secondaryTextColor, fontFamily: appStyle.font }
+    ? { color: appStyle.appSecondaryTextColor, fontFamily: appStyle.appFont }
     : {
         color: item.postSecondaryTextColor ?? item.postFontColor ?? undefined,
         fontFamily: item.postFont ?? undefined,
@@ -47,32 +47,32 @@ export function FeedItemCard({ item }: { item: FeedItemView }) {
     hasCustomStyle || appOverridesPost
       ? {
           borderColor: appOverridesPost
-            ? appStyle.borderColor
+            ? appStyle.appBorderStyle
             : (item.postBorderStyle ?? undefined),
           borderRadius: appOverridesPost
-            ? Number.parseInt(appStyle.borderRadius, 10)
+            ? Number.parseInt(appStyle.appBorderRadius, 10)
             : item.postBorderRadius
               ? Number.parseInt(item.postBorderRadius, 10)
               : undefined,
           borderStyle: appOverridesPost
-            ? appStyle.borderLineStyle
+            ? appStyle.appBorderLineStyle
             : (item.postBorderLineStyle ?? undefined),
           backgroundColor: appOverridesPost
-            ? appStyle.secondaryBackgroundColor
+            ? appStyle.appSecondaryBackgroundColor
             : (item.postBackgroundColor ?? undefined),
         }
       : {
-          borderColor: appStyle.borderColor,
-          borderRadius: Number.parseInt(appStyle.borderRadius, 10),
-          borderStyle: appStyle.borderLineStyle,
-          backgroundColor: appStyle.secondaryBackgroundColor,
+          borderColor: appStyle.appBorderStyle,
+          borderRadius: Number.parseInt(appStyle.appBorderRadius, 10),
+          borderStyle: appStyle.appBorderLineStyle,
+          backgroundColor: appStyle.appSecondaryBackgroundColor,
         };
 
   return (
     <Pressable
       onPress={item.url ? () => WebBrowser.openBrowserAsync(item.url as string) : undefined}
       className={`${UI.card} active:opacity-80`}
-      style={[postCardStyle, { marginBottom: Number.parseInt(appStyle.spacing, 10) }]}
+      style={[postCardStyle, { marginBottom: Number.parseInt(appStyle.appSpacing, 10) }]}
     >
       <View className="mb-1.5 flex-row flex-wrap items-center gap-2">
         <Text

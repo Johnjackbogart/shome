@@ -85,7 +85,7 @@ export function VisualProfileBuilder({ source, previewDoc, previewError, onChang
         }}
         style={{
           height: 720,
-          backgroundColor: appStyle.secondaryBackgroundColor,
+          backgroundColor: appStyle.appSecondaryBackgroundColor,
           borderRadius: 16,
         }}
       />
