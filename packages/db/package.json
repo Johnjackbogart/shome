@@ -12,6 +12,7 @@
     "studio": "drizzle-kit studio",
     "migrate": "node scripts/migrate.mjs",
     "seed": "tsx scripts/seed.mts",
+    "seed:http": "tsx scripts/seed-http.mts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
