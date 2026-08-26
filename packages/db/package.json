@@ -11,6 +11,8 @@
     "sql": "node scripts/sql.mjs",
     "studio": "drizzle-kit studio",
     "migrate": "node scripts/migrate.mjs",
+    "seed": "tsx scripts/seed.mts",
+    "seed:http": "tsx scripts/seed-http.mts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -20,7 +22,10 @@
     "pg": "^8.22.0"
   },
   "devDependencies": {
+    "@shome/connectors": "*",
     "@types/pg": "^8.20.4",
-    "drizzle-kit": "^0.31.10"
+    "better-auth": "1.6.26",
+    "drizzle-kit": "^0.31.10",
+    "tsx": "^4.23.11"
   }
 }
