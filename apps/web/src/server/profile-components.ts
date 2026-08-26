@@ -69,24 +69,28 @@ function isHexColor(value: string | null): value is string {
 function postStyleAttribute(
   post: Pick<
     Post,
-    | "borderStyle"
-    | "borderRadius"
-    | "borderLineStyle"
-    | "backgroundColor"
-    | "font"
-    | "fontColor"
-    | "secondaryTextColor"
+    | "postBorderStyle"
+    | "postBorderRadius"
+    | "postBorderLineStyle"
+    | "postBackgroundColor"
+    | "postFont"
+    | "postFontColor"
+    | "postSecondaryTextColor"
   >,
 ): string {
   const declarations = [
-    isHexColor(post.borderStyle) ? `border-color: ${post.borderStyle}` : null,
-    isPostBorderRadius(post.borderRadius) ? `border-radius: ${post.borderRadius}` : null,
-    isPostBorderLineStyle(post.borderLineStyle) ? `border-style: ${post.borderLineStyle}` : null,
-    isHexColor(post.backgroundColor) ? `background-color: ${post.backgroundColor}` : null,
-    isPostFont(post.font) ? `font-family: ${post.font}` : null,
-    isHexColor(post.fontColor) ? `color: ${post.fontColor}` : null,
-    isHexColor(post.secondaryTextColor)
-      ? `--shome-post-secondary-text-color: ${post.secondaryTextColor}`
+    isHexColor(post.postBorderStyle) ? `border-color: ${post.postBorderStyle}` : null,
+    isPostBorderRadius(post.postBorderRadius) ? `border-radius: ${post.postBorderRadius}` : null,
+    isPostBorderLineStyle(post.postBorderLineStyle)
+      ? `border-style: ${post.postBorderLineStyle}`
+      : null,
+    isHexColor(post.postBackgroundColor)
+      ? `background-color: ${post.postBackgroundColor}`
+      : null,
+    isPostFont(post.postFont) ? `font-family: ${post.postFont}` : null,
+    isHexColor(post.postFontColor) ? `color: ${post.postFontColor}` : null,
+    isHexColor(post.postSecondaryTextColor)
+      ? `--shome-post-secondary-text-color: ${post.postSecondaryTextColor}`
       : null,
   ].filter((declaration): declaration is string => Boolean(declaration));
   return declarations.length ? ` style="${declarations.join("; ")}"` : "";
@@ -146,8 +150,8 @@ async function renderPosts(db: Db, userId: string): Promise<string> {
                 `<a class="shome-post__link" href="${escapeHtml(link.url)}">${link.label} ↗</a>`,
             )
             .join("");
-          const hasCustomFontColor = isHexColor(post.fontColor);
-          const hasCustomSecondaryTextColor = isHexColor(post.secondaryTextColor);
+          const hasCustomFontColor = isHexColor(post.postFontColor);
+          const hasCustomSecondaryTextColor = isHexColor(post.postSecondaryTextColor);
           return `<article class="shome-post${hasCustomFontColor ? " shome-post--custom-font-color" : ""}${hasCustomSecondaryTextColor ? " shome-post--custom-secondary-text-color" : ""}"${postStyleAttribute(post)}>
   <p class="shome-post__text">${escapeTextWithBreaks(post.text)}</p>
   ${media ? `<div class="shome-post__media">${media}</div>` : ""}

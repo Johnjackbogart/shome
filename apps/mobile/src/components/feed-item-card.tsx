@@ -24,40 +24,42 @@ export function FeedItemCard({ item }: { item: FeedItemView }) {
   const hasCustomStyle =
     item.sourceKind === "post" &&
     Boolean(
-      item.borderStyle ||
-        item.borderRadius ||
-        item.borderLineStyle ||
-        item.backgroundColor ||
-        item.font ||
-        item.fontColor ||
-        item.secondaryTextColor,
+      item.postBorderStyle ||
+        item.postBorderRadius ||
+        item.postBorderLineStyle ||
+        item.postBackgroundColor ||
+        item.postFont ||
+        item.postFontColor ||
+        item.postSecondaryTextColor,
     );
   const appOverridesPost = item.sourceKind === "post" && appStyle.overridePostStyles;
   const usesAppStyle = !hasCustomStyle || appOverridesPost;
   const postTextStyle = usesAppStyle
     ? { color: appStyle.fontColor, fontFamily: appStyle.font }
-    : { color: item.fontColor ?? undefined, fontFamily: item.font ?? undefined };
+    : { color: item.postFontColor ?? undefined, fontFamily: item.postFont ?? undefined };
   const postSecondaryTextStyle = usesAppStyle
     ? { color: appStyle.secondaryTextColor, fontFamily: appStyle.font }
     : {
-        color: item.secondaryTextColor ?? item.fontColor ?? undefined,
-        fontFamily: item.font ?? undefined,
+        color: item.postSecondaryTextColor ?? item.postFontColor ?? undefined,
+        fontFamily: item.postFont ?? undefined,
       };
   const postCardStyle =
     hasCustomStyle || appOverridesPost
       ? {
-          borderColor: appOverridesPost ? appStyle.borderColor : (item.borderStyle ?? undefined),
+          borderColor: appOverridesPost
+            ? appStyle.borderColor
+            : (item.postBorderStyle ?? undefined),
           borderRadius: appOverridesPost
             ? Number.parseInt(appStyle.borderRadius, 10)
-            : item.borderRadius
-              ? Number.parseInt(item.borderRadius, 10)
+            : item.postBorderRadius
+              ? Number.parseInt(item.postBorderRadius, 10)
               : undefined,
           borderStyle: appOverridesPost
             ? appStyle.borderLineStyle
-            : (item.borderLineStyle ?? undefined),
+            : (item.postBorderLineStyle ?? undefined),
           backgroundColor: appOverridesPost
             ? appStyle.secondaryBackgroundColor
-            : (item.backgroundColor ?? undefined),
+            : (item.postBackgroundColor ?? undefined),
         }
       : {
           borderColor: appStyle.borderColor,

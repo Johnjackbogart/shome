@@ -31,7 +31,7 @@ beforeEach(() => {
 
 describe("default post-style API", () => {
   it("reads the signed-in user's saved default", async () => {
-    const customized = { ...DEFAULT_POST_STYLE, backgroundColor: "#123456" };
+    const customized = { ...DEFAULT_POST_STYLE, postBackgroundColor: "#123456" };
     mocks.selectLimit.mockResolvedValue([customized]);
 
     const response = await GET();
@@ -43,8 +43,8 @@ describe("default post-style API", () => {
   it("validates and updates only the signed-in user's default", async () => {
     const customized = {
       ...DEFAULT_POST_STYLE,
-      borderRadius: "24px",
-      borderLineStyle: "dashed",
+      postBorderRadius: "24px",
+      postBorderLineStyle: "dashed",
     };
     const response = await PUT(
       new Request("http://localhost/api/post-style", {
@@ -72,7 +72,30 @@ describe("default post-style API", () => {
         method: "PUT",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          defaultPostStyle: { ...DEFAULT_POST_STYLE, font: "unsupported" },
+          defaultPostStyle: { ...DEFAULT_POST_STYLE, postFont: "unsupported" },
+        }),
+      }),
+    );
+
+    expect(response.status).toBe(400);
+    expect(mocks.updateSet).not.toHaveBeenCalled();
+  });
+
+  it("rejects the old unprefixed API fields", async () => {
+    const response = await PUT(
+      new Request("http://localhost/api/post-style", {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          defaultPostStyle: {
+            borderStyle: "#ffffff",
+            borderRadius: "16px",
+            borderLineStyle: "solid",
+            backgroundColor: "#0f172a",
+            font: "sans-serif",
+            fontColor: "#f8fafc",
+            secondaryTextColor: "#94a3b8",
+          },
         }),
       }),
     );

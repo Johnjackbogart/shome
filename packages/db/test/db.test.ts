@@ -15,6 +15,7 @@ import {
   sources,
   subscriptions,
   user,
+  userPostStyleColumns,
 } from "../src/index";
 
 // Boots an in-memory PGlite database and runs the real migrations against it,
@@ -29,7 +30,6 @@ describe("schema + migrations", () => {
   it("preserves customized default styles when splitting the JSONB column", async () => {
     const migrationDb = new PGlite();
     const customized = {
-      ...DEFAULT_POST_STYLE,
       borderStyle: "#123456",
       borderRadius: "24px",
       borderLineStyle: "dashed",
@@ -47,25 +47,35 @@ describe("schema + migrations", () => {
         'INSERT INTO "user" ("id", "default_post_style") VALUES ($1, $2::jsonb)',
         ["migrating-user", JSON.stringify(customized)],
       );
-      const migration = readFileSync(
-        new URL("../migrations/0017_gorgeous_songbird.sql", import.meta.url),
-        "utf8",
-      );
-      await migrationDb.exec(migration);
+      for (const filename of ["0017_gorgeous_songbird.sql", "0019_lazy_inhumans.sql"]) {
+        const migration = readFileSync(
+          new URL(`../migrations/${filename}`, import.meta.url),
+          "utf8",
+        );
+        await migrationDb.exec(migration);
+      }
 
-      const migrated = await migrationDb.query<typeof customized>(
+      const migrated = await migrationDb.query(
         `SELECT
-          "border_style" AS "borderStyle",
-          "border_radius" AS "borderRadius",
-          "border_line_style" AS "borderLineStyle",
-          "background_color" AS "backgroundColor",
-          "font",
-          "font_color" AS "fontColor",
-          "secondary_text_color" AS "secondaryTextColor"
+          "post_border_style" AS "postBorderStyle",
+          "post_border_radius" AS "postBorderRadius",
+          "post_border_line_style" AS "postBorderLineStyle",
+          "post_background_color" AS "postBackgroundColor",
+          "post_font" AS "postFont",
+          "post_font_color" AS "postFontColor",
+          "post_secondary_text_color" AS "postSecondaryTextColor"
         FROM "user"
         WHERE "id" = 'migrating-user'`,
       );
-      expect(migrated.rows[0]).toEqual(customized);
+      expect(migrated.rows[0]).toEqual({
+        postBorderStyle: customized.borderStyle,
+        postBorderRadius: customized.borderRadius,
+        postBorderLineStyle: customized.borderLineStyle,
+        postBackgroundColor: customized.backgroundColor,
+        postFont: customized.font,
+        postFontColor: customized.fontColor,
+        postSecondaryTextColor: customized.secondaryTextColor,
+      });
     } finally {
       await migrationDb.close();
     }
@@ -82,34 +92,26 @@ describe("schema + migrations", () => {
       .returning();
 
     expect(member).toMatchObject({
-      borderStyle: null,
-      borderRadius: null,
-      borderLineStyle: null,
-      backgroundColor: null,
-      font: null,
-      fontColor: null,
-      secondaryTextColor: null,
+      postBorderStyle: null,
+      postBorderRadius: null,
+      postBorderLineStyle: null,
+      postBackgroundColor: null,
+      postFont: null,
+      postFontColor: null,
+      postSecondaryTextColor: null,
     });
 
     const customized = {
       ...DEFAULT_POST_STYLE,
-      borderStyle: "#123456",
-      borderRadius: "24px" as const,
-      font: "serif" as const,
+      postBorderStyle: "#123456",
+      postBorderRadius: "24px" as const,
+      postFont: "serif" as const,
     };
     const [saved] = await db
       .update(user)
       .set(customized)
       .where(eq(user.id, "user_post_style"))
-      .returning({
-        borderStyle: user.borderStyle,
-        borderRadius: user.borderRadius,
-        borderLineStyle: user.borderLineStyle,
-        backgroundColor: user.backgroundColor,
-        font: user.font,
-        fontColor: user.fontColor,
-        secondaryTextColor: user.secondaryTextColor,
-      });
+      .returning(userPostStyleColumns);
 
     expect(saved).toEqual(customized);
   });

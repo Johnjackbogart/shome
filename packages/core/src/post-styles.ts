@@ -41,23 +41,23 @@ export const POST_BORDER_LINE_STYLE_OPTIONS: readonly {
 ];
 
 export type PostStyle = {
-  borderStyle: string;
-  borderRadius: PostBorderRadius;
-  borderLineStyle: PostBorderLineStyle;
-  backgroundColor: string;
-  font: PostFont;
-  fontColor: string;
-  secondaryTextColor: string;
+  postBorderStyle: string;
+  postBorderRadius: PostBorderRadius;
+  postBorderLineStyle: PostBorderLineStyle;
+  postBackgroundColor: string;
+  postFont: PostFont;
+  postFontColor: string;
+  postSecondaryTextColor: string;
 };
 
 export const DEFAULT_POST_STYLE: Readonly<PostStyle> = {
-  borderStyle: "#ffffff",
-  borderRadius: "16px",
-  borderLineStyle: "solid",
-  backgroundColor: "#0f172a",
-  font: "sans-serif",
-  fontColor: "#f8fafc",
-  secondaryTextColor: "#94a3b8",
+  postBorderStyle: "#ffffff",
+  postBorderRadius: "16px",
+  postBorderLineStyle: "solid",
+  postBackgroundColor: "#0f172a",
+  postFont: "sans-serif",
+  postFontColor: "#f8fafc",
+  postSecondaryTextColor: "#94a3b8",
 };
 
 export function isPostFont(value: unknown): value is PostFont {

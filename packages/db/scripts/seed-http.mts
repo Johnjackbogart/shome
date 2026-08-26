@@ -161,7 +161,9 @@ async function applyStyles(session: Session, seedUser: SeedUser): Promise<void> 
   // these are naturally idempotent.
   await call<unknown>("PUT", "/api/post-style", {
     cookie: session.cookie,
-    body: { defaultPostStyle: seedUser.style satisfies PostStyle },
+    body: {
+      defaultPostStyle: seedUser.style satisfies PostStyle,
+    },
   });
   await call<unknown>("PUT", "/api/app-style", {
     cookie: session.cookie,

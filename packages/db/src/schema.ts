@@ -1,10 +1,8 @@
 import {
   type AppStyle,
   DEFAULT_APP_STYLE,
-  DEFAULT_POST_STYLE,
   type FeedRules,
   type MediaRef,
-  type PostStyle,
   type SourceKind,
 } from "@shome/core";
 import { relations } from "drizzle-orm";
@@ -68,13 +66,13 @@ export const user = pgTable("user", {
   appOverridePostStyles: boolean("app_override_post_styles")
     .notNull()
     .default(DEFAULT_APP_STYLE.overridePostStyles),
-  borderStyle: text("border_style"),
-  borderRadius: text("border_radius"),
-  borderLineStyle: text("border_line_style"),
-  backgroundColor: text("background_color"),
-  font: text("font"),
-  fontColor: text("font_color"),
-  secondaryTextColor: text("secondary_text_color"),
+  postBorderStyle: text("post_border_style"),
+  postBorderRadius: text("post_border_radius"),
+  postBorderLineStyle: text("post_border_line_style"),
+  postBackgroundColor: text("post_background_color"),
+  postFont: text("post_font"),
+  postFontColor: text("post_font_color"),
+  postSecondaryTextColor: text("post_secondary_text_color"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
@@ -84,13 +82,13 @@ export const user = pgTable("user", {
 });
 
 export const userPostStyleColumns = {
-  borderStyle: user.borderStyle,
-  borderRadius: user.borderRadius,
-  borderLineStyle: user.borderLineStyle,
-  backgroundColor: user.backgroundColor,
-  font: user.font,
-  fontColor: user.fontColor,
-  secondaryTextColor: user.secondaryTextColor,
+  postBorderStyle: user.postBorderStyle,
+  postBorderRadius: user.postBorderRadius,
+  postBorderLineStyle: user.postBorderLineStyle,
+  postBackgroundColor: user.postBackgroundColor,
+  postFont: user.postFont,
+  postFontColor: user.postFontColor,
+  postSecondaryTextColor: user.postSecondaryTextColor,
 };
 
 export const session = pgTable("session", {
@@ -261,13 +259,13 @@ export const posts = pgTable(
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
     text: text("text_content").notNull(),
-    borderStyle: text("border_style"),
-    borderRadius: text("border_radius"),
-    borderLineStyle: text("border_line_style"),
-    backgroundColor: text("background_color"),
-    font: text("font"),
-    fontColor: text("font_color"),
-    secondaryTextColor: text("secondary_text_color"),
+    postBorderStyle: text("border_style"),
+    postBorderRadius: text("border_radius"),
+    postBorderLineStyle: text("border_line_style"),
+    postBackgroundColor: text("background_color"),
+    postFont: text("font"),
+    postFontColor: text("font_color"),
+    postSecondaryTextColor: text("secondary_text_color"),
     blueskyUrl: text("bluesky_url"),
     mastodonUrl: text("mastodon_url"),
     createdAt: timestamp("created_at", { withTimezone: true })
