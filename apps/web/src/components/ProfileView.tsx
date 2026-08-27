@@ -13,6 +13,7 @@ import {
 import { type ChangeEvent, useEffect, useRef, useState } from "react";
 import { ProfilePageEditor } from "#/components/ProfilePageEditor";
 import { api } from "#/lib/api";
+import { appSelectStyle } from "#/lib/select-style";
 
 type ProductView = {
   id: string;
@@ -51,6 +52,10 @@ function AppStyleEditor({
   function update<K extends keyof AppStyle>(key: K, next: AppStyle[K]) {
     onChange({ ...value, [key]: next });
   }
+
+  // These controls sit inside the style they edit, so they follow the unsaved
+  // draft the way this component's color fields and preview already do.
+  const selectStyle = appSelectStyle(value);
 
   return (
     <div className="card mb-4">
@@ -143,6 +148,7 @@ function AppStyleEditor({
             Border radius
             <select
               className="input flex-1 py-1.5 text-sm"
+              style={selectStyle}
               value={value.appBorderRadius}
               onChange={(event) =>
                 update("appBorderRadius", event.target.value as AppStyle["appBorderRadius"])
@@ -159,6 +165,7 @@ function AppStyleEditor({
             Border style
             <select
               className="input flex-1 py-1.5 text-sm"
+              style={selectStyle}
               value={value.appBorderLineStyle}
               onChange={(event) =>
                 update("appBorderLineStyle", event.target.value as AppStyle["appBorderLineStyle"])
@@ -202,6 +209,7 @@ function AppStyleEditor({
             Font
             <select
               className="input flex-1 py-1.5 text-sm"
+              style={selectStyle}
               value={value.appFont}
               onChange={(event) => update("appFont", event.target.value as AppStyle["appFont"])}
             >
@@ -216,6 +224,7 @@ function AppStyleEditor({
             App spacing
             <select
               className="input flex-1 py-1.5 text-sm"
+              style={selectStyle}
               value={value.appSpacing}
               onChange={(event) =>
                 update("appSpacing", event.target.value as AppStyle["appSpacing"])
@@ -277,10 +286,12 @@ function AppStyleEditor({
               ].map(([label, backgroundColor]) => (
                 <span
                   key={label}
-                  className="rounded-lg border px-3 py-1.5 text-xs font-semibold"
+                  className="border px-3 py-1.5 text-xs font-semibold"
                   style={{
                     backgroundColor,
                     borderColor: value.appBorderStyle,
+                    borderRadius: value.appBorderRadius,
+                    borderStyle: value.appBorderLineStyle,
                     color: value.appAccentFontColor,
                   }}
                 >
@@ -373,6 +384,10 @@ function DefaultPostStyleEditor({
     onChange({ ...value, [key]: next });
   }
 
+  // Chrome around the post draft, so these take the saved app style the way
+  // this component's reset and save buttons do.
+  const selectStyle = appSelectStyle(appStyle);
+
   return (
     <div className="card mb-4">
       <div className="mb-4 flex flex-wrap items-start gap-3">
@@ -423,6 +438,7 @@ function DefaultPostStyleEditor({
             Border radius
             <select
               className="input flex-1 py-1.5 text-sm"
+              style={selectStyle}
               value={value.postBorderRadius}
               onChange={(event) =>
                 update("postBorderRadius", event.target.value as PostStyle["postBorderRadius"])
@@ -439,6 +455,7 @@ function DefaultPostStyleEditor({
             Border style
             <select
               className="input flex-1 py-1.5 text-sm"
+              style={selectStyle}
               value={value.postBorderLineStyle}
               onChange={(event) =>
                 update(
@@ -485,6 +502,7 @@ function DefaultPostStyleEditor({
             Font
             <select
               className="input flex-1 py-1.5 text-sm"
+              style={selectStyle}
               value={value.postFont}
               onChange={(event) => update("postFont", event.target.value as PostStyle["postFont"])}
             >

@@ -29,6 +29,7 @@ import { ColorField } from "@/components/color-picker";
 import { VisualProfileBuilder } from "@/components/visual-profile-builder";
 import { api } from "@/lib/api";
 import {
+  appBorderAppearance,
   appPrimaryText,
   appSecondaryText,
   appSurfaceAppearance,
@@ -509,11 +510,7 @@ function AppStyleEditor({
         <Pressable
           onPress={() => onChange({ ...DEFAULT_APP_STYLE })}
           className={`${UI.ghostButton} px-3 py-2`}
-          style={{
-            borderColor: value.appBorderStyle,
-            borderRadius: Number.parseInt(value.appBorderRadius, 10),
-            borderStyle: value.appBorderLineStyle,
-          }}
+          style={appBorderAppearance(value)}
           accessibilityRole="button"
           accessibilityLabel="Reset app style"
         >
@@ -524,8 +521,8 @@ function AppStyleEditor({
         <Pressable
           onPress={onSave}
           disabled={saving || saved}
-          className="rounded-xl bg-indigo-300 px-3 py-2 active:opacity-80 disabled:opacity-50"
-          style={{ backgroundColor: value.appAccentBackgroundColor }}
+          className="border bg-indigo-300 px-3 py-2 active:opacity-80 disabled:opacity-50"
+          style={[appBorderAppearance(value), { backgroundColor: value.appAccentBackgroundColor }]}
           accessibilityRole="button"
           accessibilityLabel="Save app style"
         >
@@ -571,13 +568,11 @@ function AppStyleEditor({
           {["Filters", "Fetch new"].map((label) => (
             <View
               key={label}
-              className="rounded-lg border px-3 py-2"
-              style={{
-                backgroundColor: value.appSecondaryBackgroundColor,
-                borderColor: value.appBorderStyle,
-                borderRadius: Number.parseInt(value.appBorderRadius, 10),
-                borderStyle: value.appBorderLineStyle,
-              }}
+              className="border px-3 py-2"
+              style={[
+                appBorderAppearance(value),
+                { backgroundColor: value.appSecondaryBackgroundColor },
+              ]}
             >
               <Text
                 style={{
@@ -590,13 +585,11 @@ function AppStyleEditor({
             </View>
           ))}
           <View
-            className="rounded-lg border px-3 py-2"
-            style={{
-              backgroundColor: value.appAccentBackgroundColor,
-              borderColor: value.appBorderStyle,
-              borderRadius: Number.parseInt(value.appBorderRadius, 10),
-              borderStyle: value.appBorderLineStyle,
-            }}
+            className="border px-3 py-2"
+            style={[
+              appBorderAppearance(value),
+              { backgroundColor: value.appAccentBackgroundColor },
+            ]}
           >
             <Text style={{ color: value.appFontColor, fontFamily: value.appFont }}>
               Create post
@@ -820,6 +813,7 @@ function DefaultPostStyleEditor({
         <Pressable
           onPress={() => onChange({ ...DEFAULT_POST_STYLE })}
           className={`${UI.ghostButton} px-3 py-2`}
+          style={appBorderAppearance(appStyle)}
           accessibilityRole="button"
           accessibilityLabel="Reset default post style"
         >
@@ -830,8 +824,11 @@ function DefaultPostStyleEditor({
         <Pressable
           onPress={onSave}
           disabled={saving || saved}
-          className="rounded-xl bg-indigo-300 px-3 py-2 active:opacity-80 disabled:opacity-50"
-          style={{ backgroundColor: appStyle.appAccentBackgroundColor }}
+          className="border bg-indigo-300 px-3 py-2 active:opacity-80 disabled:opacity-50"
+          style={[
+            appBorderAppearance(appStyle),
+            { backgroundColor: appStyle.appAccentBackgroundColor },
+          ]}
           accessibilityRole="button"
           accessibilityLabel="Save default post style"
         >
@@ -960,8 +957,11 @@ function StyleOption({
   return (
     <Pressable
       onPress={onPress}
-      className={`rounded-lg px-3 py-2 ${selected ? "" : "border border-white/10 bg-white/5"}`}
-      style={selected ? { backgroundColor: appStyle.appAccentBackgroundColor } : undefined}
+      className={`border px-3 py-2 ${selected ? "" : "border-white/10 bg-white/5"}`}
+      style={[
+        appBorderAppearance(appStyle),
+        selected ? { backgroundColor: appStyle.appAccentBackgroundColor } : null,
+      ]}
       accessibilityRole="radio"
       accessibilityLabel={label}
       accessibilityState={{ selected }}
