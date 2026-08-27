@@ -25,6 +25,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { ColorField } from "@/components/color-picker";
 import { VisualProfileBuilder } from "@/components/visual-profile-builder";
 import { api } from "@/lib/api";
 import {
@@ -636,86 +637,53 @@ function AppStyleEditor({
         </View>
       </View>
 
-      <Text className="text-xs text-slate-400">Use six-digit hex colors, such as #070a18.</Text>
       <View className="flex-row gap-2">
-        <View className="flex-1 gap-1">
-          <Text className="text-xs text-slate-400">Background color</Text>
-          <TextInput
-            className={`${UI.input} py-2 text-sm`}
-            style={{ borderColor: value.appBorderStyle }}
-            value={value.appBackgroundColor}
-            onChangeText={(next) => update("appBackgroundColor", next)}
-            autoCapitalize="characters"
-            maxLength={7}
-            accessibilityLabel="App background color"
-          />
-        </View>
-        <View className="flex-1 gap-1">
-          <Text className="text-xs text-slate-400">Secondary background</Text>
-          <TextInput
-            className={`${UI.input} py-2 text-sm`}
-            style={{ borderColor: value.appBorderStyle }}
-            value={value.appSecondaryBackgroundColor}
-            onChangeText={(next) => update("appSecondaryBackgroundColor", next)}
-            autoCapitalize="characters"
-            maxLength={7}
-            accessibilityLabel="App secondary background color"
-          />
-        </View>
-      </View>
-
-      <View className="gap-1">
-        <Text className="text-xs text-slate-400">Accent background</Text>
-        <TextInput
-          className={`${UI.input} py-2 text-sm`}
-          style={{ borderColor: value.appBorderStyle }}
-          value={value.appAccentBackgroundColor}
-          onChangeText={(next) => update("appAccentBackgroundColor", next)}
-          autoCapitalize="characters"
-          maxLength={7}
-          accessibilityLabel="App accent background color"
+        <ColorField
+          className="flex-1"
+          label="Background color"
+          value={value.appBackgroundColor}
+          onChange={(next) => update("appBackgroundColor", next)}
+          borderColor={value.appBorderStyle}
+        />
+        <ColorField
+          className="flex-1"
+          label="Secondary background"
+          value={value.appSecondaryBackgroundColor}
+          onChange={(next) => update("appSecondaryBackgroundColor", next)}
+          borderColor={value.appBorderStyle}
         />
       </View>
 
-      <View className="flex-row gap-2">
-        <View className="flex-1 gap-1">
-          <Text className="text-xs text-slate-400">Accent color</Text>
-          <TextInput
-            className={`${UI.input} py-2 text-sm`}
-            style={{ borderColor: value.appBorderStyle }}
-            value={value.appAccentColor}
-            onChangeText={(next) => update("appAccentColor", next)}
-            autoCapitalize="characters"
-            maxLength={7}
-            accessibilityLabel="App accent color"
-          />
-        </View>
-        <View className="flex-1 gap-1">
-          <Text className="text-xs text-slate-400">Secondary accent</Text>
-          <TextInput
-            className={`${UI.input} py-2 text-sm`}
-            style={{ borderColor: value.appBorderStyle }}
-            value={value.appSecondaryAccentColor}
-            onChangeText={(next) => update("appSecondaryAccentColor", next)}
-            autoCapitalize="characters"
-            maxLength={7}
-            accessibilityLabel="App secondary accent color"
-          />
-        </View>
-      </View>
+      <ColorField
+        label="Accent background"
+        value={value.appAccentBackgroundColor}
+        onChange={(next) => update("appAccentBackgroundColor", next)}
+        borderColor={value.appBorderStyle}
+      />
 
-      <View className="gap-1">
-        <Text className="text-xs text-slate-400">Border color</Text>
-        <TextInput
-          className={`${UI.input} py-2 text-sm`}
-          style={{ borderColor: value.appBorderStyle }}
-          value={value.appBorderStyle}
-          onChangeText={(next) => update("appBorderStyle", next)}
-          autoCapitalize="characters"
-          maxLength={7}
-          accessibilityLabel="App border color"
+      <View className="flex-row gap-2">
+        <ColorField
+          className="flex-1"
+          label="Accent color"
+          value={value.appAccentColor}
+          onChange={(next) => update("appAccentColor", next)}
+          borderColor={value.appBorderStyle}
+        />
+        <ColorField
+          className="flex-1"
+          label="Secondary accent"
+          value={value.appSecondaryAccentColor}
+          onChange={(next) => update("appSecondaryAccentColor", next)}
+          borderColor={value.appBorderStyle}
         />
       </View>
+
+      <ColorField
+        label="Border color"
+        value={value.appBorderStyle}
+        onChange={(next) => update("appBorderStyle", next)}
+        borderColor={value.appBorderStyle}
+      />
 
       <Text className="text-xs text-slate-400">Border radius</Text>
       <View className="flex-row flex-wrap gap-2">
@@ -742,44 +710,28 @@ function AppStyleEditor({
       </View>
 
       <View className="flex-row gap-2">
-        <View className="flex-1 gap-1">
-          <Text className="text-xs text-slate-400">Font color</Text>
-          <TextInput
-            className={`${UI.input} py-2 text-sm`}
-            style={{ borderColor: value.appBorderStyle }}
-            value={value.appFontColor}
-            onChangeText={(next) => update("appFontColor", next)}
-            autoCapitalize="characters"
-            maxLength={7}
-            accessibilityLabel="App font color"
-          />
-        </View>
-        <View className="flex-1 gap-1">
-          <Text className="text-xs text-slate-400">Secondary text</Text>
-          <TextInput
-            className={`${UI.input} py-2 text-sm`}
-            style={{ borderColor: value.appBorderStyle }}
-            value={value.appSecondaryTextColor}
-            onChangeText={(next) => update("appSecondaryTextColor", next)}
-            autoCapitalize="characters"
-            maxLength={7}
-            accessibilityLabel="App secondary text color"
-          />
-        </View>
-      </View>
-
-      <View className="gap-1">
-        <Text className="text-xs text-slate-400">Accent font color</Text>
-        <TextInput
-          className={`${UI.input} py-2 text-sm`}
-          style={{ borderColor: value.appBorderStyle }}
-          value={value.appAccentFontColor}
-          onChangeText={(next) => update("appAccentFontColor", next)}
-          autoCapitalize="characters"
-          maxLength={7}
-          accessibilityLabel="App accent font color"
+        <ColorField
+          className="flex-1"
+          label="Font color"
+          value={value.appFontColor}
+          onChange={(next) => update("appFontColor", next)}
+          borderColor={value.appBorderStyle}
+        />
+        <ColorField
+          className="flex-1"
+          label="Secondary text"
+          value={value.appSecondaryTextColor}
+          onChange={(next) => update("appSecondaryTextColor", next)}
+          borderColor={value.appBorderStyle}
         />
       </View>
+
+      <ColorField
+        label="Accent font color"
+        value={value.appAccentFontColor}
+        onChange={(next) => update("appAccentFontColor", next)}
+        borderColor={value.appBorderStyle}
+      />
 
       <Text className="text-xs text-slate-400">Font</Text>
       <View className="flex-row flex-wrap gap-2">
@@ -925,30 +877,19 @@ function DefaultPostStyleEditor({
         </Text>
       </View>
 
-      <Text className="text-xs text-slate-400">Use six-digit hex colors, such as #f8fafc.</Text>
       <View className="flex-row gap-2">
-        <View className="flex-1 gap-1">
-          <Text className="text-xs text-slate-400">Border color</Text>
-          <TextInput
-            className={`${UI.input} py-2 text-sm`}
-            value={value.postBorderStyle}
-            onChangeText={(next) => update("postBorderStyle", next)}
-            autoCapitalize="characters"
-            maxLength={7}
-            accessibilityLabel="Default post border color"
-          />
-        </View>
-        <View className="flex-1 gap-1">
-          <Text className="text-xs text-slate-400">Background color</Text>
-          <TextInput
-            className={`${UI.input} py-2 text-sm`}
-            value={value.postBackgroundColor}
-            onChangeText={(next) => update("postBackgroundColor", next)}
-            autoCapitalize="characters"
-            maxLength={7}
-            accessibilityLabel="Default post background color"
-          />
-        </View>
+        <ColorField
+          className="flex-1"
+          label="Border color"
+          value={value.postBorderStyle}
+          onChange={(next) => update("postBorderStyle", next)}
+        />
+        <ColorField
+          className="flex-1"
+          label="Background color"
+          value={value.postBackgroundColor}
+          onChange={(next) => update("postBackgroundColor", next)}
+        />
       </View>
 
       <Text className="text-xs text-slate-400">Border radius</Text>
@@ -976,28 +917,18 @@ function DefaultPostStyleEditor({
       </View>
 
       <View className="flex-row gap-2">
-        <View className="flex-1 gap-1">
-          <Text className="text-xs text-slate-400">Font color</Text>
-          <TextInput
-            className={`${UI.input} py-2 text-sm`}
-            value={value.postFontColor}
-            onChangeText={(next) => update("postFontColor", next)}
-            autoCapitalize="characters"
-            maxLength={7}
-            accessibilityLabel="Default post font color"
-          />
-        </View>
-        <View className="flex-1 gap-1">
-          <Text className="text-xs text-slate-400">Secondary text</Text>
-          <TextInput
-            className={`${UI.input} py-2 text-sm`}
-            value={value.postSecondaryTextColor}
-            onChangeText={(next) => update("postSecondaryTextColor", next)}
-            autoCapitalize="characters"
-            maxLength={7}
-            accessibilityLabel="Default post secondary text color"
-          />
-        </View>
+        <ColorField
+          className="flex-1"
+          label="Font color"
+          value={value.postFontColor}
+          onChange={(next) => update("postFontColor", next)}
+        />
+        <ColorField
+          className="flex-1"
+          label="Secondary text"
+          value={value.postSecondaryTextColor}
+          onChange={(next) => update("postSecondaryTextColor", next)}
+        />
       </View>
 
       <Text className="text-xs text-slate-400">Font</Text>

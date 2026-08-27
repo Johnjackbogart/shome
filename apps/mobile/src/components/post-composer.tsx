@@ -10,6 +10,7 @@ import {
 import * as ImagePicker from "expo-image-picker";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Platform, Pressable, Text, TextInput, View } from "react-native";
+import { ColorField } from "@/components/color-picker";
 import { api } from "@/lib/api";
 import {
   appPrimaryText,
@@ -277,27 +278,18 @@ export function PostComposer({ onPosted, onSuccess }: PostComposerProps) {
         <Text className="text-sm font-medium text-white" style={appPrimaryText(appStyle)}>
           Post style
         </Text>
-        <Text className="text-xs text-slate-400">Use six-digit hex colors, such as #f8fafc.</Text>
         <View className="flex-row gap-2">
-          <TextInput
-            className={`${UI.input} flex-1 py-2 text-sm`}
+          <ColorField
+            className="flex-1"
+            label="Border color"
             value={postStyle.postBorderStyle}
-            onChangeText={(value) => updatePostStyle("postBorderStyle", value)}
-            autoCapitalize="characters"
-            maxLength={7}
-            placeholder="#ffffff"
-            placeholderTextColor="#64748b"
-            accessibilityLabel="Border color"
+            onChange={(value) => updatePostStyle("postBorderStyle", value)}
           />
-          <TextInput
-            className={`${UI.input} flex-1 py-2 text-sm`}
+          <ColorField
+            className="flex-1"
+            label="Background color"
             value={postStyle.postBackgroundColor}
-            onChangeText={(value) => updatePostStyle("postBackgroundColor", value)}
-            autoCapitalize="characters"
-            maxLength={7}
-            placeholder="#0f172a"
-            placeholderTextColor="#64748b"
-            accessibilityLabel="Background color"
+            onChange={(value) => updatePostStyle("postBackgroundColor", value)}
           />
         </View>
         <Text className="text-xs text-slate-400">Border radius</Text>
@@ -354,26 +346,20 @@ export function PostComposer({ onPosted, onSuccess }: PostComposerProps) {
             </Pressable>
           ))}
         </View>
-        <TextInput
-          className={`${UI.input} py-2 text-sm`}
-          value={postStyle.postFontColor}
-          onChangeText={(value) => updatePostStyle("postFontColor", value)}
-          autoCapitalize="characters"
-          maxLength={7}
-          placeholder="#f8fafc"
-          placeholderTextColor="#64748b"
-          accessibilityLabel="Font color"
-        />
-        <TextInput
-          className={`${UI.input} py-2 text-sm`}
-          value={postStyle.postSecondaryTextColor}
-          onChangeText={(value) => updatePostStyle("postSecondaryTextColor", value)}
-          autoCapitalize="characters"
-          maxLength={7}
-          placeholder="#94a3b8"
-          placeholderTextColor="#64748b"
-          accessibilityLabel="Secondary text color"
-        />
+        <View className="flex-row gap-2">
+          <ColorField
+            className="flex-1"
+            label="Font color"
+            value={postStyle.postFontColor}
+            onChange={(value) => updatePostStyle("postFontColor", value)}
+          />
+          <ColorField
+            className="flex-1"
+            label="Secondary text color"
+            value={postStyle.postSecondaryTextColor}
+            onChange={(value) => updatePostStyle("postSecondaryTextColor", value)}
+          />
+        </View>
         <View className="flex-row flex-wrap gap-2">
           {POST_FONT_OPTIONS.map((option) => (
             <Pressable
