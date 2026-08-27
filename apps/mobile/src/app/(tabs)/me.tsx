@@ -163,9 +163,6 @@ export default function MeScreen() {
       edges={["top"]}
     >
       <View className={UI.screenContent} style={{ backgroundColor: appStyle.appBackgroundColor }}>
-        <Text className={`pb-2 pt-2 ${UI.eyebrow}`} style={appSecondaryText(appStyle)}>
-          Your corner of the web
-        </Text>
         <Text className="pb-5 text-3xl font-semibold text-white" style={appPrimaryText(appStyle)}>
           Me
         </Text>
