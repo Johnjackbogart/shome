@@ -1,5 +1,6 @@
 "use client";
 
+import type { AppStyle } from "@shome/core";
 import {
   type DragEvent,
   type PointerEvent,
@@ -657,11 +658,13 @@ function sourceWithTextFields(source: string, fields: BlockTextField[]) {
 
 export function ProfilePageEditor({
   html,
+  appStyle,
   onChange,
   previewDoc,
   previewError,
 }: {
   html: string;
+  appStyle: AppStyle;
   onChange: (html: string) => void;
   previewDoc: string | null;
   previewError: string | null;
@@ -997,9 +1000,14 @@ export function ProfilePageEditor({
               aria-selected={mode === item.id}
               className={`cursor-pointer rounded-lg px-3 py-2 text-left text-sm transition sm:px-4 ${
                 mode === item.id
-                  ? "bg-indigo-300 text-slate-950 shadow-sm"
+                  ? "text-slate-950 shadow-sm"
                   : "text-slate-400 hover:bg-white/[0.06] hover:text-white"
               }`}
+              style={
+                mode === item.id
+                  ? { backgroundColor: appStyle.appAccentBackgroundColor }
+                  : undefined
+              }
               onClick={() => setMode(item.id)}
             >
               <span className="block font-semibold">{item.label}</span>
@@ -1341,7 +1349,12 @@ export function ProfilePageEditor({
                   <button type="button" className="btn-ghost" onClick={closeBlockEditor}>
                     cancel
                   </button>
-                  <button type="button" className="btn" onClick={saveBlockEditor}>
+                  <button
+                    type="button"
+                    className="btn"
+                    style={{ backgroundColor: appStyle.appAccentBackgroundColor }}
+                    onClick={saveBlockEditor}
+                  >
                     apply block
                   </button>
                 </div>

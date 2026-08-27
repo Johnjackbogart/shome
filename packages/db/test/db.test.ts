@@ -1,6 +1,6 @@
-import { DEFAULT_APP_STYLE, DEFAULT_POST_STYLE } from "@shome/core";
 import { readFileSync } from "node:fs";
 import { PGlite } from "@electric-sql/pglite";
+import { DEFAULT_APP_STYLE, DEFAULT_POST_STYLE } from "@shome/core";
 import { count, desc, eq, inArray, sql } from "drizzle-orm";
 import { beforeAll, describe, expect, it } from "vitest";
 import {
@@ -157,11 +157,15 @@ describe("schema + migrations", () => {
     expect(member).toMatchObject({
       appBackgroundColor: DEFAULT_APP_STYLE.appBackgroundColor,
       appSecondaryBackgroundColor: DEFAULT_APP_STYLE.appSecondaryBackgroundColor,
+      appAccentBackgroundColor: DEFAULT_APP_STYLE.appAccentBackgroundColor,
+      appAccentColor: DEFAULT_APP_STYLE.appAccentColor,
+      appSecondaryAccentColor: DEFAULT_APP_STYLE.appSecondaryAccentColor,
       appBorderStyle: DEFAULT_APP_STYLE.appBorderStyle,
       appBorderRadius: DEFAULT_APP_STYLE.appBorderRadius,
       appBorderLineStyle: DEFAULT_APP_STYLE.appBorderLineStyle,
       appFont: DEFAULT_APP_STYLE.appFont,
       appFontColor: DEFAULT_APP_STYLE.appFontColor,
+      appAccentFontColor: DEFAULT_APP_STYLE.appAccentFontColor,
       appSecondaryTextColor: DEFAULT_APP_STYLE.appSecondaryTextColor,
       appSpacing: DEFAULT_APP_STYLE.appSpacing,
       appOverridePostStyles: DEFAULT_APP_STYLE.appOverridePostStyles,
@@ -172,11 +176,15 @@ describe("schema + migrations", () => {
       .set({
         appBackgroundColor: "#123456",
         appSecondaryBackgroundColor: "#234567",
+        appAccentBackgroundColor: "#345678",
+        appAccentColor: "#456789",
+        appSecondaryAccentColor: "#56789a",
         appBorderStyle: "#abcdef",
         appBorderRadius: "24px",
         appBorderLineStyle: "dashed",
         appFont: "serif",
         appFontColor: "#fedcba",
+        appAccentFontColor: "#789abc",
         appSecondaryTextColor: "#654321",
         appSpacing: "20px",
         appOverridePostStyles: true,
@@ -187,11 +195,15 @@ describe("schema + migrations", () => {
     expect(saved).toMatchObject({
       appBackgroundColor: "#123456",
       appSecondaryBackgroundColor: "#234567",
+      appAccentBackgroundColor: "#345678",
+      appAccentColor: "#456789",
+      appSecondaryAccentColor: "#56789a",
       appBorderStyle: "#abcdef",
       appBorderRadius: "24px",
       appBorderLineStyle: "dashed",
       appFont: "serif",
       appFontColor: "#fedcba",
+      appAccentFontColor: "#789abc",
       appSecondaryTextColor: "#654321",
       appSpacing: "20px",
       appOverridePostStyles: true,

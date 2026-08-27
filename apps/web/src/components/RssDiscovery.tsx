@@ -1,6 +1,7 @@
 "use client";
 
 import type {
+  AppStyle,
   DiscoveredRssFeed,
   PopularRssFeed,
   PopularRssResponse,
@@ -22,12 +23,14 @@ function subscribedMessage(
 }
 
 export function RssDiscovery({
+  appStyle,
   shomeFeeds,
   webFeeds,
   subscribedFeedUrls,
   onAdded,
   onError,
 }: {
+  appStyle: AppStyle;
   shomeFeeds: PopularRssResponse["shomeFeeds"];
   webFeeds: PopularRssResponse["webFeeds"];
   subscribedFeedUrls: Set<string>;
@@ -78,13 +81,19 @@ export function RssDiscovery({
       </p>
       <form className="mt-3 flex flex-wrap gap-2" onSubmit={discover}>
         <input
-          className="input min-w-44 flex-1"
+          className="input app-secondary-text min-w-44 flex-1"
+          style={{ backgroundColor: appStyle.appAccentBackgroundColor }}
           value={website}
           onChange={(event) => setWebsite(event.target.value)}
           placeholder="Ars Technica or arstechnica.com"
           required
         />
-        <button type="submit" className="btn" disabled={discovering}>
+        <button
+          type="submit"
+          className="btn"
+          style={{ backgroundColor: appStyle.appAccentBackgroundColor }}
+          disabled={discovering}
+        >
           {discovering ? "finding…" : "find feeds"}
         </button>
       </form>

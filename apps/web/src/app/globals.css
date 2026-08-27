@@ -46,6 +46,33 @@
   color: var(--app-secondary-text-color, #94a3b8);
 }
 
+.app-theme .app-secondary-text {
+  color: var(--app-secondary-text-color, #94a3b8);
+}
+
+.app-theme .app-secondary-text::placeholder {
+  color: var(--app-secondary-text-color, #94a3b8);
+  opacity: 1;
+}
+
+.app-theme .app-primary-background {
+  background-color: var(--app-background-color, #070a18);
+}
+
+.app-accent-gradient {
+  background-image:
+    radial-gradient(
+      circle at 10% 100%,
+      color-mix(in srgb, var(--app-accent-color, #6366f1) 4%, transparent),
+      transparent 26%
+    ),
+    radial-gradient(
+      circle at 88% 100%,
+      color-mix(in srgb, var(--app-secondary-accent-color, #f472b6) 2%, transparent),
+      transparent 22%
+    );
+}
+
 /* Cards and other raised surfaces use the member's second background tone. */
 .app-theme :where(.card, .app-secondary-background) {
   background-color: var(--app-secondary-background-color, #0f172a);

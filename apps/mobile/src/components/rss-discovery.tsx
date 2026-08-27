@@ -89,8 +89,12 @@ export function RssDiscovery({
       </View>
       <TextInput
         className={UI.input}
+        style={{
+          backgroundColor: appStyle.appAccentBackgroundColor,
+          color: appStyle.appSecondaryTextColor,
+        }}
         placeholder="Ars Technica or arstechnica.com"
-        placeholderTextColor="#64748b"
+        placeholderTextColor={appStyle.appSecondaryTextColor}
         autoCapitalize="none"
         autoCorrect={false}
         keyboardType="url"
@@ -102,6 +106,7 @@ export function RssDiscovery({
         onPress={() => void discover()}
         disabled={discovering}
         className={`self-start ${UI.primaryButton}`}
+        style={{ backgroundColor: appStyle.appAccentBackgroundColor }}
       >
         {discovering ? (
           <ActivityIndicator size="small" color={COLORS.background} />

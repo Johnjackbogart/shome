@@ -1,0 +1,1 @@
+ALTER TABLE "user" ADD COLUMN "app_accent_font_color" text DEFAULT '#f8fafc' NOT NULL;

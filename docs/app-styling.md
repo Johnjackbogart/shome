@@ -1,11 +1,13 @@
 # Personal app styling and paid rollout
 
 Status: implemented as an ungated product capability (2026-08). The initial
-release lets a signed-in member choose primary and secondary app backgrounds,
-border, primary text, and secondary text colors; border radius and line style;
-font family; feed-post spacing; and whether the complete app style overrides
-the style saved on first-party posts. The preference follows the account across
-web and mobile and does not change the member's public profile page.
+release lets a signed-in member choose primary, secondary, and accent app
+backgrounds; primary and secondary accent colors; border, primary text, accent
+text, and secondary text colors; border radius and line style; font family;
+feed-post spacing; and whether the complete app style overrides the style saved
+on first-party posts.
+The preference follows the account across web and mobile and does not change
+the member's public profile page.
 
 ## Product rules
 
@@ -14,14 +16,24 @@ web and mobile and does not change the member's public profile page.
 - The API keeps the cohesive `appStyle` object used by clients, while the
   `user` table stores each property in its own typed column:
   `app_background_color`, `app_secondary_background_color`,
-  `app_border_color`, `app_border_radius`, `app_border_line_style`, `app_font`,
-  `app_font_color`, `app_secondary_text_color`, `app_spacing`, and
+  `app_accent_background_color`, `app_accent_color`,
+  `app_secondary_accent_color`, `app_border_style`, `app_border_radius`,
+  `app_border_line_style`, `app_font`, `app_font_color`,
+  `app_accent_font_color`, `app_secondary_text_color`, `app_spacing`, and
   `app_override_post_styles`.
 - The default matches the current shome dark appearance, so migration does not
   opt existing accounts into a visibly different design.
 - The primary background belongs to page-level canvas areas. The secondary
   background belongs to cards, raised settings sections, navigation surfaces,
   and app-styled posts.
+- The accent background belongs to search fields in the feed and Discover
+  experiences, plus editable fields on Sources and the create-post action, on
+  both web and mobile.
+- The accent font color belongs to the feed filter and refresh actions on web
+  and mobile.
+- The primary and secondary accents tint the two radial gradients over the
+  signed-in web canvas. Their defaults preserve the original indigo and pink
+  treatment.
 - Spacing controls the vertical gap between feed posts. It is allow-listed from
   no gap through 32px, with 12px retaining the original layout.
 - "Override post styles" affects first-party shome posts only. It replaces the
@@ -84,7 +96,13 @@ launch:
 
 ## Possible follow-ups
 
-Expand the schema only when the product needs it. Likely next tokens are accent
-colors, spacing density beyond feed gaps, and optional uploaded font assets.
-Keep each value allow-listed and version the API representation if a future
-theme format cannot remain backward compatible.
+Cache the last successfully loaded app style per account on each mobile device.
+On startup, apply the validated cached style immediately, then refresh it from
+the server in the background; clear or switch the cache when the signed-in
+account changes. Until that cache exists, an unavailable app-style endpoint
+falls back to `DEFAULT_APP_STYLE` so offline startup is never blocked.
+
+Expand the schema only when the product needs it. Likely next tokens are spacing
+density beyond feed gaps and optional uploaded font assets. Keep each value
+allow-listed and version the API representation if a future theme format cannot
+remain backward compatible.

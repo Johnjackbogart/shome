@@ -266,6 +266,7 @@ export default function ProfileEditorScreen() {
             onPress={() => void save()}
             disabled={loading || saving || generating || !pageChanged}
             className="rounded-xl bg-indigo-300 px-4 py-3 active:opacity-80 disabled:opacity-50"
+            style={{ backgroundColor: appStyle.appAccentBackgroundColor }}
             accessibilityRole="button"
           >
             {saving ? (
@@ -338,6 +339,7 @@ export default function ProfileEditorScreen() {
                 onPress={() => void generate()}
                 disabled={generating || saving || prompt.trim().length < 2}
                 className={`${UI.ghostButton} self-start px-3 py-2 disabled:opacity-50`}
+                style={{ backgroundColor: appStyle.appAccentBackgroundColor }}
                 accessibilityRole="button"
               >
                 {generating ? (
@@ -511,6 +513,7 @@ function AppStyleEditor({
           onPress={onSave}
           disabled={saving || saved}
           className="rounded-xl bg-indigo-300 px-3 py-2 active:opacity-80 disabled:opacity-50"
+          style={{ backgroundColor: value.appAccentBackgroundColor }}
           accessibilityRole="button"
           accessibilityLabel="Save app style"
         >
@@ -534,6 +537,50 @@ function AppStyleEditor({
           gap: Number.parseInt(value.appSpacing, 10),
         }}
       >
+        <View
+          className="border px-4 py-3"
+          style={{
+            backgroundColor: value.appAccentBackgroundColor,
+            borderColor: value.appBorderStyle,
+            borderRadius: Number.parseInt(value.appBorderRadius, 10),
+            borderStyle: value.appBorderLineStyle,
+          }}
+        >
+          <Text style={{ color: value.appSecondaryTextColor, fontFamily: value.appFont }}>
+            Search your feed…
+          </Text>
+        </View>
+        <View className="flex-row gap-2">
+          {["Filters", "Fetch new"].map((label) => (
+            <View
+              key={label}
+              className="rounded-lg border px-3 py-2"
+              style={{
+                backgroundColor: value.appSecondaryBackgroundColor,
+                borderColor: value.appBorderStyle,
+                borderRadius: Number.parseInt(value.appBorderRadius, 10),
+                borderStyle: value.appBorderLineStyle,
+              }}
+            >
+              <Text style={{ color: value.appAccentFontColor, fontFamily: value.appFont }}>
+                {label}
+              </Text>
+            </View>
+          ))}
+          <View
+            className="rounded-lg border px-3 py-2"
+            style={{
+              backgroundColor: value.appAccentBackgroundColor,
+              borderColor: value.appBorderStyle,
+              borderRadius: Number.parseInt(value.appBorderRadius, 10),
+              borderStyle: value.appBorderLineStyle,
+            }}
+          >
+            <Text style={{ color: value.appFontColor, fontFamily: value.appFont }}>
+              Create post
+            </Text>
+          </View>
+        </View>
         {["Your shome", "Another post"].map((title) => (
           <View
             key={title}
@@ -579,6 +626,46 @@ function AppStyleEditor({
             autoCapitalize="characters"
             maxLength={7}
             accessibilityLabel="App secondary background color"
+          />
+        </View>
+      </View>
+
+      <View className="gap-1">
+        <Text className="text-xs text-slate-400">Accent background</Text>
+        <TextInput
+          className={`${UI.input} py-2 text-sm`}
+          style={{ borderColor: value.appBorderStyle }}
+          value={value.appAccentBackgroundColor}
+          onChangeText={(next) => update("appAccentBackgroundColor", next)}
+          autoCapitalize="characters"
+          maxLength={7}
+          accessibilityLabel="App accent background color"
+        />
+      </View>
+
+      <View className="flex-row gap-2">
+        <View className="flex-1 gap-1">
+          <Text className="text-xs text-slate-400">Accent color</Text>
+          <TextInput
+            className={`${UI.input} py-2 text-sm`}
+            style={{ borderColor: value.appBorderStyle }}
+            value={value.appAccentColor}
+            onChangeText={(next) => update("appAccentColor", next)}
+            autoCapitalize="characters"
+            maxLength={7}
+            accessibilityLabel="App accent color"
+          />
+        </View>
+        <View className="flex-1 gap-1">
+          <Text className="text-xs text-slate-400">Secondary accent</Text>
+          <TextInput
+            className={`${UI.input} py-2 text-sm`}
+            style={{ borderColor: value.appBorderStyle }}
+            value={value.appSecondaryAccentColor}
+            onChangeText={(next) => update("appSecondaryAccentColor", next)}
+            autoCapitalize="characters"
+            maxLength={7}
+            accessibilityLabel="App secondary accent color"
           />
         </View>
       </View>
@@ -647,6 +734,19 @@ function AppStyleEditor({
         </View>
       </View>
 
+      <View className="gap-1">
+        <Text className="text-xs text-slate-400">Accent font color</Text>
+        <TextInput
+          className={`${UI.input} py-2 text-sm`}
+          style={{ borderColor: value.appBorderStyle }}
+          value={value.appAccentFontColor}
+          onChangeText={(next) => update("appAccentFontColor", next)}
+          autoCapitalize="characters"
+          maxLength={7}
+          accessibilityLabel="App accent font color"
+        />
+      </View>
+
       <Text className="text-xs text-slate-400">Font</Text>
       <View className="flex-row flex-wrap gap-2">
         {POST_FONT_OPTIONS.map((option) => (
@@ -682,7 +782,7 @@ function AppStyleEditor({
         <Switch
           value={value.appOverridePostStyles}
           onValueChange={(next) => update("appOverridePostStyles", next)}
-          trackColor={{ false: "#334155", true: "#a5b4fc" }}
+          trackColor={{ false: "#334155", true: value.appAccentBackgroundColor }}
           thumbColor={value.appOverridePostStyles ? "#312e81" : "#cbd5e1"}
           accessibilityLabel="Override post styles"
         />
@@ -740,6 +840,7 @@ function DefaultPostStyleEditor({
           onPress={onSave}
           disabled={saving || saved}
           className="rounded-xl bg-indigo-300 px-3 py-2 active:opacity-80 disabled:opacity-50"
+          style={{ backgroundColor: appStyle.appAccentBackgroundColor }}
           accessibilityRole="button"
           accessibilityLabel="Save default post style"
         >
@@ -880,12 +981,15 @@ function StyleOption({
   selected: boolean;
   onPress: () => void;
 }) {
+  const { appStyle } = useAppStyle();
+
   return (
     <Pressable
       onPress={onPress}
       className={`rounded-lg px-3 py-2 ${
-        selected ? "bg-indigo-300" : "border border-white/10 bg-white/5"
+        selected ? "" : "border border-white/10 bg-white/5"
       }`}
+      style={selected ? { backgroundColor: appStyle.appAccentBackgroundColor } : undefined}
       accessibilityRole="radio"
       accessibilityLabel={label}
       accessibilityState={{ selected }}

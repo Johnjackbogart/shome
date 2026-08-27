@@ -228,6 +228,7 @@ export default function MeScreen() {
             <Pressable
               onPress={() => router.push("/profile-editor")}
               className={UI.primaryButton}
+              style={{ backgroundColor: appStyle.appAccentBackgroundColor }}
               accessibilityRole="button"
             >
               <Text className="font-medium text-slate-950">Edit page, app &amp; post styles</Text>

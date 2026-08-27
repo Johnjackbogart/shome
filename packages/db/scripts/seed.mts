@@ -117,7 +117,7 @@ function resolvePostStyle(author: SeedUser, override: Partial<PostStyle> = {}): 
 }
 
 /**
- * Spreads an app style across the ten `app_*` columns it is stored in. The
+ * Spreads an app style across the fourteen `app_*` columns it is stored in. The
  * column names differ from the object's keys, so this is the one place the two
  * are lined up — the same mapping PUT /api/app-style writes.
  */
@@ -125,11 +125,15 @@ function appStyleColumns(style: AppStyle) {
   return {
     appBackgroundColor: style.appBackgroundColor,
     appSecondaryBackgroundColor: style.appSecondaryBackgroundColor,
+    appAccentBackgroundColor: style.appAccentBackgroundColor,
+    appAccentColor: style.appAccentColor,
+    appSecondaryAccentColor: style.appSecondaryAccentColor,
     appBorderStyle: style.appBorderStyle,
     appBorderRadius: style.appBorderRadius,
     appBorderLineStyle: style.appBorderLineStyle,
     appFont: style.appFont,
     appFontColor: style.appFontColor,
+    appAccentFontColor: style.appAccentFontColor,
     appSecondaryTextColor: style.appSecondaryTextColor,
     appSpacing: style.appSpacing,
     appOverridePostStyles: style.appOverridePostStyles,

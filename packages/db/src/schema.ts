@@ -38,6 +38,13 @@ export const user = pgTable("user", {
   appSecondaryBackgroundColor: text("app_secondary_background_color")
     .notNull()
     .default(DEFAULT_APP_STYLE.appSecondaryBackgroundColor),
+  appAccentBackgroundColor: text("app_accent_background_color")
+    .notNull()
+    .default(DEFAULT_APP_STYLE.appAccentBackgroundColor),
+  appAccentColor: text("app_accent_color").notNull().default(DEFAULT_APP_STYLE.appAccentColor),
+  appSecondaryAccentColor: text("app_secondary_accent_color")
+    .notNull()
+    .default(DEFAULT_APP_STYLE.appSecondaryAccentColor),
   appBorderStyle: text("app_border_style")
     .notNull()
     .default(DEFAULT_APP_STYLE.appBorderStyle),
@@ -56,6 +63,9 @@ export const user = pgTable("user", {
   appFontColor: text("app_font_color")
     .notNull()
     .default(DEFAULT_APP_STYLE.appFontColor),
+  appAccentFontColor: text("app_accent_font_color")
+    .notNull()
+    .default(DEFAULT_APP_STYLE.appAccentFontColor),
   appSecondaryTextColor: text("app_secondary_text_color")
     .notNull()
     .default(DEFAULT_APP_STYLE.appSecondaryTextColor),

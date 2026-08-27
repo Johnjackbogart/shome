@@ -206,6 +206,7 @@ function SourceRow({
       <View className={`mb-3 gap-3 px-4 py-4 ${UI.card}`} style={appSurfaceAppearance(appStyle)}>
         <TextInput
           className={UI.input}
+          style={{ backgroundColor: appStyle.appAccentBackgroundColor }}
           value={draft}
           onChangeText={setDraft}
           placeholder={original}
@@ -346,6 +347,7 @@ function AddSourceForm({
   }
 
   const inputClass = UI.input;
+  const inputStyle = { backgroundColor: appStyle.appAccentBackgroundColor };
 
   return (
     <View className={`mb-4 gap-3 ${UI.card}`} style={appSurfaceAppearance(appStyle)}>
@@ -372,6 +374,7 @@ function AddSourceForm({
       {kind === "rss" && (
         <TextInput
           className={inputClass}
+          style={inputStyle}
           placeholder="https://example.com/feed.xml"
           placeholderTextColor="#64748b"
           autoCapitalize="none"
@@ -385,6 +388,7 @@ function AddSourceForm({
       {kind === "bluesky" && (
         <TextInput
           className={inputClass}
+          style={inputStyle}
           placeholder="alice.bsky.social"
           placeholderTextColor="#64748b"
           autoCapitalize="none"
@@ -398,6 +402,7 @@ function AddSourceForm({
         <>
           <TextInput
             className={inputClass}
+            style={inputStyle}
             placeholder="mastodon.social"
             placeholderTextColor="#64748b"
             autoCapitalize="none"
@@ -429,6 +434,7 @@ function AddSourceForm({
           {mastodonMode === "hashtag" && (
             <TextInput
               className={inputClass}
+              style={inputStyle}
               placeholder="photography"
               placeholderTextColor="#64748b"
               autoCapitalize="none"
@@ -443,6 +449,7 @@ function AddSourceForm({
       {kind === "youtube" && (
         <TextInput
           className={inputClass}
+          style={inputStyle}
           placeholder="@channelhandle or UC… channel id"
           placeholderTextColor="#64748b"
           autoCapitalize="none"
@@ -452,7 +459,12 @@ function AddSourceForm({
         />
       )}
 
-      <Pressable onPress={submit} disabled={busy} className={`mt-1 self-start ${UI.primaryButton}`}>
+      <Pressable
+        onPress={submit}
+        disabled={busy}
+        className={`mt-1 self-start ${UI.primaryButton}`}
+        style={{ backgroundColor: appStyle.appAccentBackgroundColor }}
+      >
         {busy ? (
           <ActivityIndicator size="small" color={COLORS.background} />
         ) : (

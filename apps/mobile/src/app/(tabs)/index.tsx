@@ -152,9 +152,14 @@ export default function FeedScreen() {
           className="rounded-xl border border-white/10 bg-white/5 px-3.5 py-2.5 active:opacity-70"
         >
           {fetching ? (
-            <ActivityIndicator size="small" color={COLORS.accent} />
+            <ActivityIndicator size="small" color={appStyle.appAccentFontColor} />
           ) : (
-            <Text className="text-sm font-medium text-indigo-200">Fetch new</Text>
+            <Text
+              className="text-sm font-medium text-indigo-200"
+              style={{ color: appStyle.appAccentFontColor, fontFamily: appStyle.appFont }}
+            >
+              Fetch new
+            </Text>
           )}
         </Pressable>
       </View>
@@ -162,10 +167,14 @@ export default function FeedScreen() {
       <View className="flex-row items-center gap-2 px-5 pb-3">
         <TextInput
           className={`flex-1 ${UI.input}`}
+          style={{
+            backgroundColor: appStyle.appAccentBackgroundColor,
+            color: appStyle.appSecondaryTextColor,
+          }}
           value={q}
           onChangeText={setQ}
           placeholder="search your feed…"
-          placeholderTextColor="#64748b"
+          placeholderTextColor={appStyle.appSecondaryTextColor}
           autoCapitalize="none"
           autoCorrect={false}
           returnKeyType="search"
@@ -176,10 +185,11 @@ export default function FeedScreen() {
         <Pressable
           onPress={() => setAppliedQ(q.trim())}
           className="rounded-xl bg-indigo-300 px-4 py-3 active:opacity-80"
+          style={{ backgroundColor: appStyle.appBackgroundColor }}
           accessibilityRole="button"
           accessibilityLabel="Search"
         >
-          <Ionicons name="search" size={18} color={COLORS.background} />
+          <Ionicons name="search" size={18} color={appStyle.appFontColor} />
         </Pressable>
         <Pressable
           onPress={() => setFiltersVisible(true)}
@@ -187,7 +197,7 @@ export default function FeedScreen() {
           accessibilityRole="button"
           accessibilityLabel="Filters"
         >
-          <Ionicons name="options-outline" size={18} color={COLORS.accent} />
+          <Ionicons name="options-outline" size={18} color={appStyle.appAccentFontColor} />
           {activeCount > 0 && (
             <Text className="rounded-full bg-indigo-300 px-1.5 text-xs font-semibold text-slate-950">
               {activeCount}
@@ -259,11 +269,17 @@ export default function FeedScreen() {
       <Pressable
         onPress={() => setComposerVisible(true)}
         className="absolute right-5 bottom-5 flex-row items-center gap-2 rounded-full bg-indigo-300 px-5 py-4 shadow-lg shadow-black/40 active:opacity-80"
+        style={{ backgroundColor: appStyle.appAccentBackgroundColor }}
         accessibilityRole="button"
         accessibilityLabel="Create post"
       >
-        <Ionicons name="add" size={22} color={COLORS.background} />
-        <Text className="font-semibold text-slate-950">Create post</Text>
+        <Ionicons name="add" size={22} color={appStyle.appFontColor} />
+        <Text
+          className="font-semibold text-slate-950"
+          style={{ color: appStyle.appFontColor, fontFamily: appStyle.appFont }}
+        >
+          Create post
+        </Text>
       </Pressable>
 
       <Modal
@@ -337,7 +353,12 @@ export default function FeedScreen() {
               className="mt-1 border-t border-white/10 py-3 active:opacity-70"
               accessibilityRole="button"
             >
-              <Text className="text-sm font-medium text-indigo-200">Clear all filters</Text>
+              <Text
+                className="text-sm font-medium text-indigo-200"
+                style={{ color: appStyle.appAccentFontColor, fontFamily: appStyle.appFont }}
+              >
+                Clear all filters
+              </Text>
             </Pressable>
           </View>
         </SafeAreaView>

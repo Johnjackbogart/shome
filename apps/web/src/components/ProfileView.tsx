@@ -69,7 +69,13 @@ function AppStyleEditor({
           >
             reset
           </button>
-          <button type="button" className="btn" onClick={onSave} disabled={saving || saved}>
+          <button
+            type="button"
+            className="btn"
+            style={{ backgroundColor: value.appAccentBackgroundColor }}
+            onClick={onSave}
+            disabled={saving || saved}
+          >
             {saving ? "saving…" : saved ? "saved ✓" : "save app style"}
           </button>
         </div>
@@ -95,6 +101,33 @@ function AppStyleEditor({
               onChange={(event) => update("appSecondaryBackgroundColor", event.target.value)}
             />
             Secondary background
+          </label>
+          <label className="flex items-center gap-2 text-xs text-slate-200">
+            <input
+              type="color"
+              className="input_color size-9 p-1"
+              value={value.appAccentBackgroundColor}
+              onChange={(event) => update("appAccentBackgroundColor", event.target.value)}
+            />
+            Accent background
+          </label>
+          <label className="flex items-center gap-2 text-xs text-slate-200">
+            <input
+              type="color"
+              className="input_color size-9 p-1"
+              value={value.appAccentColor}
+              onChange={(event) => update("appAccentColor", event.target.value)}
+            />
+            Accent color
+          </label>
+          <label className="flex items-center gap-2 text-xs text-slate-200">
+            <input
+              type="color"
+              className="input_color size-9 p-1"
+              value={value.appSecondaryAccentColor}
+              onChange={(event) => update("appSecondaryAccentColor", event.target.value)}
+            />
+            Secondary accent
           </label>
           <label className="flex items-center gap-2 text-xs text-slate-200">
             <input
@@ -145,6 +178,15 @@ function AppStyleEditor({
               onChange={(event) => update("appFontColor", event.target.value)}
             />
             Font color
+          </label>
+          <label className="flex items-center gap-2 text-xs text-slate-200">
+            <input
+              type="color"
+              className="input_color size-9 p-1"
+              value={value.appAccentFontColor}
+              onChange={(event) => update("appAccentFontColor", event.target.value)}
+            />
+            Accent font
           </label>
           <label className="flex items-center gap-2 text-xs text-slate-200">
             <input
@@ -206,11 +248,43 @@ function AppStyleEditor({
             borderRadius: value.appBorderRadius,
             borderStyle: value.appBorderLineStyle,
             backgroundColor: value.appBackgroundColor,
+            backgroundImage: `radial-gradient(circle at 10% 100%, color-mix(in srgb, ${value.appAccentColor} 4%, transparent), transparent 26%), radial-gradient(circle at 88% 100%, color-mix(in srgb, ${value.appSecondaryAccentColor} 2%, transparent), transparent 22%)`,
             color: value.appFontColor,
             fontFamily: value.appFont,
           }}
         >
           <div className="flex w-full flex-col" style={{ gap: value.appSpacing }}>
+            <div
+              className="w-full border px-3 py-2 text-sm"
+              style={{
+                backgroundColor: value.appAccentBackgroundColor,
+                borderColor: value.appBorderStyle,
+                borderRadius: value.appBorderRadius,
+                borderStyle: value.appBorderLineStyle,
+                color: value.appSecondaryTextColor,
+              }}
+            >
+              Search your feed…
+            </div>
+            <div className="flex gap-2">
+              {[
+                ["filters", value.appSecondaryBackgroundColor],
+                ["refresh", value.appSecondaryBackgroundColor],
+                ["Create post", value.appAccentBackgroundColor],
+              ].map(([label, backgroundColor]) => (
+                <span
+                  key={label}
+                  className="rounded-lg border px-3 py-1.5 text-xs font-semibold"
+                  style={{
+                    backgroundColor,
+                    borderColor: value.appBorderStyle,
+                    color: value.appAccentFontColor,
+                  }}
+                >
+                  {label}
+                </span>
+              ))}
+            </div>
             {["Your shome", "Another post"].map((title) => (
               <div
                 key={title}
@@ -277,12 +351,14 @@ function productPayload(draft: ProductDraft) {
 
 function DefaultPostStyleEditor({
   value,
+  appStyle,
   onChange,
   onSave,
   saving,
   saved,
 }: {
   value: PostStyle;
+  appStyle: AppStyle;
   onChange: (style: PostStyle) => void;
   onSave: () => void;
   saving: boolean;
@@ -310,7 +386,13 @@ function DefaultPostStyleEditor({
           >
             reset
           </button>
-          <button type="button" className="btn" onClick={onSave} disabled={saving || saved}>
+          <button
+            type="button"
+            className="btn"
+            style={{ backgroundColor: appStyle.appAccentBackgroundColor }}
+            onClick={onSave}
+            disabled={saving || saved}
+          >
             {saving ? "saving…" : saved ? "saved ✓" : "save default"}
           </button>
         </div>
@@ -435,10 +517,12 @@ function DefaultPostStyleEditor({
 
 function ProductEditor({
   product,
+  appStyle,
   onSaved,
   onDeleted,
 }: {
   product?: ProductView;
+  appStyle: AppStyle;
   onSaved: (product: ProductView) => void;
   onDeleted: (id: string) => void;
 }) {
@@ -576,7 +660,12 @@ function ProductEditor({
               delete
             </button>
           )}
-          <button type="submit" className="btn" disabled={busy}>
+          <button
+            type="submit"
+            className="btn"
+            style={{ backgroundColor: appStyle.appAccentBackgroundColor }}
+            disabled={busy}
+          >
             {busy ? "saving…" : isNew ? "add product" : "save product"}
           </button>
         </div>
@@ -862,6 +951,7 @@ export function ProfileView({
         <button
           type="button"
           className="btn"
+          style={{ backgroundColor: appStyle.appAccentBackgroundColor }}
           onClick={save}
           disabled={busy || generating || html === null}
         >
@@ -949,6 +1039,7 @@ export function ProfileView({
           setSaved(false);
         }}
         onSave={() => void saveDefaultPostStyle()}
+        appStyle={appStyle}
         saving={styleBusy}
         saved={styleSaved}
       />
@@ -974,6 +1065,7 @@ export function ProfileView({
           <button
             type="button"
             className="btn"
+            style={{ backgroundColor: appStyle.appAccentBackgroundColor }}
             onClick={() => void generatePortfolio()}
             disabled={generating || prompt.trim().length < 2}
           >
@@ -989,6 +1081,7 @@ export function ProfileView({
 
       <ProfilePageEditor
         html={html ?? ""}
+        appStyle={appStyle}
         onChange={(nextHtml) => {
           setHtml(nextHtml);
           setSaved(false);
@@ -1008,6 +1101,7 @@ export function ProfileView({
           <button
             type="button"
             className="btn ml-auto"
+            style={{ backgroundColor: appStyle.appAccentBackgroundColor }}
             onClick={() => setAddingProduct(true)}
             disabled={addingProduct}
           >
@@ -1016,7 +1110,11 @@ export function ProfileView({
         </div>
         {addingProduct && (
           <div className="mb-3">
-            <ProductEditor onSaved={onProductSaved} onDeleted={onProductDeleted} />
+            <ProductEditor
+              appStyle={appStyle}
+              onSaved={onProductSaved}
+              onDeleted={onProductDeleted}
+            />
           </div>
         )}
         {products === null ? (
@@ -1042,6 +1140,7 @@ export function ProfileView({
                 <div className="px-3 pb-3">
                   <ProductEditor
                     product={product}
+                    appStyle={appStyle}
                     onSaved={onProductSaved}
                     onDeleted={onProductDeleted}
                   />

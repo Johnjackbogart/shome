@@ -44,7 +44,7 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: "#c4b5fd",
+        tabBarActiveTintColor: appStyle.appAccentBackgroundColor,
         tabBarInactiveTintColor: appStyle.appSecondaryTextColor,
         tabBarStyle: {
           backgroundColor: appStyle.appSecondaryBackgroundColor,
