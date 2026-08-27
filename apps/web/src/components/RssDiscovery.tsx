@@ -94,7 +94,10 @@ export function RssDiscovery({
         <button
           type="submit"
           className="btn font-normal"
-          style={{ backgroundColor: appStyle.appAccentBackgroundColor }}
+          style={{
+            backgroundColor: appStyle.appAccentBackgroundColor,
+            color: appStyle.appFontColor,
+          }}
           disabled={discovering}
         >
           {discovering ? "finding…" : "find feeds"}

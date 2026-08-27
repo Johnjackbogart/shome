@@ -117,7 +117,7 @@ export function RssDiscovery({
         ) : (
           <Text
             className="text-sm font-normal"
-            style={{ color: appStyle.appAccentFontColor, fontFamily: appStyle.appFont }}
+            style={{ color: appStyle.appFontColor, fontFamily: appStyle.appFont }}
           >
             Find feeds
           </Text>
