@@ -636,14 +636,14 @@ function AppStyleEditor({
           label="Background color"
           value={value.appBackgroundColor}
           onChange={(next) => update("appBackgroundColor", next)}
-          borderColor={value.appBorderStyle}
+          appStyle={value}
         />
         <ColorField
           className="flex-1"
           label="Secondary background"
           value={value.appSecondaryBackgroundColor}
           onChange={(next) => update("appSecondaryBackgroundColor", next)}
-          borderColor={value.appBorderStyle}
+          appStyle={value}
         />
       </View>
 
@@ -651,7 +651,7 @@ function AppStyleEditor({
         label="Accent background"
         value={value.appAccentBackgroundColor}
         onChange={(next) => update("appAccentBackgroundColor", next)}
-        borderColor={value.appBorderStyle}
+        appStyle={value}
       />
 
       <View className="flex-row gap-2">
@@ -660,14 +660,14 @@ function AppStyleEditor({
           label="Accent color"
           value={value.appAccentColor}
           onChange={(next) => update("appAccentColor", next)}
-          borderColor={value.appBorderStyle}
+          appStyle={value}
         />
         <ColorField
           className="flex-1"
           label="Secondary accent"
           value={value.appSecondaryAccentColor}
           onChange={(next) => update("appSecondaryAccentColor", next)}
-          borderColor={value.appBorderStyle}
+          appStyle={value}
         />
       </View>
 
@@ -675,7 +675,7 @@ function AppStyleEditor({
         label="Border color"
         value={value.appBorderStyle}
         onChange={(next) => update("appBorderStyle", next)}
-        borderColor={value.appBorderStyle}
+        appStyle={value}
       />
 
       <Text className="text-xs text-slate-400">Border radius</Text>
@@ -708,14 +708,14 @@ function AppStyleEditor({
           label="Font color"
           value={value.appFontColor}
           onChange={(next) => update("appFontColor", next)}
-          borderColor={value.appBorderStyle}
+          appStyle={value}
         />
         <ColorField
           className="flex-1"
           label="Secondary text"
           value={value.appSecondaryTextColor}
           onChange={(next) => update("appSecondaryTextColor", next)}
-          borderColor={value.appBorderStyle}
+          appStyle={value}
         />
       </View>
 
@@ -723,7 +723,7 @@ function AppStyleEditor({
         label="Accent font color"
         value={value.appAccentFontColor}
         onChange={(next) => update("appAccentFontColor", next)}
-        borderColor={value.appBorderStyle}
+        appStyle={value}
       />
 
       <Text className="text-xs text-slate-400">Font</Text>

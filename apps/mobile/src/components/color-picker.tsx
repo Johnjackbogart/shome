@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import type { AppStyle } from "@shome/core";
 import { LinearGradient } from "expo-linear-gradient";
 import { useCallback, useMemo, useRef, useState } from "react";
 import {
@@ -12,7 +13,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { appPrimaryText, useAppStyle } from "@/lib/app-style";
+import { appBorderAppearance, appPrimaryText, useAppStyle } from "@/lib/app-style";
 import {
   COLOR_PRESETS,
   type Hsv,
@@ -102,21 +103,26 @@ function useDragArea(
 /**
  * A swatch button that opens the picker sheet — the mobile counterpart to the
  * web editor's `<input type="color">`.
+ *
+ * Pass `appStyle` from an editor's unsaved draft so the field previews the
+ * member's edits; it otherwise follows the saved style like the rest of the app.
  */
 export function ColorField({
   label,
   value,
   onChange,
-  borderColor,
+  appStyle,
   className,
 }: {
   label: string;
   value: string;
   onChange: (hex: string) => void;
-  borderColor?: string;
+  appStyle?: AppStyle;
   className?: string;
 }) {
   const [open, setOpen] = useState(false);
+  const saved = useAppStyle().appStyle;
+  const border = appBorderAppearance(appStyle ?? saved);
   const swatch = normalizeHex(value) ?? "#000000";
 
   return (
@@ -125,15 +131,12 @@ export function ColorField({
       <Pressable
         onPress={() => setOpen(true)}
         className={`${UI.input} flex-row items-center gap-2 py-2`}
-        style={borderColor ? { borderColor } : undefined}
+        style={border}
         accessibilityRole="button"
         accessibilityLabel={`${label}, ${swatch}`}
         accessibilityHint="Opens the color picker"
       >
-        <View
-          className="size-6 rounded-md border border-white/20"
-          style={{ backgroundColor: swatch }}
-        />
+        <View className="size-6 border" style={[border, { backgroundColor: swatch }]} />
         <Text className="text-sm text-slate-100">{swatch}</Text>
       </Pressable>
 
