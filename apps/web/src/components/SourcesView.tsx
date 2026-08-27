@@ -2,7 +2,7 @@
 
 import type { AppStyle } from "@shome/core";
 import { type CSSProperties, type FormEvent, useCallback, useEffect, useState } from "react";
-import { KindBadge } from "#/components/KindBadge";
+import { KindBadge } from "#/components/Badge";
 import { api } from "#/lib/api";
 import { originalSourceLabel, SOURCE_FETCH_ERROR, sourceLabel, timeAgo } from "#/lib/format";
 import { selectChevron } from "#/lib/select-style";

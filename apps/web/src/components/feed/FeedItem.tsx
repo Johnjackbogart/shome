@@ -1,5 +1,5 @@
 import type { AppStyle } from "@shome/core";
-import { KindBadge } from "#/components/KindBadge";
+import { KindBadge } from "#/components/Badge";
 import { timeAgo, truncate } from "#/lib/format";
 import type { FeedItemView } from "#/lib/types";
 

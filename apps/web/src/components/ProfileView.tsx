@@ -10,7 +10,7 @@ import {
   POST_FONT_OPTIONS,
   type PostStyle,
 } from "@shome/core";
-import { type ChangeEvent, useEffect, useRef, useState } from "react";
+import { type ChangeEvent, type CSSProperties, useEffect, useRef, useState } from "react";
 import { ProfilePageEditor } from "#/components/ProfilePageEditor";
 import { api } from "#/lib/api";
 import { appSelectStyle } from "#/lib/select-style";
@@ -88,7 +88,19 @@ function AppStyleEditor({
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(16rem,0.7fr)]">
-        <fieldset className="grid gap-3 rounded-xl border bg-white/[0.02] p-3 sm:grid-cols-2">
+        <fieldset
+          className="grid gap-3 border bg-white/[0.02] p-3 sm:grid-cols-2"
+          // Re-point the theme tokens at the unsaved draft for this subtree, so
+          // the color swatches and the fieldset preview the member's edits the
+          // way the selects and the sample pills already do.
+          style={
+            {
+              "--app-border-color": value.appBorderStyle,
+              "--app-border-radius": value.appBorderRadius,
+              "--app-border-line-style": value.appBorderLineStyle,
+            } as CSSProperties
+          }
+        >
           <legend className="px-1 text-sm font-medium text-slate-100">Style controls</legend>
           <label className="flex items-center gap-2 text-xs text-slate-200">
             <input

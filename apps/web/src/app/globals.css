@@ -40,6 +40,40 @@
   border-radius: var(--app-border-radius, 16px);
 }
 
+/*
+ * Browsers paint <input type="color"> as a native color well that ignores the
+ * border tokens above, the same way they do for <select>, so the control only
+ * follows the member's style once the platform appearance is dropped.
+ *
+ * The swatch showing the chosen color is a separate vendor pseudo-element with
+ * its own square corners and hairline border, and it inherits nothing useful
+ * from the input, so it has to read the tokens itself. These selectors avoid
+ * :where() because a browser drops the whole rule when it does not recognise
+ * the pseudo-element, and each vendor needs its own copy for that reason.
+ */
+.app-theme .input_color {
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.app-theme .input_color::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.app-theme .input_color::-webkit-color-swatch {
+  border-width: 1px;
+  border-color: var(--app-border-color, #24293a);
+  border-style: var(--app-border-line-style, solid);
+  border-radius: var(--app-border-radius, 16px);
+}
+
+.app-theme .input_color::-moz-color-swatch {
+  border-width: 1px;
+  border-color: var(--app-border-color, #24293a);
+  border-style: var(--app-border-line-style, solid);
+  border-radius: var(--app-border-radius, 16px);
+}
+
 .app-theme :where(.text-white, .text-slate-100, .text-slate-200) {
   color: var(--app-font-color, #f8fafc);
 }

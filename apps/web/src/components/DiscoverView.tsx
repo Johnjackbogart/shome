@@ -10,6 +10,7 @@ import type {
 } from "@shome/core";
 import Link from "next/link";
 import { type FormEvent, useCallback, useEffect, useState } from "react";
+import { Badge } from "#/components/Badge";
 import { RssDiscovery } from "#/components/RssDiscovery";
 import { api } from "#/lib/api";
 import type { SourceView } from "#/lib/types";
@@ -161,9 +162,7 @@ export function DiscoverView({ appStyle }: { appStyle: AppStyle }) {
         <section className="card flex flex-col" style={{ gap: appStyle.appSpacing }}>
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <span className="badge text-indigo-200" style={appBorder}>
-                People
-              </span>
+              <Badge label="People" tone="text-indigo-200" style={appBorder} />
               <h2 className="mt-3 text-xl font-bold text-white">Find your people on shome</h2>
               <p className="mt-1 text-sm leading-6 text-slate-400">
                 Search a name or @handle, visit their page, then decide whether to follow.
@@ -238,9 +237,7 @@ export function DiscoverView({ appStyle }: { appStyle: AppStyle }) {
 
         <section className="flex flex-col" style={{ gap: appStyle.appSpacing }}>
           <div className="flex items-center gap-2">
-            <span className="badge text-orange-300" style={appBorder}>
-              RSS
-            </span>
+            <Badge label="RSS" tone="text-orange-300" style={appBorder} />
             <h2 className="text-xl font-bold">Publications, blogs, and podcasts</h2>
           </div>
           <RssDiscovery
@@ -265,9 +262,12 @@ export function DiscoverView({ appStyle }: { appStyle: AppStyle }) {
 
       <aside className="flex flex-col" style={{ gap: appStyle.appSpacing }}>
         <section className="card flex flex-col" style={{ gap: appStyle.appSpacing, ...appBorder }}>
-          <span className="badge self-start text-emerald-300" style={appBorder}>
-            Your community
-          </span>
+          <Badge
+            label="Your community"
+            tone="text-emerald-300"
+            className="self-start"
+            style={appBorder}
+          />
           <h2 className="font-semibold text-white">People following you</h2>
           {community ? (
             <>
