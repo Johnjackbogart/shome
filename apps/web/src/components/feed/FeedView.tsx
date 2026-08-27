@@ -1,21 +1,16 @@
 "use client";
 
-import {
-  type SubmitEvent,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import type { AppStyle } from "@shome/core";
+import { type SubmitEvent, useCallback, useEffect, useRef, useState } from "react";
 import { api } from "#/lib/api";
 import { sourceLabel } from "#/lib/format";
 import type { FeedItemView, SourceView } from "#/lib/types";
-import PostComposer from "./PostComposer";
 import FeedItem from "./FeedItem";
+import PostComposer from "./PostComposer";
 
 const KINDS = ["post", "rss", "bluesky", "mastodon", "youtube"];
 
-export function FeedView() {
+export function FeedView({ appStyle }: { appStyle: AppStyle }) {
   const [items, setItems] = useState<FeedItemView[] | null>(null);
   const [sources, setSources] = useState<SourceView[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -43,9 +38,7 @@ export function FeedView() {
       if (appliedQ) params.set("q", appliedQ);
       if (kind) params.set("kind", kind);
       if (sourceId) params.set("sourceId", sourceId);
-      const res = await api.get<{ items: FeedItemView[] }>(
-        `/api/feed?${params}`,
-      );
+      const res = await api.get<{ items: FeedItemView[] }>(`/api/feed?${params}`);
       if (requestId === latestRequest.current) setItems(res.items);
     } catch (err) {
       if (requestId === latestRequest.current) {
@@ -118,9 +111,7 @@ export function FeedView() {
 
   return (
     <section>
-      <div
-        className={`flex flex-wrap items-center gap-2 ${filtered ? "mb-3" : "mb-5"}`}
-      >
+      <div className={`flex flex-wrap items-center gap-2 ${filtered ? "mb-3" : "mb-5"}`}>
         <form className="flex min-w-64 flex-1 gap-2" onSubmit={search}>
           <div className="relative flex-1">
             <input
@@ -159,12 +150,7 @@ export function FeedView() {
           onKindChange={setKind}
           onClear={clearFilters}
         />
-        <button
-          type="button"
-          className="btn-ghost"
-          onClick={refreshAll}
-          disabled={busy}
-        >
+        <button type="button" className="btn-ghost" onClick={refreshAll} disabled={busy}>
           {busy ? "refreshing…" : "refresh"}
         </button>
       </div>
@@ -220,9 +206,9 @@ export function FeedView() {
           )}
         </div>
       ) : (
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col" style={{ gap: appStyle.appSpacing }}>
           {items.map((item) => (
-            <FeedItem key={item.id} item={item} />
+            <FeedItem key={item.id} item={item} appStyle={appStyle} />
           ))}
         </div>
       )}

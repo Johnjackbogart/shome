@@ -72,7 +72,11 @@ export async function searchPeople(
   });
 }
 
-/** Returns the signed-in person's follower and following summaries. */
+/**
+ * Returns a member's follower and following summaries. Used both for the
+ * signed-in person's own view and for the public profile components, which
+ * render the page owner's graph.
+ */
 export async function socialGraph(db: Db, viewerId: string): Promise<SocialGraphView> {
   const [[followerTotal], [followingTotal], followerRows, followingRows] = await Promise.all([
     db

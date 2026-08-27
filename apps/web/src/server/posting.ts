@@ -2,6 +2,7 @@ import { AtpAgent } from "@atproto/api";
 import {
   type CrossPostLink,
   type FeedItemView,
+  type PostStyle,
   isPostBorderLineStyle,
   isPostBorderRadius,
   isPostFont,
@@ -180,13 +181,15 @@ export function postToFeedItem(
     sourceId: `post:${post.id}`,
     sourceKind: "post",
     sourceTitle: "my post",
-    borderStyle: post.borderStyle,
-    borderRadius: isPostBorderRadius(post.borderRadius) ? post.borderRadius : null,
-    borderLineStyle: isPostBorderLineStyle(post.borderLineStyle) ? post.borderLineStyle : null,
-    backgroundColor: post.backgroundColor,
-    font: isPostFont(post.font) ? post.font : null,
-    fontColor: post.fontColor,
-    secondaryTextColor: post.secondaryTextColor,
+    postBorderStyle: post.postBorderStyle,
+    postBorderRadius: isPostBorderRadius(post.postBorderRadius) ? post.postBorderRadius : null,
+    postBorderLineStyle: isPostBorderLineStyle(post.postBorderLineStyle)
+      ? post.postBorderLineStyle
+      : null,
+    postBackgroundColor: post.postBackgroundColor,
+    postFont: isPostFont(post.postFont) ? post.postFont : null,
+    postFontColor: post.postFontColor,
+    postSecondaryTextColor: post.postSecondaryTextColor,
     url: null,
     title: null,
     text: post.text,
@@ -244,41 +247,36 @@ export async function mediaByPostId(
 
 export async function createPost(
   db: Db,
-  input: {
+  input: PostStyle & {
     userId: string;
     text: string;
-    borderStyle: string;
-    borderRadius: string;
-    borderLineStyle: string;
-    backgroundColor: string;
-    font: string;
-    fontColor: string;
-    secondaryTextColor: string;
     blueskyConnectionId?: string;
     mastodonConnectionId?: string;
     media?: NewPostMedia[];
   },
 ): Promise<{ post: Post; media: PostMedia[]; deliveries: DeliveryResult[] }> {
+  const {
+    userId,
+    text,
+    blueskyConnectionId,
+    mastodonConnectionId,
+    media,
+    ...postStyle
+  } = input;
   const { created, attachedMedia } = await db.transaction(async (tx) => {
     const [post] = await tx
       .insert(posts)
       .values({
-        userId: input.userId,
-        text: input.text,
-        borderStyle: input.borderStyle,
-        borderRadius: input.borderRadius,
-        borderLineStyle: input.borderLineStyle,
-        backgroundColor: input.backgroundColor,
-        font: input.font,
-        fontColor: input.fontColor,
-        secondaryTextColor: input.secondaryTextColor,
+        userId,
+        text,
+        ...postStyle,
       })
       .returning();
     if (!post) throw new Error("could not save post");
-    const attachedMedia = input.media?.length
+    const attachedMedia = media?.length
       ? await tx
           .insert(postMedia)
-          .values(input.media.map((media) => ({ ...media, postId: post.id })))
+          .values(media.map((item) => ({ ...item, postId: post.id })))
           .returning()
       : [];
     return { created: post, attachedMedia };
@@ -288,14 +286,14 @@ export async function createPost(
   // Platform integrations currently have text-only publish contracts. Media is
   // still safely published to shome; an empty media-only post must not turn
   // into an invalid empty delivery attempt on an external platform.
-  const deliveries = input.text
+  const deliveries = text
     ? await Promise.all(
         [
-          input.blueskyConnectionId
-            ? deliver(db, input.userId, "bluesky", input.blueskyConnectionId, input.text)
+          blueskyConnectionId
+            ? deliver(db, userId, "bluesky", blueskyConnectionId, text)
             : null,
-          input.mastodonConnectionId
-            ? deliver(db, input.userId, "mastodon", input.mastodonConnectionId, input.text)
+          mastodonConnectionId
+            ? deliver(db, userId, "mastodon", mastodonConnectionId, text)
             : null,
         ].filter((delivery): delivery is Promise<DeliveryResult> => delivery !== null),
       )

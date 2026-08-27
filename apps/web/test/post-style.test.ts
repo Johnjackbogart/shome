@@ -6,10 +6,10 @@ describe("profile default post style", () => {
   it("accepts a complete supported style", () => {
     const style = {
       ...DEFAULT_POST_STYLE,
-      borderStyle: "#123456",
-      borderRadius: "24px" as const,
-      borderLineStyle: "dashed" as const,
-      font: "serif" as const,
+      postBorderStyle: "#123456",
+      postBorderRadius: "24px" as const,
+      postBorderLineStyle: "dashed" as const,
+      postFont: "serif" as const,
     };
 
     expect(postStyleSchema.parse(style)).toEqual(style);
@@ -20,12 +20,12 @@ describe("profile default post style", () => {
     expect(
       postStyleSchema.safeParse({
         ...DEFAULT_POST_STYLE,
-        backgroundColor: "url(https://example.test/tracker)",
+        postBackgroundColor: "url(https://example.test/tracker)",
       }).success,
     ).toBe(false);
-    expect(postStyleSchema.safeParse({ ...DEFAULT_POST_STYLE, font: "cursive" }).success).toBe(
-      false,
-    );
+    expect(
+      postStyleSchema.safeParse({ ...DEFAULT_POST_STYLE, postFont: "cursive" }).success,
+    ).toBe(false);
   });
 
   it("falls back when a legacy database value is malformed", () => {

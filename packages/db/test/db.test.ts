@@ -1,6 +1,6 @@
+import { DEFAULT_APP_STYLE, DEFAULT_POST_STYLE } from "@shome/core";
 import { readFileSync } from "node:fs";
 import { PGlite } from "@electric-sql/pglite";
-import { DEFAULT_POST_STYLE } from "@shome/core";
 import { count, desc, eq, inArray, sql } from "drizzle-orm";
 import { beforeAll, describe, expect, it } from "vitest";
 import {
@@ -15,6 +15,7 @@ import {
   sources,
   subscriptions,
   user,
+  userPostStyleColumns,
 } from "../src/index";
 
 // Boots an in-memory PGlite database and runs the real migrations against it,
@@ -29,7 +30,6 @@ describe("schema + migrations", () => {
   it("preserves customized default styles when splitting the JSONB column", async () => {
     const migrationDb = new PGlite();
     const customized = {
-      ...DEFAULT_POST_STYLE,
       borderStyle: "#123456",
       borderRadius: "24px",
       borderLineStyle: "dashed",
@@ -47,25 +47,63 @@ describe("schema + migrations", () => {
         'INSERT INTO "user" ("id", "default_post_style") VALUES ($1, $2::jsonb)',
         ["migrating-user", JSON.stringify(customized)],
       );
-      const migration = readFileSync(
-        new URL("../migrations/0017_gorgeous_songbird.sql", import.meta.url),
-        "utf8",
-      );
-      await migrationDb.exec(migration);
+      for (const filename of ["0017_gorgeous_songbird.sql", "0019_lazy_inhumans.sql"]) {
+        const migration = readFileSync(
+          new URL(`../migrations/${filename}`, import.meta.url),
+          "utf8",
+        );
+        await migrationDb.exec(migration);
+      }
 
-      const migrated = await migrationDb.query<typeof customized>(
+      const migrated = await migrationDb.query(
         `SELECT
-          "border_style" AS "borderStyle",
-          "border_radius" AS "borderRadius",
-          "border_line_style" AS "borderLineStyle",
-          "background_color" AS "backgroundColor",
-          "font",
-          "font_color" AS "fontColor",
-          "secondary_text_color" AS "secondaryTextColor"
+          "post_border_style" AS "postBorderStyle",
+          "post_border_radius" AS "postBorderRadius",
+          "post_border_line_style" AS "postBorderLineStyle",
+          "post_background_color" AS "postBackgroundColor",
+          "post_font" AS "postFont",
+          "post_font_color" AS "postFontColor",
+          "post_secondary_text_color" AS "postSecondaryTextColor"
         FROM "user"
         WHERE "id" = 'migrating-user'`,
       );
-      expect(migrated.rows[0]).toEqual(customized);
+      expect(migrated.rows[0]).toEqual({
+        postBorderStyle: customized.borderStyle,
+        postBorderRadius: customized.borderRadius,
+        postBorderLineStyle: customized.borderLineStyle,
+        postBackgroundColor: customized.backgroundColor,
+        postFont: customized.font,
+        postFontColor: customized.fontColor,
+        postSecondaryTextColor: customized.secondaryTextColor,
+      });
+    } finally {
+      await migrationDb.close();
+    }
+  });
+
+  it("preserves the app border color when renaming its column", async () => {
+    const migrationDb = new PGlite();
+
+    try {
+      await migrationDb.exec(
+        'CREATE TABLE "user" ("id" text PRIMARY KEY, "app_border_color" text NOT NULL)',
+      );
+      await migrationDb.exec(
+        `INSERT INTO "user" ("id", "app_border_color") VALUES ('app-style-user', '#123456')`,
+      );
+      const migration = readFileSync(
+        new URL("../migrations/0020_lyrical_daredevil.sql", import.meta.url),
+        "utf8",
+      );
+
+      await migrationDb.exec(migration);
+
+      const migrated = await migrationDb.query(
+        `SELECT "app_border_style" AS "appBorderStyle"
+        FROM "user"
+        WHERE "id" = 'app-style-user'`,
+      );
+      expect(migrated.rows[0]).toEqual({ appBorderStyle: "#123456" });
     } finally {
       await migrationDb.close();
     }
@@ -82,36 +120,82 @@ describe("schema + migrations", () => {
       .returning();
 
     expect(member).toMatchObject({
-      borderStyle: null,
-      borderRadius: null,
-      borderLineStyle: null,
-      backgroundColor: null,
-      font: null,
-      fontColor: null,
-      secondaryTextColor: null,
+      postBorderStyle: null,
+      postBorderRadius: null,
+      postBorderLineStyle: null,
+      postBackgroundColor: null,
+      postFont: null,
+      postFontColor: null,
+      postSecondaryTextColor: null,
     });
 
     const customized = {
       ...DEFAULT_POST_STYLE,
-      borderStyle: "#123456",
-      borderRadius: "24px" as const,
-      font: "serif" as const,
+      postBorderStyle: "#123456",
+      postBorderRadius: "24px" as const,
+      postFont: "serif" as const,
     };
     const [saved] = await db
       .update(user)
       .set(customized)
       .where(eq(user.id, "user_post_style"))
-      .returning({
-        borderStyle: user.borderStyle,
-        borderRadius: user.borderRadius,
-        borderLineStyle: user.borderLineStyle,
-        backgroundColor: user.backgroundColor,
-        font: user.font,
-        fontColor: user.fontColor,
-        secondaryTextColor: user.secondaryTextColor,
-      });
+      .returning(userPostStyleColumns);
 
     expect(saved).toEqual(customized);
+  });
+
+  it("stores app style properties in separate user columns", async () => {
+    const [member] = await db
+      .insert(user)
+      .values({
+        id: "user_app_style",
+        name: "App styled user",
+        email: "app-styled-user@example.com",
+      })
+      .returning();
+
+    expect(member).toMatchObject({
+      appBackgroundColor: DEFAULT_APP_STYLE.appBackgroundColor,
+      appSecondaryBackgroundColor: DEFAULT_APP_STYLE.appSecondaryBackgroundColor,
+      appBorderStyle: DEFAULT_APP_STYLE.appBorderStyle,
+      appBorderRadius: DEFAULT_APP_STYLE.appBorderRadius,
+      appBorderLineStyle: DEFAULT_APP_STYLE.appBorderLineStyle,
+      appFont: DEFAULT_APP_STYLE.appFont,
+      appFontColor: DEFAULT_APP_STYLE.appFontColor,
+      appSecondaryTextColor: DEFAULT_APP_STYLE.appSecondaryTextColor,
+      appSpacing: DEFAULT_APP_STYLE.appSpacing,
+      appOverridePostStyles: DEFAULT_APP_STYLE.appOverridePostStyles,
+    });
+
+    const [saved] = await db
+      .update(user)
+      .set({
+        appBackgroundColor: "#123456",
+        appSecondaryBackgroundColor: "#234567",
+        appBorderStyle: "#abcdef",
+        appBorderRadius: "24px",
+        appBorderLineStyle: "dashed",
+        appFont: "serif",
+        appFontColor: "#fedcba",
+        appSecondaryTextColor: "#654321",
+        appSpacing: "20px",
+        appOverridePostStyles: true,
+      })
+      .where(eq(user.id, "user_app_style"))
+      .returning();
+
+    expect(saved).toMatchObject({
+      appBackgroundColor: "#123456",
+      appSecondaryBackgroundColor: "#234567",
+      appBorderStyle: "#abcdef",
+      appBorderRadius: "24px",
+      appBorderLineStyle: "dashed",
+      appFont: "serif",
+      appFontColor: "#fedcba",
+      appSecondaryTextColor: "#654321",
+      appSpacing: "20px",
+      appOverridePostStyles: true,
+    });
   });
 
   it("inserts and reads across the core tables", async () => {
@@ -137,7 +221,9 @@ describe("schema + migrations", () => {
       .returning();
     if (!source) throw new Error("unreachable");
 
-    await db.insert(subscriptions).values({ userId: alice.id, sourceId: source.id });
+    await db
+      .insert(subscriptions)
+      .values({ userId: alice.id, sourceId: source.id });
 
     await db.insert(items).values({
       sourceId: source.id,
@@ -154,7 +240,9 @@ describe("schema + migrations", () => {
       .where(eq(subscriptions.userId, alice.id));
     expect(rows).toHaveLength(1);
     expect(rows[0]?.title).toBe("hello");
-    expect(rows[0]?.media).toEqual([{ type: "image", url: "https://example.com/x.png" }]);
+    expect(rows[0]?.media).toEqual([
+      { type: "image", url: "https://example.com/x.png" },
+    ]);
 
     const [post] = await db
       .insert(posts)
@@ -224,7 +312,10 @@ describe("schema + migrations", () => {
       .values({ ...row, title: "second" })
       .onConflictDoNothing({ target: [items.sourceId, items.externalId] });
 
-    const rows = await db.select().from(items).where(eq(items.sourceId, source.id));
+    const rows = await db
+      .select()
+      .from(items)
+      .where(eq(items.sourceId, source.id));
     expect(rows).toHaveLength(1);
     expect(rows[0]?.title).toBe("first");
   });
@@ -281,7 +372,9 @@ describe("schema + migrations", () => {
 
   it("stores waitlist and newsletter interest once per email", async () => {
     const email = "early@example.com";
-    await db.insert(interestSignups).values({ email, waitlist: true, newsletter: false });
+    await db
+      .insert(interestSignups)
+      .values({ email, waitlist: true, newsletter: false });
     await db
       .insert(interestSignups)
       .values({ email, waitlist: false, newsletter: true })
@@ -311,6 +404,10 @@ describe("schema + migrations", () => {
         checkoutUrl: "https://checkout.example.com/print",
       })
       .returning();
-    expect(product).toMatchObject({ title: "Small print", visible: true, sortOrder: 0 });
+    expect(product).toMatchObject({
+      title: "Small print",
+      visible: true,
+      sortOrder: 0,
+    });
   });
 });

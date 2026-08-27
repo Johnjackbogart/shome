@@ -127,6 +127,27 @@
       "when": 1787405148814,
       "tag": "0017_gorgeous_songbird",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1787762662907,
+      "tag": "0018_brainy_lockheed",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1787771442181,
+      "tag": "0019_lazy_inhumans",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1787775100124,
+      "tag": "0020_lyrical_daredevil",
+      "breakpoints": true
     }
   ]
 }

@@ -16,6 +16,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { FeedItemCard } from "@/components/feed-item-card";
 import { PostComposer } from "@/components/post-composer";
 import { api } from "@/lib/api";
+import {
+  appPrimaryText,
+  appSecondaryText,
+  appSurfaceAppearance,
+  useAppStyle,
+} from "@/lib/app-style";
 import { sourceLabel } from "@/lib/format";
 import { COLORS, UI } from "@/lib/ui";
 
@@ -24,6 +30,7 @@ import { COLORS, UI } from "@/lib/ui";
 const KINDS = ["post", "rss", "bluesky", "mastodon", "youtube"];
 
 export default function FeedScreen() {
+  const { appStyle } = useAppStyle();
   const [items, setItems] = useState<FeedItemView[] | null>(null);
   const [sources, setSources] = useState<SourceView[]>([]);
   const [sourcesError, setSourcesError] = useState<string | null>(null);
@@ -125,11 +132,19 @@ export default function FeedScreen() {
   const selectedSource = sources.find((source) => source.id === sourceId);
 
   return (
-    <SafeAreaView className={UI.screen} edges={["top"]}>
+    <SafeAreaView
+      className={UI.screen}
+      style={{ backgroundColor: appStyle.appBackgroundColor }}
+      edges={["top"]}
+    >
       <View className="flex-row items-end justify-between px-5 pt-2 pb-3">
         <View>
-          <Text className={UI.eyebrow}>Your daily mix</Text>
-          <Text className="mt-2 text-3xl font-semibold text-white">Your feed</Text>
+          <Text className={UI.eyebrow} style={appSecondaryText(appStyle)}>
+            Your daily mix
+          </Text>
+          <Text className="mt-2 text-3xl font-semibold text-white" style={appPrimaryText(appStyle)}>
+            Your feed
+          </Text>
         </View>
         <Pressable
           onPress={fetchNew}
@@ -183,7 +198,11 @@ export default function FeedScreen() {
 
       {filtered && (
         <View className="flex-row items-center gap-3 px-5 pb-3">
-          <Text className="shrink text-sm text-slate-400" numberOfLines={1}>
+          <Text
+            className="shrink text-sm text-slate-400"
+            style={appSecondaryText(appStyle)}
+            numberOfLines={1}
+          >
             {items === null
               ? "searching"
               : `${items.length} ${items.length === 1 ? "item" : "items"}`}
@@ -217,11 +236,17 @@ export default function FeedScreen() {
             />
           }
           ListEmptyComponent={
-            <View className={`${UI.card} mt-12 items-center`}>
-              <Text className="text-base font-medium text-white">
+            <View
+              className={`${UI.card} mt-12 items-center`}
+              style={appSurfaceAppearance(appStyle)}
+            >
+              <Text className="text-base font-medium text-white" style={appPrimaryText(appStyle)}>
                 {filtered ? "No items match these filters." : "Nothing here yet."}
               </Text>
-              <Text className="mt-2 text-center text-sm leading-5 text-slate-400">
+              <Text
+                className="mt-2 text-center text-sm leading-5 text-slate-400"
+                style={appSecondaryText(appStyle)}
+              >
                 {filtered
                   ? "Try a different search, or clear the filters above."
                   : "Add a source in the Sources tab to make this space yours."}
@@ -254,8 +279,14 @@ export default function FeedScreen() {
           onPress={() => setFiltersVisible(false)}
           accessibilityLabel="Close filters"
         />
-        <SafeAreaView className="bg-slate-950" edges={["bottom"]}>
-          <View className="max-h-[70vh] rounded-t-3xl border-t border-white/10 bg-slate-950 px-5 pt-4 pb-2">
+        <SafeAreaView style={{ backgroundColor: appStyle.appBackgroundColor }} edges={["bottom"]}>
+          <View
+            className="max-h-[70vh] rounded-t-3xl border-t px-5 pt-4 pb-2"
+            style={{
+              backgroundColor: appStyle.appBackgroundColor,
+              borderColor: appStyle.appBorderStyle,
+            }}
+          >
             <View className="flex-row items-center justify-between pb-2">
               <Text className="text-lg font-semibold text-white">Filters</Text>
               <Pressable
@@ -318,7 +349,11 @@ export default function FeedScreen() {
         presentationStyle="pageSheet"
         onRequestClose={() => setComposerVisible(false)}
       >
-        <SafeAreaView className={UI.screen} edges={["top", "bottom"]}>
+        <SafeAreaView
+          className={UI.screen}
+          style={{ backgroundColor: appStyle.appBackgroundColor }}
+          edges={["top", "bottom"]}
+        >
           <View className="flex-row items-center justify-end px-5 pt-2 pb-3">
             <Pressable
               onPress={() => setComposerVisible(false)}

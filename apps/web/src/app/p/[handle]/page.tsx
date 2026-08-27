@@ -111,26 +111,26 @@ export default async function ProfilePage(ctx: { params: Promise<{ handle: strin
                 const links = crossPostLinks(post);
                 const attachments = mediaByPost.get(post.id) ?? [];
                 const hasCustomStyle = Boolean(
-                  post.borderStyle ||
-                    post.borderRadius ||
-                    post.borderLineStyle ||
-                    post.backgroundColor ||
-                    post.font ||
-                    post.fontColor ||
-                    post.secondaryTextColor,
+                  post.postBorderStyle ||
+                    post.postBorderRadius ||
+                    post.postBorderLineStyle ||
+                    post.postBackgroundColor ||
+                    post.postFont ||
+                    post.postFontColor ||
+                    post.postSecondaryTextColor,
                 );
                 const style = hasCustomStyle
                   ? {
-                      borderColor: post.borderStyle ?? undefined,
-                      borderRadius: isPostBorderRadius(post.borderRadius)
-                        ? post.borderRadius
+                      borderColor: post.postBorderStyle ?? undefined,
+                      borderRadius: isPostBorderRadius(post.postBorderRadius)
+                        ? post.postBorderRadius
                         : undefined,
-                      borderStyle: isPostBorderLineStyle(post.borderLineStyle)
-                        ? post.borderLineStyle
+                      borderStyle: isPostBorderLineStyle(post.postBorderLineStyle)
+                        ? post.postBorderLineStyle
                         : undefined,
-                      backgroundColor: post.backgroundColor ?? undefined,
-                      color: post.fontColor ?? undefined,
-                      fontFamily: isPostFont(post.font) ? post.font : undefined,
+                      backgroundColor: post.postBackgroundColor ?? undefined,
+                      color: post.postFontColor ?? undefined,
+                      fontFamily: isPostFont(post.postFont) ? post.postFont : undefined,
                     }
                   : undefined;
                 return (
@@ -180,7 +180,9 @@ export default async function ProfilePage(ctx: { params: Promise<{ handle: strin
                     )}
                     <footer
                       className="mt-3 flex flex-wrap items-center gap-3 text-sm text-zinc-400"
-                      style={{ color: post.secondaryTextColor ?? post.fontColor ?? undefined }}
+                      style={{
+                        color: post.postSecondaryTextColor ?? post.postFontColor ?? undefined,
+                      }}
                     >
                       <time dateTime={post.createdAt.toISOString()}>
                         {post.createdAt.toLocaleDateString(undefined, {

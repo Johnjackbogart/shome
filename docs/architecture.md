@@ -87,6 +87,10 @@ server-side. Pieces:
   stages — scoring, user-authored sandboxed scripts — slot in behind the same
   interface later. v0 UI exposes live filtering; saved-feed routes are next.
 - **Profile** — the user's vibe-coded page: raw HTML/CSS stored as written.
+- **App style** — the signed-in member's private, account-synced application
+  canvas/surface colors, typography, border shape/line, feed spacing, and complete
+  first-party post override preference. See the
+  [paid rollout plan](app-styling.md).
 - **Product** — a creator-owned catalog item (title, description, price label,
   image, external checkout URL, visibility, order). shome displays products but
   does not handle payment, inventory, orders, customer data, tax, or refunds.
@@ -100,6 +104,15 @@ versioned component vocabulary. v1 components are attribute-free tags:
 - `<shome-posts />` renders the owner's first-party posts in that exact place.
 - `<shome-products />` renders the owner's visible product catalog and sends
   visitors to each creator-provided external checkout URL.
+- `<shome-stats />` renders the owner's follower and following counts.
+- `<shome-followers />` / `<shome-following />` render the two sides of the
+  owner's first-party follow graph as linked cards pointing at `/p/[handle]`.
+
+The three social components share one `socialGraph` load per rendered page, so
+a profile may use all of them without multiplying queries. They show only the
+first-party shome graph today; follower stats aggregated across a creator's
+connected platforms are the next step at this seam, and are the reason the
+counts live in their own component rather than inside the list components.
 
 `server/profile-components.ts` is the registry seam. It recognizes only known
 component syntax, loads the owner-scoped data on the server, replaces a tag with

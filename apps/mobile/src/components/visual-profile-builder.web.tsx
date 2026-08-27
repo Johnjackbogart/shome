@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Text, View } from "react-native";
 import { builderDocument } from "@/components/visual-profile-builder-document";
+import { appSurfaceAppearance, useAppStyle } from "@/lib/app-style";
 import { UI } from "@/lib/ui";
 
 type Props = {
@@ -17,6 +18,7 @@ type BuilderMessage = {
 };
 
 export function VisualProfileBuilder({ source, previewDoc, previewError, onChange }: Props) {
+  const { appStyle } = useAppStyle();
   const frame = useRef<HTMLIFrameElement>(null);
   const [document] = useState(() => builderDocument({ source, previewDoc, previewError }));
 
@@ -64,7 +66,7 @@ export function VisualProfileBuilder({ source, previewDoc, previewError, onChang
   }, [onChange, source, sync]);
 
   return (
-    <View className={`${UI.card} gap-3`}>
+    <View className={`${UI.card} gap-3`} style={appSurfaceAppearance(appStyle)}>
       <View>
         <Text className="text-base font-semibold text-white">Visual builder</Text>
         <Text className={`mt-1 ${UI.body}`}>
@@ -78,7 +80,13 @@ export function VisualProfileBuilder({ source, previewDoc, previewError, onChang
         title="Visual profile builder"
         sandbox="allow-scripts"
         onLoad={sync}
-        style={{ width: "100%", height: 720, border: 0, borderRadius: 16, background: "#0f172a" }}
+        style={{
+          width: "100%",
+          height: 720,
+          border: 0,
+          borderRadius: 16,
+          background: appStyle.appSecondaryBackgroundColor,
+        }}
       />
       <Text className={`mt-2 ${UI.body}`}>
         The visual controls update the same draft source as the iOS and Android editor.

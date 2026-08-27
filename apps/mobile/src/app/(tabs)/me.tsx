@@ -6,6 +6,13 @@ import { useEffect, useState } from "react";
 import { ActivityIndicator, Platform, Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { api } from "@/lib/api";
+import {
+  appBorderAppearance,
+  appPrimaryText,
+  appSecondaryText,
+  appSurfaceAppearance,
+  useAppStyle,
+} from "@/lib/app-style";
 import { authClient } from "@/lib/auth-client";
 import { API_URL, apiUrl } from "@/lib/config";
 import { COLORS, UI } from "@/lib/ui";
@@ -27,6 +34,7 @@ async function measureBytes(asset: ImagePicker.ImagePickerAsset): Promise<number
 
 export default function MeScreen() {
   const router = useRouter();
+  const { appStyle } = useAppStyle();
   const { data: session, refetch } = authClient.useSession();
   const user = session?.user as
     | { name?: string; email?: string; username?: string | null; image?: string | null }
@@ -149,12 +157,20 @@ export default function MeScreen() {
   }
 
   return (
-    <SafeAreaView className={UI.screen} edges={["top"]}>
-      <View className={UI.screenContent}>
-        <Text className={`pb-2 pt-2 ${UI.eyebrow}`}>Your corner of the web</Text>
-        <Text className="pb-5 text-3xl font-semibold text-white">Me</Text>
+    <SafeAreaView
+      className={UI.screen}
+      style={{ backgroundColor: appStyle.appBackgroundColor }}
+      edges={["top"]}
+    >
+      <View className={UI.screenContent} style={{ backgroundColor: appStyle.appBackgroundColor }}>
+        <Text className={`pb-2 pt-2 ${UI.eyebrow}`} style={appSecondaryText(appStyle)}>
+          Your corner of the web
+        </Text>
+        <Text className="pb-5 text-3xl font-semibold text-white" style={appPrimaryText(appStyle)}>
+          Me
+        </Text>
 
-        <View className={`${UI.card} gap-1`}>
+        <View className={`${UI.card} gap-1`} style={appSurfaceAppearance(appStyle)}>
           {avatarUrl ? (
             <Image
               source={{ uri: avatarUrl }}
@@ -169,9 +185,13 @@ export default function MeScreen() {
               </Text>
             </View>
           )}
-          <Text className="text-lg font-semibold text-white">{user?.name ?? "…"}</Text>
+          <Text className="text-lg font-semibold text-white" style={appPrimaryText(appStyle)}>
+            {user?.name ?? "…"}
+          </Text>
           {handle ? <Text className="text-sm font-medium text-indigo-200">@{handle}</Text> : null}
-          <Text className="text-sm text-slate-400">{user?.email}</Text>
+          <Text className="text-sm text-slate-400" style={appSecondaryText(appStyle)}>
+            {user?.email}
+          </Text>
 
           <View className="mt-3 flex-row items-center gap-2">
             <Pressable
@@ -210,11 +230,12 @@ export default function MeScreen() {
               className={UI.primaryButton}
               accessibilityRole="button"
             >
-              <Text className="font-medium text-slate-950">Edit page &amp; post style</Text>
+              <Text className="font-medium text-slate-950">Edit page, app &amp; post styles</Text>
             </Pressable>
             <Pressable
               onPress={() => WebBrowser.openBrowserAsync(`${API_URL}/p/${handle}`)}
               className={UI.ghostButton}
+              style={appBorderAppearance(appStyle)}
               accessibilityRole="button"
             >
               <Text className="font-medium text-indigo-200">View my page</Text>
