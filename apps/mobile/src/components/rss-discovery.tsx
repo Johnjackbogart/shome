@@ -94,10 +94,13 @@ export function RssDiscovery({
       </View>
       <TextInput
         className={UI.input}
-        style={{
-          backgroundColor: appStyle.appAccentBackgroundColor,
-          color: appStyle.appSecondaryTextColor,
-        }}
+        style={[
+          appBorderAppearance(appStyle),
+          {
+            backgroundColor: appStyle.appAccentBackgroundColor,
+            color: appStyle.appSecondaryTextColor,
+          },
+        ]}
         placeholder="Ars Technica or arstechnica.com"
         placeholderTextColor={appStyle.appSecondaryTextColor}
         autoCapitalize="none"
@@ -110,8 +113,11 @@ export function RssDiscovery({
       <Pressable
         onPress={() => void discover()}
         disabled={discovering}
-        className={`self-start ${UI.primaryButton}`}
-        style={{ backgroundColor: appStyle.appAccentBackgroundColor }}
+        className={`self-start border ${UI.primaryButton}`}
+        style={[
+          appBorderAppearance(appStyle),
+          { backgroundColor: appStyle.appAccentBackgroundColor },
+        ]}
       >
         {discovering ? (
           <ActivityIndicator size="small" color={appStyle.appAccentFontColor} />
@@ -162,6 +168,7 @@ export function RssDiscovery({
                     }
                     disabled={subscribed || subscribing}
                     className={`mt-3 self-start ${UI.ghostButton}`}
+                    style={appBorderAppearance(appStyle)}
                   >
                     <Text
                       className="text-xs font-semibold"
@@ -271,6 +278,7 @@ function PopularFeedList({
               onPress={() => void onAdd(feed.url, feed.title ?? feed.siteName ?? feed.url)}
               disabled={subscribed || subscribing}
               className={`mt-3 self-start ${UI.ghostButton}`}
+              style={appBorderAppearance(appStyle)}
             >
               <Text
                 className="text-xs font-semibold"

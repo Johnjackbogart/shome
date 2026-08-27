@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ActivityIndicator, Linking, Pressable, Text, TextInput, View } from "react-native";
 import { api } from "@/lib/api";
 import {
+  appBorderAppearance,
   appPrimaryText,
   appSecondaryText,
   appSurfaceAppearance,
@@ -81,10 +82,13 @@ export function PeopleDiscovery() {
 
       <TextInput
         className={UI.input}
-        style={{
-          backgroundColor: appStyle.appAccentBackgroundColor,
-          color: appStyle.appSecondaryTextColor,
-        }}
+        style={[
+          appBorderAppearance(appStyle),
+          {
+            backgroundColor: appStyle.appAccentBackgroundColor,
+            color: appStyle.appSecondaryTextColor,
+          },
+        ]}
         placeholder="Name or @handle"
         placeholderTextColor={appStyle.appSecondaryTextColor}
         autoCapitalize="none"
@@ -98,8 +102,11 @@ export function PeopleDiscovery() {
       <Pressable
         onPress={() => void findPeople()}
         disabled={searching}
-        className={`self-start ${UI.primaryButton}`}
-        style={{ backgroundColor: appStyle.appAccentBackgroundColor }}
+        className={`self-start border ${UI.primaryButton}`}
+        style={[
+          appBorderAppearance(appStyle),
+          { backgroundColor: appStyle.appAccentBackgroundColor },
+        ]}
       >
         {searching ? (
           <ActivityIndicator size="small" color={appStyle.appAccentFontColor} />
