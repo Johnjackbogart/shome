@@ -10,7 +10,7 @@ import {
   appSurfaceAppearance,
   useAppStyle,
 } from "@/lib/app-style";
-import { COLORS, UI } from "@/lib/ui";
+import { UI } from "@/lib/ui";
 
 export default function DiscoverScreen() {
   const { appStyle } = useAppStyle();
@@ -62,7 +62,11 @@ export default function DiscoverScreen() {
         contentContainerClassName="px-5 pb-8"
         keyboardShouldPersistTaps="handled"
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.accent} />
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={appStyle.appAccentFontColor}
+          />
         }
       >
         <Text className={`pb-2 pt-2 ${UI.eyebrow}`} style={appSecondaryText(appStyle)}>
@@ -79,10 +83,13 @@ export default function DiscoverScreen() {
         </Text>
 
         <View className="mb-3 flex-row items-center gap-2">
-          <Text className="rounded-full bg-indigo-300/10 px-2 py-1 text-xs font-semibold uppercase text-orange-300">
+          <Text
+            className="rounded-full bg-indigo-300/10 px-2 py-1 text-xs font-semibold uppercase"
+            style={{ color: appStyle.appAccentFontColor, fontFamily: appStyle.appFont }}
+          >
             RSS
           </Text>
-          <Text className="text-lg font-semibold text-white">
+          <Text className="text-lg font-semibold text-white" style={appPrimaryText(appStyle)}>
             Publications, blogs, and podcasts
           </Text>
         </View>
@@ -104,7 +111,10 @@ export default function DiscoverScreen() {
         {error && <Text className="pb-3 text-sm text-rose-300">{error}</Text>}
 
         <View className={`mb-3 gap-2 ${UI.card}`} style={appSurfaceAppearance(appStyle)}>
-          <Text className="self-start rounded-full bg-indigo-300/10 px-2 py-1 text-xs font-semibold uppercase text-sky-300">
+          <Text
+            className="self-start rounded-full bg-indigo-300/10 px-2 py-1 text-xs font-semibold uppercase"
+            style={{ color: appStyle.appAccentFontColor, fontFamily: appStyle.appFont }}
+          >
             Bluesky
           </Text>
           <Text className="text-lg font-semibold text-white" style={appPrimaryText(appStyle)}>
@@ -115,7 +125,10 @@ export default function DiscoverScreen() {
           </Text>
         </View>
         <View className={`gap-2 ${UI.card}`} style={appSurfaceAppearance(appStyle)}>
-          <Text className="self-start rounded-full bg-indigo-300/10 px-2 py-1 text-xs font-semibold uppercase text-violet-300">
+          <Text
+            className="self-start rounded-full bg-indigo-300/10 px-2 py-1 text-xs font-semibold uppercase"
+            style={{ color: appStyle.appAccentFontColor, fontFamily: appStyle.appFont }}
+          >
             Mastodon
           </Text>
           <Text className="text-lg font-semibold text-white" style={appPrimaryText(appStyle)}>

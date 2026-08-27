@@ -178,9 +178,10 @@ export function AppShell({
                 type="button"
                 className={`cursor-pointer rounded-lg px-3 py-2 text-sm font-medium transition ${
                   tab === t.id
-                    ? "bg-white text-slate-950 shadow-sm"
+                    ? "text-slate-950 shadow-sm"
                     : "text-slate-400 hover:text-white"
                 }`}
+                style={tab === t.id ? { backgroundColor: appStyle.appAccentBackgroundColor } : undefined}
                 onClick={() => setTab(t.id)}
               >
                 {t.label}

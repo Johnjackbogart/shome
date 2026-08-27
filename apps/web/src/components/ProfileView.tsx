@@ -66,6 +66,7 @@ function AppStyleEditor({
           <button
             type="button"
             className="btn-ghost"
+            style={{ color: value.appFontColor, fontFamily: value.appFont }}
             onClick={() => onChange({ ...DEFAULT_APP_STYLE })}
           >
             reset
@@ -422,6 +423,7 @@ function DefaultPostStyleEditor({
           <button
             type="button"
             className="btn-ghost"
+            style={{ color: appStyle.appFontColor, fontFamily: appStyle.appFont }}
             onClick={() => onChange({ ...DEFAULT_POST_STYLE })}
           >
             reset
@@ -1073,6 +1075,7 @@ export function ProfileView({
           <button
             type="button"
             className="btn-ghost"
+            style={{ color: appStyle.appFontColor, fontFamily: appStyle.appFont }}
             onClick={() => avatarInput.current?.click()}
             disabled={avatarBusy}
           >

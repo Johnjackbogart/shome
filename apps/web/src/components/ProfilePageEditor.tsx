@@ -1061,9 +1061,14 @@ export function ProfilePageEditor({
                 aria-selected={visualPane === pane}
                 className={`cursor-pointer rounded-lg px-3 py-1.5 text-sm font-medium transition ${
                   visualPane === pane
-                    ? "bg-white text-slate-950"
+                    ? "text-slate-950"
                     : "text-slate-400 hover:bg-white/[0.06] hover:text-white"
                 }`}
+                style={
+                  visualPane === pane
+                    ? { backgroundColor: appStyle.appAccentBackgroundColor }
+                    : undefined
+                }
                 onClick={() => setVisualPane(pane)}
               >
                 {label}

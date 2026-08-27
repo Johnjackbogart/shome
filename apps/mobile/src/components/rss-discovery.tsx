@@ -13,7 +13,7 @@ import {
   appSurfaceAppearance,
   useAppStyle,
 } from "@/lib/app-style";
-import { COLORS, UI } from "@/lib/ui";
+import { UI } from "@/lib/ui";
 
 function addedMessage(
   source: SourceView,
@@ -109,16 +109,21 @@ export function RssDiscovery({
         style={{ backgroundColor: appStyle.appAccentBackgroundColor }}
       >
         {discovering ? (
-          <ActivityIndicator size="small" color={COLORS.background} />
+          <ActivityIndicator size="small" color={appStyle.appAccentFontColor} />
         ) : (
-          <Text className="text-sm font-semibold text-slate-950">Find feeds</Text>
+          <Text
+            className="text-sm font-semibold"
+            style={{ color: appStyle.appAccentFontColor, fontFamily: appStyle.appFont }}
+          >
+            Find feeds
+          </Text>
         )}
       </Pressable>
 
       {feeds && (
         <View className="gap-2 border-t border-white/10 pt-3">
           {feeds.length === 0 ? (
-            <Text className="text-sm text-slate-400">
+            <Text className="text-sm" style={appSecondaryText(appStyle)}>
               No public RSS or Atom feed found for that site.
             </Text>
           ) : (
@@ -130,16 +135,16 @@ export function RssDiscovery({
                   key={feed.url}
                   className="rounded-2xl border border-white/10 bg-white/[0.025] p-3"
                 >
-                  <Text className="font-semibold text-white">
+                  <Text className="font-semibold" style={appPrimaryText(appStyle)}>
                     {feed.title ?? feed.siteName ?? feed.url}
                     {feed.isPodcast ? " · podcast" : ""}
                   </Text>
                   {feed.description && (
-                    <Text className="mt-1 text-sm leading-5 text-slate-400">
+                    <Text className="mt-1 text-sm leading-5" style={appSecondaryText(appStyle)}>
                       {feed.description}
                     </Text>
                   )}
-                  <Text className="mt-1 text-xs text-slate-500" numberOfLines={1}>
+                  <Text className="mt-1 text-xs" style={appSecondaryText(appStyle)} numberOfLines={1}>
                     {feed.url}
                   </Text>
                   <Pressable
@@ -149,7 +154,10 @@ export function RssDiscovery({
                     disabled={subscribed || subscribing}
                     className={`mt-3 self-start ${UI.ghostButton}`}
                   >
-                    <Text className="text-xs font-semibold text-indigo-200">
+                    <Text
+                      className="text-xs font-semibold"
+                      style={{ color: appStyle.appAccentFontColor, fontFamily: appStyle.appFont }}
+                    >
                       {subscribed ? "Added" : subscribing ? "Adding…" : "Add"}
                     </Text>
                   </Pressable>
@@ -161,10 +169,14 @@ export function RssDiscovery({
       )}
 
       <View className="gap-2 border-t border-white/10 pt-3">
-        <Text className="font-semibold text-white">Popular on Shome</Text>
-        <Text className="text-sm text-slate-400">Ranked by aggregate Shome subscriptions.</Text>
+        <Text className="font-semibold" style={appPrimaryText(appStyle)}>
+          Popular on Shome
+        </Text>
+        <Text className="text-sm" style={appSecondaryText(appStyle)}>
+          Ranked by aggregate Shome subscriptions.
+        </Text>
         {shomeFeeds.length === 0 ? (
-          <Text className="text-sm text-slate-500">
+          <Text className="text-sm" style={appSecondaryText(appStyle)}>
             This community has not followed any RSS sources yet.
           </Text>
         ) : (
@@ -179,10 +191,14 @@ export function RssDiscovery({
       </View>
 
       <View className="gap-2 border-t border-white/10 pt-3">
-        <Text className="font-semibold text-white">Popular across the web</Text>
-        <Text className="text-sm text-slate-400">From Feedly’s public source directory.</Text>
+        <Text className="font-semibold" style={appPrimaryText(appStyle)}>
+          Popular across the web
+        </Text>
+        <Text className="text-sm" style={appSecondaryText(appStyle)}>
+          From Feedly’s public source directory.
+        </Text>
         {webFeeds.length === 0 ? (
-          <Text className="text-sm text-slate-500">
+          <Text className="text-sm" style={appSecondaryText(appStyle)}>
             Web recommendations are unavailable right now.
           </Text>
         ) : (
@@ -197,7 +213,7 @@ export function RssDiscovery({
       </View>
 
       <Pressable onPress={() => void Linking.openURL("https://feedsearch.dev/")}>
-        <Text className="text-xs text-slate-500 underline">
+        <Text className="text-xs underline" style={appSecondaryText(appStyle)}>
           Feed discovery: Feedsearch · Feedly supplies the Popular across the web list
         </Text>
       </Pressable>
@@ -218,6 +234,8 @@ function PopularFeedList({
   subscribingUrl: string | null;
   onAdd: (url: string, fallback: string) => Promise<void>;
 }) {
+  const { appStyle } = useAppStyle();
+
   return (
     <View className="gap-2">
       {feeds.map((feed) => {
@@ -225,13 +243,15 @@ function PopularFeedList({
         const subscribing = subscribingUrl === feed.url;
         return (
           <View key={feed.url} className="rounded-2xl border border-white/10 bg-white/[0.025] p-3">
-            <Text className="font-semibold text-white">
+            <Text className="font-semibold" style={appPrimaryText(appStyle)}>
               {feed.title ?? feed.siteName ?? feed.url}
             </Text>
             {feed.description && (
-              <Text className="mt-1 text-sm leading-5 text-slate-400">{feed.description}</Text>
+              <Text className="mt-1 text-sm leading-5" style={appSecondaryText(appStyle)}>
+                {feed.description}
+              </Text>
             )}
-            <Text className="mt-1 text-xs text-slate-500">
+            <Text className="mt-1 text-xs" style={appSecondaryText(appStyle)}>
               {feed.subscriberCount.toLocaleString()} {subscriberLabel}
             </Text>
             <Pressable
@@ -239,7 +259,10 @@ function PopularFeedList({
               disabled={subscribed || subscribing}
               className={`mt-3 self-start ${UI.ghostButton}`}
             >
-              <Text className="text-xs font-semibold text-indigo-200">
+              <Text
+                className="text-xs font-semibold"
+                style={{ color: appStyle.appAccentFontColor, fontFamily: appStyle.appFont }}
+              >
                 {subscribed ? "Added" : subscribing ? "Adding…" : "Add"}
               </Text>
             </Pressable>

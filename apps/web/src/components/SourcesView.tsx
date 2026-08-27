@@ -23,6 +23,15 @@ export function SourcesView({ appStyle }: { appStyle: AppStyle }) {
   const inputStyle: CSSProperties = {
     backgroundColor: appStyle.appAccentBackgroundColor,
   };
+  const pickerStyle: CSSProperties = {
+    ...inputStyle,
+    color: appStyle.appSecondaryTextColor,
+    fontFamily: appStyle.appFont,
+  };
+  const primaryTextStyle: CSSProperties = {
+    color: appStyle.appFontColor,
+    fontFamily: appStyle.appFont,
+  };
 
   const load = useCallback(async () => {
     try {
@@ -95,6 +104,7 @@ export function SourcesView({ appStyle }: { appStyle: AppStyle }) {
         <AddSourceForm
           connections={connections}
           inputStyle={inputStyle}
+          pickerStyle={pickerStyle}
           accentBackgroundColor={appStyle.appAccentBackgroundColor}
           onAdded={(msg) => {
             setNotice(msg);
@@ -120,6 +130,9 @@ export function SourcesView({ appStyle }: { appStyle: AppStyle }) {
                 key={source.id}
                 source={source}
                 inputStyle={inputStyle}
+                secondaryTextStyle={pickerStyle}
+                primaryTextStyle={primaryTextStyle}
+                primaryBackgroundColor={appStyle.appBackgroundColor}
                 onRename={(title) => renameSource(source.id, title)}
                 onRefresh={() => void refreshSource(source.id)}
                 onRemove={() => void removeSource(source.id)}
@@ -136,6 +149,7 @@ export function SourcesView({ appStyle }: { appStyle: AppStyle }) {
         </p>
         <AddConnectionForm
           inputStyle={inputStyle}
+          pickerStyle={pickerStyle}
           accentBackgroundColor={appStyle.appAccentBackgroundColor}
           onAdded={(message) => {
             setError(null);
@@ -155,7 +169,7 @@ export function SourcesView({ appStyle }: { appStyle: AppStyle }) {
                   <span className={`badge ${KIND_COLORS[connection.provider] ?? ""}`}>
                     {connection.provider}
                   </span>
-                  <span className="font-semibold [overflow-wrap:anywhere]">
+                  <span className="font-semibold [overflow-wrap:anywhere]" style={primaryTextStyle}>
                     {connection.account ?? connection.label}
                   </span>
                   {connection.account && connection.label !== "default" && (
@@ -165,7 +179,12 @@ export function SourcesView({ appStyle }: { appStyle: AppStyle }) {
                 <div className="flex shrink-0 gap-1.5">
                   <button
                     type="button"
-                    className="btn-ghost text-red-400"
+                    className="btn-ghost"
+                    style={{
+                      backgroundColor: appStyle.appBackgroundColor,
+                      color: appStyle.appSecondaryTextColor,
+                      fontFamily: appStyle.appFont,
+                    }}
                     onClick={() => void removeConnection(connection.id)}
                   >
                     remove
@@ -183,12 +202,18 @@ export function SourcesView({ appStyle }: { appStyle: AppStyle }) {
 function SourceRow({
   source,
   inputStyle,
+  secondaryTextStyle,
+  primaryTextStyle,
+  primaryBackgroundColor,
   onRename,
   onRefresh,
   onRemove,
 }: {
   source: SourceView;
   inputStyle: CSSProperties;
+  secondaryTextStyle: CSSProperties;
+  primaryTextStyle: CSSProperties;
+  primaryBackgroundColor: string;
   onRename: (customTitle: string | null) => Promise<void>;
   onRefresh: () => void;
   onRemove: () => void;
@@ -235,10 +260,15 @@ function SourceRow({
             // biome-ignore lint/a11y/noAutofocus: the input replaces the button just clicked.
             autoFocus
           />
-          <button type="submit" className="btn" disabled={busy}>
+          <button type="submit" className="btn" style={secondaryTextStyle} disabled={busy}>
             {busy ? "saving…" : "save"}
           </button>
-          <button type="button" className="btn-ghost" onClick={() => setEditing(false)}>
+          <button
+            type="button"
+            className="btn-ghost"
+            style={secondaryTextStyle}
+            onClick={() => setEditing(false)}
+          >
             cancel
           </button>
           <p className="w-full text-xs text-slate-500">
@@ -252,7 +282,9 @@ function SourceRow({
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           <div className="flex min-w-0 flex-wrap items-center gap-2.5">
             <span className={`badge ${KIND_COLORS[source.kind] ?? ""}`}>{source.kind}</span>
-            <span className="font-semibold [overflow-wrap:anywhere]">{sourceLabel(source)}</span>
+            <span className="font-semibold [overflow-wrap:anywhere]" style={primaryTextStyle}>
+              {sourceLabel(source)}
+            </span>
             <span className="text-xs text-slate-400">
               {source.lastFetchedAt ? `fetched ${timeAgo(source.lastFetchedAt)}` : "never fetched"}
             </span>
@@ -267,14 +299,33 @@ function SourceRow({
       )}
       <div className="flex shrink-0 gap-1.5">
         {!editing && (
-          <button type="button" className="btn-ghost" onClick={startEditing}>
+          <button
+            type="button"
+            className="btn-ghost"
+            style={secondaryTextStyle}
+            onClick={startEditing}
+          >
             rename
           </button>
         )}
-        <button type="button" className="btn-ghost" onClick={onRefresh}>
+        <button
+          type="button"
+          className="btn-ghost"
+          style={secondaryTextStyle}
+          onClick={onRefresh}
+        >
           refresh
         </button>
-        <button type="button" className="btn-ghost text-red-400" onClick={onRemove}>
+        <button
+          type="button"
+          className="btn-ghost"
+          style={{
+            backgroundColor: primaryBackgroundColor,
+            color: secondaryTextStyle.color,
+            fontFamily: secondaryTextStyle.fontFamily,
+          }}
+          onClick={onRemove}
+        >
           remove
         </button>
       </div>
@@ -285,12 +336,14 @@ function SourceRow({
 function AddSourceForm({
   connections,
   inputStyle,
+  pickerStyle,
   accentBackgroundColor,
   onAdded,
   onError,
 }: {
   connections: ConnectionView[];
   inputStyle: CSSProperties;
+  pickerStyle: CSSProperties;
   accentBackgroundColor: string;
   onAdded: (message: string) => void;
   onError: (message: string) => void;
@@ -360,7 +413,7 @@ function AddSourceForm({
       <div className="flex flex-wrap gap-2">
         <select
           className="input"
-          style={inputStyle}
+          style={pickerStyle}
           value={kind}
           onChange={(e) => setKind(e.target.value as Kind)}
         >
@@ -385,7 +438,7 @@ function AddSourceForm({
           <>
             <select
               className="input"
-              style={inputStyle}
+              style={pickerStyle}
               value={blueskyMode}
               onChange={(e) => setBlueskyMode(e.target.value as "author" | "timeline")}
             >
@@ -415,7 +468,7 @@ function AddSourceForm({
             />
             <select
               className="input"
-              style={inputStyle}
+              style={pickerStyle}
               value={mastodonMode}
               onChange={(e) => setMastodonMode(e.target.value as "public" | "hashtag" | "home")}
             >
@@ -449,7 +502,7 @@ function AddSourceForm({
         {kind === "youtube" && (
           <input
             className="input min-w-36 flex-1"
-            style={inputStyle}
+            style={pickerStyle}
             value={channel}
             onChange={(e) => setChannel(e.target.value)}
             placeholder="@channelhandle or UC… channel id"
@@ -462,7 +515,7 @@ function AddSourceForm({
         <div className="flex flex-wrap items-center gap-2">
           <select
             className="input"
-            style={inputStyle}
+            style={pickerStyle}
             value={connectionId}
             onChange={(e) => setConnectionId(e.target.value)}
           >
@@ -484,7 +537,11 @@ function AddSourceForm({
       <button
         type="submit"
         className="btn self-start"
-        style={{ backgroundColor: accentBackgroundColor }}
+        style={{
+          backgroundColor: accentBackgroundColor,
+          color: pickerStyle.color,
+          fontFamily: pickerStyle.fontFamily,
+        }}
         disabled={busy}
       >
         {busy ? "adding…" : "add source"}
@@ -495,11 +552,13 @@ function AddSourceForm({
 
 function AddConnectionForm({
   inputStyle,
+  pickerStyle,
   accentBackgroundColor,
   onAdded,
   onError,
 }: {
   inputStyle: CSSProperties;
+  pickerStyle: CSSProperties;
   accentBackgroundColor: string;
   onAdded: (message: string | null) => void;
   onError: (message: string) => void;
@@ -563,7 +622,7 @@ function AddConnectionForm({
       <div className="flex flex-wrap gap-2">
         <select
           className="input"
-          style={inputStyle}
+          style={pickerStyle}
           value={provider}
           onChange={(e) => setProvider(e.target.value as "bluesky" | "mastodon" | "youtube")}
         >
@@ -637,7 +696,11 @@ function AddConnectionForm({
       <button
         type="submit"
         className="btn self-start"
-        style={{ backgroundColor: accentBackgroundColor }}
+        style={{
+          backgroundColor: accentBackgroundColor,
+          color: pickerStyle.color,
+          fontFamily: pickerStyle.fontFamily,
+        }}
         disabled={busy}
       >
         {busy ? "linking…" : "link connection"}

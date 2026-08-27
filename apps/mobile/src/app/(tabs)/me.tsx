@@ -203,7 +203,7 @@ export default function MeScreen() {
               {busy ? (
                 <ActivityIndicator size="small" color={COLORS.accent} />
               ) : (
-                <Text className="text-sm font-medium text-indigo-200">
+                <Text className="text-sm font-medium" style={appPrimaryText(appStyle)}>
                   {avatarUrl ? "Change photo" : "Add photo"}
                 </Text>
               )}
@@ -248,7 +248,9 @@ export default function MeScreen() {
           onPress={() => void authClient.signOut()}
           className="mt-3 items-center rounded-xl border border-rose-300/15 bg-rose-300/5 px-4 py-3 active:opacity-70"
         >
-          <Text className="font-medium text-rose-300">Sign out</Text>
+          <Text className="font-medium" style={appPrimaryText(appStyle)}>
+            Sign out
+          </Text>
         </Pressable>
 
         <Text className="mt-6 text-xs text-slate-500">server: {API_URL}</Text>

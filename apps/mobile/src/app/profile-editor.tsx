@@ -561,7 +561,9 @@ function AppStyleEditor({
           accessibilityRole="button"
           accessibilityLabel="Reset app style"
         >
-          <Text className="text-sm font-medium text-indigo-200">Reset</Text>
+          <Text className="text-sm font-medium" style={appPrimaryText(value)}>
+            Reset
+          </Text>
         </Pressable>
         <Pressable
           onPress={onSave}
@@ -922,7 +924,9 @@ function DefaultPostStyleEditor({
           accessibilityRole="button"
           accessibilityLabel="Reset default post style"
         >
-          <Text className="text-sm font-medium text-indigo-200">Reset</Text>
+          <Text className="text-sm font-medium" style={appPrimaryText(appStyle)}>
+            Reset
+          </Text>
         </Pressable>
         <Pressable
           onPress={onSave}
