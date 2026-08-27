@@ -75,18 +75,6 @@ export default function DiscoverScreen() {
           />
         }
       >
-        <View>
-          <Text className={`pt-2 ${UI.eyebrow}`} style={appSecondaryText(appStyle)}>
-            Find your next source
-          </Text>
-          <Text className="mt-2 text-3xl font-semibold text-white" style={appPrimaryText(appStyle)}>
-            Discover
-          </Text>
-        </View>
-        <Text className="text-base leading-6 text-slate-400" style={appSecondaryText(appStyle)}>
-          Search for worthwhile publications and add the ones you want to keep up with.
-        </Text>
-
         <View className="flex-row items-center gap-2">
           <Text
             className="rounded-full bg-indigo-300/10 px-2 py-1 text-xs font-semibold uppercase"

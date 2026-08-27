@@ -117,21 +117,6 @@ export default function SourcesScreen() {
         }
         ListHeaderComponent={
           <View style={{ gap: appSpacingPixels(appStyle.appSpacing) }}>
-            <View>
-              <Text className={`pt-2 ${UI.eyebrow}`} style={appSecondaryText(appStyle)}>
-                Shape your feed
-              </Text>
-              <Text
-                className="mt-2 text-3xl font-semibold text-white"
-                style={appPrimaryText(appStyle)}
-              >
-                Sources
-              </Text>
-            </View>
-            <Text className="text-base leading-6 text-slate-400" style={appSecondaryText(appStyle)}>
-              Review, refresh, or remove the sources already in your feed. Find new ones in
-              Discover.
-            </Text>
             <AddSourceForm
               onAdded={(msg) => {
                 setNotice(msg);
