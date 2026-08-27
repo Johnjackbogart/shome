@@ -66,7 +66,9 @@ export default function ProfileEditorScreen() {
   const router = useRouter();
   const { appStyle, setAppStyle } = useAppStyle();
   const { data: session } = authClient.useSession();
-  const handle = (session?.user as { username?: string | null } | undefined)?.username ?? null;
+  const handle =
+    (session?.user as { username?: string | null } | undefined)?.username ??
+    null;
   const [source, setSource] = useState<ProfileSource | null>(null);
   const [savedSource, setSavedSource] = useState<string | null>(null);
   const [defaultPostStyle, setDefaultPostStyle] = useState<PostStyle>({
@@ -87,9 +89,14 @@ export default function ProfileEditorScreen() {
   const [previewDoc, setPreviewDoc] = useState<string | null>(null);
   const [previewError, setPreviewError] = useState<string | null>(null);
 
-  const combinedSource = useMemo(() => (source ? combineProfileSource(source) : ""), [source]);
-  const defaultStyleChanged = JSON.stringify(defaultPostStyle) !== JSON.stringify(savedPostStyle);
-  const appStyleChanged = JSON.stringify(appStyle) !== JSON.stringify(savedAppStyle);
+  const combinedSource = useMemo(
+    () => (source ? combineProfileSource(source) : ""),
+    [source],
+  );
+  const defaultStyleChanged =
+    JSON.stringify(defaultPostStyle) !== JSON.stringify(savedPostStyle);
+  const appStyleChanged =
+    JSON.stringify(appStyle) !== JSON.stringify(savedAppStyle);
   const pageChanged = source !== null && combinedSource !== savedSource;
   const characterCount = combinedSource.length;
 
@@ -182,10 +189,13 @@ export default function ProfileEditorScreen() {
     setError(null);
     setNotice(null);
     try {
-      const response = await api.post<{ html: string }>("/api/profile/generate", {
-        prompt: request,
-        currentHtml: combinedSource || undefined,
-      });
+      const response = await api.post<{ html: string }>(
+        "/api/profile/generate",
+        {
+          prompt: request,
+          currentHtml: combinedSource || undefined,
+        },
+      );
       setSource(splitProfileSource(response.html));
       setMode("visual");
       setNotice("Draft ready — review it, then save to publish.");
@@ -275,12 +285,20 @@ export default function ProfileEditorScreen() {
             contentContainerClassName="gap-4 px-5 pb-8"
             keyboardShouldPersistTaps="handled"
           >
-            <Text className="text-sm leading-5 text-slate-400" style={appSecondaryText(appStyle)}>
-              Build with HTML and CSS. Your page is rendered in the same safe sandbox as on the web.
+            <Text
+              className="text-sm leading-5 text-slate-400"
+              style={appSecondaryText(appStyle)}
+            >
+              Build with HTML and CSS. Your page is rendered in the same safe
+              sandbox as on the web.
             </Text>
 
-            {error ? <Text className="text-sm text-rose-300">{error}</Text> : null}
-            {notice ? <Text className="text-sm text-emerald-300">{notice}</Text> : null}
+            {error ? (
+              <Text className="text-sm text-rose-300">{error}</Text>
+            ) : null}
+            {notice ? (
+              <Text className="text-sm text-emerald-300">{notice}</Text>
+            ) : null}
 
             <AppStyleEditor
               value={appStyle}
@@ -304,11 +322,16 @@ export default function ProfileEditorScreen() {
               saved={!defaultStyleChanged}
             />
 
-            <View className={`${UI.card} gap-3`} style={appSurfaceAppearance(appStyle)}>
-              <Text className="text-base font-semibold text-white">Vibe-code your page</Text>
+            <View
+              className={`${UI.card} gap-3`}
+              style={appSurfaceAppearance(appStyle)}
+            >
+              <Text className="text-base font-semibold text-white">
+                Vibe-code your page
+              </Text>
               <Text className={UI.body}>
-                Describe a look and a starting point. This replaces only the draft, until you save
-                it.
+                Describe a look and a starting point. This replaces only the
+                draft, until you save it.
               </Text>
               <TextInput
                 className={UI.input}
@@ -326,12 +349,15 @@ export default function ProfileEditorScreen() {
                 onPress={() => void generate()}
                 disabled={generating || saving || prompt.trim().length < 2}
                 className={`${UI.ghostButton} self-start px-3 py-2 disabled:opacity-50`}
+                style={{ backgroundColor: appStyle.appAccentBackgroundColor }}
                 accessibilityRole="button"
               >
                 {generating ? (
                   <ActivityIndicator size="small" color={COLORS.accent} />
                 ) : (
-                  <Text className="text-sm font-medium text-indigo-200">Generate draft</Text>
+                  <Text className="text-sm font-medium text-indigo-200">
+                    Generate draft
+                  </Text>
                 )}
               </Pressable>
             </View>
@@ -342,7 +368,11 @@ export default function ProfileEditorScreen() {
                 label="Visual"
                 onPress={() => setMode("visual")}
               />
-              <PaneButton active={mode === "code"} label="Code" onPress={() => setMode("code")} />
+              <PaneButton
+                active={mode === "code"}
+                label="Code"
+                onPress={() => setMode("code")}
+              />
             </View>
 
             {mode === "visual" ? (
@@ -360,12 +390,18 @@ export default function ProfileEditorScreen() {
                 disabled={loading || saving || generating || !pageChanged}
               />
             ) : (
-              <View className={`${UI.card} gap-3`} style={appSurfaceAppearance(appStyle)}>
+              <View
+                className={`${UI.card} gap-3`}
+                style={appSurfaceAppearance(appStyle)}
+              >
                 <View className="flex-row items-start justify-between gap-3">
                   <View className="flex-1">
-                    <Text className="text-base font-semibold text-white">Page source</Text>
+                    <Text className="text-base font-semibold text-white">
+                      Page source
+                    </Text>
                     <Text className="mt-1 text-xs text-slate-500">
-                      {characterCount.toLocaleString()} / {MAX_PROFILE_CHARS.toLocaleString()}
+                      {characterCount.toLocaleString()} /{" "}
+                      {MAX_PROFILE_CHARS.toLocaleString()}
                     </Text>
                   </View>
                   <Pressable
@@ -376,7 +412,10 @@ export default function ProfileEditorScreen() {
                     accessibilityLabel="Save page"
                   >
                     {saving ? (
-                      <ActivityIndicator size="small" color={COLORS.background} />
+                      <ActivityIndicator
+                        size="small"
+                        color={COLORS.background}
+                      />
                     ) : (
                       <Text className="text-sm font-semibold text-slate-950">
                         {!pageChanged ? "Saved ✓" : "Save"}
@@ -401,8 +440,8 @@ export default function ProfileEditorScreen() {
                 {pane === "content" ? (
                   <>
                     <Text className={UI.body}>
-                      Add the structure and copy for your page. Switch to Visual for building blocks
-                      and the interactive overlay.
+                      Add the structure and copy for your page. Switch to Visual
+                      for building blocks and the interactive overlay.
                     </Text>
                     <TextInput
                       className="min-h-96 rounded-xl border border-slate-200/10 bg-slate-950/80 px-4 py-3 font-mono text-sm leading-5 text-slate-100"
@@ -422,13 +461,16 @@ export default function ProfileEditorScreen() {
                 ) : (
                   <>
                     <Text className={UI.body}>
-                      Styles are stored with your page. External scripts are never run.
+                      Styles are stored with your page. External scripts are
+                      never run.
                     </Text>
                     <TextInput
                       className="min-h-96 rounded-xl border border-slate-200/10 bg-slate-950/80 px-4 py-3 font-mono text-sm leading-5 text-slate-100"
                       value={source?.css ?? ""}
                       onChangeText={(value) => updateSource("css", value)}
-                      placeholder={"body {\n  background: #f5f3ee;\n  color: #1f2933;\n}"}
+                      placeholder={
+                        "body {\n  background: #f5f3ee;\n  color: #1f2933;\n}"
+                      }
                       placeholderTextColor="#64748b"
                       maxLength={MAX_PROFILE_CHARS}
                       multiline
@@ -444,9 +486,13 @@ export default function ProfileEditorScreen() {
             )}
 
             {pageChanged ? (
-              <Text className="text-xs text-amber-200">You have unpublished page changes.</Text>
+              <Text className="text-xs text-amber-200">
+                You have unpublished page changes.
+              </Text>
             ) : (
-              <Text className="text-xs text-slate-500">All page changes are saved.</Text>
+              <Text className="text-xs text-slate-500">
+                All page changes are saved.
+              </Text>
             )}
 
             <Pressable
@@ -497,7 +543,8 @@ function AppStyleEditor({
         <View className="flex-1">
           <Text className="text-base font-semibold text-white">App style</Text>
           <Text className={`mt-1 ${UI.body}`}>
-            Your colors, type, borders, and shape follow you throughout the signed-in app.
+            Your colors, type, borders, and shape follow you throughout the
+            signed-in app.
           </Text>
         </View>
       </View>
@@ -514,12 +561,15 @@ function AppStyleEditor({
           accessibilityRole="button"
           accessibilityLabel="Reset app style"
         >
-          <Text className="text-sm font-medium text-indigo-200">Reset</Text>
+          <Text className="text-sm font-medium" style={appPrimaryText(value)}>
+            Reset
+          </Text>
         </Pressable>
         <Pressable
           onPress={onSave}
           disabled={saving || saved}
           className="rounded-xl bg-indigo-300 px-3 py-2 active:opacity-80 disabled:opacity-50"
+          style={{ backgroundColor: value.appAccentBackgroundColor }}
           accessibilityRole="button"
           accessibilityLabel="Save app style"
         >
@@ -543,6 +593,62 @@ function AppStyleEditor({
           gap: Number.parseInt(value.appSpacing, 10),
         }}
       >
+        <View
+          className="border px-4 py-3"
+          style={{
+            backgroundColor: value.appAccentBackgroundColor,
+            borderColor: value.appBorderStyle,
+            borderRadius: Number.parseInt(value.appBorderRadius, 10),
+            borderStyle: value.appBorderLineStyle,
+          }}
+        >
+          <Text
+            style={{
+              color: value.appSecondaryTextColor,
+              fontFamily: value.appFont,
+            }}
+          >
+            Search your feed…
+          </Text>
+        </View>
+        <View className="flex-row gap-2">
+          {["Filters", "Fetch new"].map((label) => (
+            <View
+              key={label}
+              className="rounded-lg border px-3 py-2"
+              style={{
+                backgroundColor: value.appSecondaryBackgroundColor,
+                borderColor: value.appBorderStyle,
+                borderRadius: Number.parseInt(value.appBorderRadius, 10),
+                borderStyle: value.appBorderLineStyle,
+              }}
+            >
+              <Text
+                style={{
+                  color: value.appAccentFontColor,
+                  fontFamily: value.appFont,
+                }}
+              >
+                {label}
+              </Text>
+            </View>
+          ))}
+          <View
+            className="rounded-lg border px-3 py-2"
+            style={{
+              backgroundColor: value.appAccentBackgroundColor,
+              borderColor: value.appBorderStyle,
+              borderRadius: Number.parseInt(value.appBorderRadius, 10),
+              borderStyle: value.appBorderLineStyle,
+            }}
+          >
+            <Text
+              style={{ color: value.appFontColor, fontFamily: value.appFont }}
+            >
+              Create post
+            </Text>
+          </View>
+        </View>
         {["Your shome", "Another post"].map((title) => (
           <View
             key={title}
@@ -555,18 +661,29 @@ function AppStyleEditor({
             }}
           >
             <Text
-              style={{ color: value.appFontColor, fontFamily: value.appFont, fontWeight: "600" }}
+              style={{
+                color: value.appFontColor,
+                fontFamily: value.appFont,
+                fontWeight: "600",
+              }}
             >
               {title}
             </Text>
-            <Text style={{ color: value.appSecondaryTextColor, fontFamily: value.appFont }}>
+            <Text
+              style={{
+                color: value.appSecondaryTextColor,
+                fontFamily: value.appFont,
+              }}
+            >
               Previewing the space between feed posts.
             </Text>
           </View>
         ))}
       </View>
 
-      <Text className="text-xs text-slate-400">Use six-digit hex colors, such as #070a18.</Text>
+      <Text className="text-xs text-slate-400">
+        Use six-digit hex colors, such as #070a18.
+      </Text>
       <View className="flex-row gap-2">
         <View className="flex-1 gap-1">
           <Text className="text-xs text-slate-400">Background color</Text>
@@ -590,6 +707,46 @@ function AppStyleEditor({
             autoCapitalize="characters"
             maxLength={7}
             accessibilityLabel="App secondary background color"
+          />
+        </View>
+      </View>
+
+      <View className="gap-1">
+        <Text className="text-xs text-slate-400">Accent background</Text>
+        <TextInput
+          className={`${UI.input} py-2 text-sm`}
+          style={{ borderColor: value.appBorderStyle }}
+          value={value.appAccentBackgroundColor}
+          onChangeText={(next) => update("appAccentBackgroundColor", next)}
+          autoCapitalize="characters"
+          maxLength={7}
+          accessibilityLabel="App accent background color"
+        />
+      </View>
+
+      <View className="flex-row gap-2">
+        <View className="flex-1 gap-1">
+          <Text className="text-xs text-slate-400">Accent color</Text>
+          <TextInput
+            className={`${UI.input} py-2 text-sm`}
+            style={{ borderColor: value.appBorderStyle }}
+            value={value.appAccentColor}
+            onChangeText={(next) => update("appAccentColor", next)}
+            autoCapitalize="characters"
+            maxLength={7}
+            accessibilityLabel="App accent color"
+          />
+        </View>
+        <View className="flex-1 gap-1">
+          <Text className="text-xs text-slate-400">Secondary accent</Text>
+          <TextInput
+            className={`${UI.input} py-2 text-sm`}
+            style={{ borderColor: value.appBorderStyle }}
+            value={value.appSecondaryAccentColor}
+            onChangeText={(next) => update("appSecondaryAccentColor", next)}
+            autoCapitalize="characters"
+            maxLength={7}
+            accessibilityLabel="App secondary accent color"
           />
         </View>
       </View>
@@ -658,6 +815,19 @@ function AppStyleEditor({
         </View>
       </View>
 
+      <View className="gap-1">
+        <Text className="text-xs text-slate-400">Accent font color</Text>
+        <TextInput
+          className={`${UI.input} py-2 text-sm`}
+          style={{ borderColor: value.appBorderStyle }}
+          value={value.appAccentFontColor}
+          onChangeText={(next) => update("appAccentFontColor", next)}
+          autoCapitalize="characters"
+          maxLength={7}
+          accessibilityLabel="App accent font color"
+        />
+      </View>
+
       <Text className="text-xs text-slate-400">Font</Text>
       <View className="flex-row flex-wrap gap-2">
         {POST_FONT_OPTIONS.map((option) => (
@@ -693,14 +863,20 @@ function AppStyleEditor({
         <Switch
           value={value.appOverridePostStyles}
           onValueChange={(next) => update("appOverridePostStyles", next)}
-          trackColor={{ false: "#334155", true: "#a5b4fc" }}
+          trackColor={{
+            false: "#334155",
+            true: value.appAccentBackgroundColor,
+          }}
           thumbColor={value.appOverridePostStyles ? "#312e81" : "#cbd5e1"}
           accessibilityLabel="Override post styles"
         />
         <View className="flex-1">
-          <Text className="text-sm font-medium text-slate-100">Override post styles</Text>
+          <Text className="text-sm font-medium text-slate-100">
+            Override post styles
+          </Text>
           <Text className="mt-0.5 text-xs leading-5 text-slate-400">
-            Use this complete app style on first-party posts instead of each post’s saved look.
+            Use this complete app style on first-party posts instead of each
+            post’s saved look.
           </Text>
         </View>
       </View>
@@ -731,9 +907,12 @@ function DefaultPostStyleEditor({
     <View className={`${UI.card} gap-3`} style={appSurfaceAppearance(appStyle)}>
       <View className="flex-row items-start gap-3">
         <View className="flex-1">
-          <Text className="text-base font-semibold text-white">Default post style</Text>
+          <Text className="text-base font-semibold text-white">
+            Default post style
+          </Text>
           <Text className={`mt-1 ${UI.body}`}>
-            New posts start with this look. You can still customize each one before publishing.
+            New posts start with this look. You can still customize each one
+            before publishing.
           </Text>
         </View>
       </View>
@@ -745,12 +924,15 @@ function DefaultPostStyleEditor({
           accessibilityRole="button"
           accessibilityLabel="Reset default post style"
         >
-          <Text className="text-sm font-medium text-indigo-200">Reset</Text>
+          <Text className="text-sm font-medium" style={appPrimaryText(appStyle)}>
+            Reset
+          </Text>
         </Pressable>
         <Pressable
           onPress={onSave}
           disabled={saving || saved}
           className="rounded-xl bg-indigo-300 px-3 py-2 active:opacity-80 disabled:opacity-50"
+          style={{ backgroundColor: appStyle.appAccentBackgroundColor }}
           accessibilityRole="button"
           accessibilityLabel="Save default post style"
         >
@@ -773,21 +955,35 @@ function DefaultPostStyleEditor({
           backgroundColor: value.postBackgroundColor,
         }}
       >
-        <Text style={{ color: value.postFontColor, fontFamily: value.postFont, fontWeight: "600" }}>
+        <Text
+          style={{
+            color: value.postFontColor,
+            fontFamily: value.postFont,
+            fontWeight: "600",
+          }}
+        >
           Your next post
         </Text>
-        <Text className="mt-1" style={{ color: value.postFontColor, fontFamily: value.postFont }}>
+        <Text
+          className="mt-1"
+          style={{ color: value.postFontColor, fontFamily: value.postFont }}
+        >
           This preview updates as you edit your default style.
         </Text>
         <Text
           className="mt-2 text-xs"
-          style={{ color: value.postSecondaryTextColor, fontFamily: value.postFont }}
+          style={{
+            color: value.postSecondaryTextColor,
+            fontFamily: value.postFont,
+          }}
         >
           @you · just now
         </Text>
       </View>
 
-      <Text className="text-xs text-slate-400">Use six-digit hex colors, such as #f8fafc.</Text>
+      <Text className="text-xs text-slate-400">
+        Use six-digit hex colors, such as #f8fafc.
+      </Text>
       <View className="flex-row gap-2">
         <View className="flex-1 gap-1">
           <Text className="text-xs text-slate-400">Border color</Text>
@@ -886,17 +1082,26 @@ function StyleOption({
   selected: boolean;
   onPress: () => void;
 }) {
+  const { appStyle } = useAppStyle();
+
   return (
     <Pressable
       onPress={onPress}
       className={`rounded-lg px-3 py-2 ${
-        selected ? "bg-indigo-300" : "border border-white/10 bg-white/5"
+        selected ? "" : "border border-white/10 bg-white/5"
       }`}
+      style={
+        selected
+          ? { backgroundColor: appStyle.appAccentBackgroundColor }
+          : undefined
+      }
       accessibilityRole="radio"
       accessibilityLabel={label}
       accessibilityState={{ selected }}
     >
-      <Text className={selected ? "text-slate-950" : "text-slate-200"}>{label}</Text>
+      <Text className={selected ? "text-slate-950" : "text-slate-200"}>
+        {label}
+      </Text>
     </Pressable>
   );
 }
@@ -917,7 +1122,9 @@ function PaneButton({
       accessibilityRole="tab"
       accessibilityState={{ selected: active }}
     >
-      <Text className={`text-sm font-semibold ${active ? "text-slate-950" : "text-slate-400"}`}>
+      <Text
+        className={`text-sm font-semibold ${active ? "text-slate-950" : "text-slate-400"}`}
+      >
         {label}
       </Text>
     </Pressable>

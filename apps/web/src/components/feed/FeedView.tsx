@@ -1,7 +1,13 @@
 "use client";
 
 import type { AppStyle } from "@shome/core";
-import { type SubmitEvent, useCallback, useEffect, useRef, useState } from "react";
+import {
+  type SubmitEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { api } from "#/lib/api";
 import { sourceLabel } from "#/lib/format";
 import type { FeedItemView, SourceView } from "#/lib/types";
@@ -38,7 +44,9 @@ export function FeedView({ appStyle }: { appStyle: AppStyle }) {
       if (appliedQ) params.set("q", appliedQ);
       if (kind) params.set("kind", kind);
       if (sourceId) params.set("sourceId", sourceId);
-      const res = await api.get<{ items: FeedItemView[] }>(`/api/feed?${params}`);
+      const res = await api.get<{ items: FeedItemView[] }>(
+        `/api/feed?${params}`,
+      );
       if (requestId === latestRequest.current) setItems(res.items);
     } catch (err) {
       if (requestId === latestRequest.current) {
@@ -111,13 +119,16 @@ export function FeedView({ appStyle }: { appStyle: AppStyle }) {
 
   return (
     <section>
-      <div className={`flex flex-wrap items-center gap-2 ${filtered ? "mb-3" : "mb-5"}`}>
+      <div
+        className={`flex flex-wrap items-center gap-2 ${filtered ? "mb-3" : "mb-5"}`}
+      >
         <form className="flex min-w-64 flex-1 gap-2" onSubmit={search}>
           <div className="relative flex-1">
             <input
               // The native WebKit clear affordance is hidden in favour of the
               // themed one below it.
-              className="input w-full pr-9 [&::-webkit-search-cancel-button]:hidden"
+              className="input app-secondary-text w-full pr-9 [&::-webkit-search-cancel-button]:hidden"
+              style={{ backgroundColor: appStyle.appAccentBackgroundColor }}
               type="search"
               value={q}
               onChange={(e) => setQ(e.target.value)}
@@ -138,7 +149,11 @@ export function FeedView({ appStyle }: { appStyle: AppStyle }) {
               </button>
             )}
           </div>
-          <button type="submit" className="btn" disabled={searching}>
+          <button
+            type="submit"
+            className="btn app-primary-background text-slate-100 hover:opacity-90"
+            disabled={searching}
+          >
             {searching ? "searching…" : "search"}
           </button>
         </form>
@@ -149,8 +164,15 @@ export function FeedView({ appStyle }: { appStyle: AppStyle }) {
           onSourceChange={setSourceId}
           onKindChange={setKind}
           onClear={clearFilters}
+          accentFontColor={appStyle.appAccentFontColor}
         />
-        <button type="button" className="btn-ghost" onClick={refreshAll} disabled={busy}>
+        <button
+          type="button"
+          className="btn-ghost"
+          style={{ color: appStyle.appAccentFontColor }}
+          onClick={refreshAll}
+          disabled={busy}
+        >
           {busy ? "refreshing…" : "refresh"}
         </button>
       </div>
@@ -216,6 +238,10 @@ export function FeedView({ appStyle }: { appStyle: AppStyle }) {
       <button
         type="button"
         className="btn fixed right-5 bottom-5 z-40 inline-flex items-center gap-2 rounded-full px-5 py-3 shadow-lg shadow-black/40 sm:right-6 sm:bottom-6"
+        style={{
+          backgroundColor: appStyle.appAccentBackgroundColor,
+          color: appStyle.appFontColor,
+        }}
         onClick={() => setComposerVisible(true)}
         aria-haspopup="dialog"
         aria-expanded={composerVisible}
@@ -271,6 +297,7 @@ function FilterMenu({
   onSourceChange,
   onKindChange,
   onClear,
+  accentFontColor,
 }: {
   sources: SourceView[];
   sourceId: string;
@@ -278,6 +305,7 @@ function FilterMenu({
   onSourceChange: (id: string) => void;
   onKindChange: (kind: string) => void;
   onClear: () => void;
+  accentFontColor: string;
 }) {
   const [open, setOpen] = useState(false);
   const container = useRef<HTMLDivElement>(null);
@@ -304,6 +332,7 @@ function FilterMenu({
       <button
         type="button"
         className="btn-ghost inline-flex items-center gap-2"
+        style={{ color: accentFontColor }}
         onClick={() => setOpen((current) => !current)}
         aria-haspopup="dialog"
         aria-expanded={open}
@@ -370,6 +399,7 @@ function FilterMenu({
             <button
               type="button"
               className="w-full cursor-pointer rounded-lg px-2 py-1.5 text-left text-sm text-indigo-200 hover:bg-white/5"
+              style={{ color: accentFontColor }}
               onClick={() => {
                 onClear();
                 setOpen(false);

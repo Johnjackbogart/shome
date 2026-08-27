@@ -20,11 +20,15 @@ export const APP_SPACING_OPTIONS: readonly { label: string; value: AppSpacing }[
 export type AppStyle = {
   appBackgroundColor: string;
   appSecondaryBackgroundColor: string;
+  appAccentBackgroundColor: string;
+  appAccentColor: string;
+  appSecondaryAccentColor: string;
   appBorderStyle: string;
   appBorderRadius: PostBorderRadius;
   appBorderLineStyle: PostBorderLineStyle;
   appFont: PostFont;
   appFontColor: string;
+  appAccentFontColor: string;
   appSecondaryTextColor: string;
   appSpacing: AppSpacing;
   appOverridePostStyles: boolean;
@@ -33,11 +37,15 @@ export type AppStyle = {
 export const DEFAULT_APP_STYLE: Readonly<AppStyle> = {
   appBackgroundColor: "#070a18",
   appSecondaryBackgroundColor: "#0f172a",
+  appAccentBackgroundColor: "#0f172a",
+  appAccentColor: "#6366f1",
+  appSecondaryAccentColor: "#f472b6",
   appBorderStyle: "#24293a",
   appBorderRadius: "16px",
   appBorderLineStyle: "solid",
   appFont: "sans-serif",
   appFontColor: "#f8fafc",
+  appAccentFontColor: "#f8fafc",
   appSecondaryTextColor: "#94a3b8",
   appSpacing: "12px",
   appOverridePostStyles: false,

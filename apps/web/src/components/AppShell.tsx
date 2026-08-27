@@ -1,15 +1,14 @@
 "use client";
 
-import { type AppStyle, DEFAULT_APP_STYLE } from "@shome/core";
+import type { AppStyle } from "@shome/core";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { type CSSProperties, useEffect, useState } from "react";
+import { type CSSProperties, useState } from "react";
 import { ComingSoonForm } from "#/components/ComingSoonForm";
 import { DiscoverView } from "#/components/DiscoverView";
 import { FeedView } from "#/components/feed/FeedView";
 import { ProfileView } from "#/components/ProfileView";
 import { SourcesView } from "#/components/SourcesView";
-import { api } from "#/lib/api";
 import { authClient } from "#/lib/auth-client";
 import type { PublicUser } from "#/lib/types";
 
@@ -21,21 +20,17 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "sources", label: "Sources" },
 ];
 
-export function AppShell({ initialUser }: { initialUser: PublicUser | null }) {
+export function AppShell({
+  initialUser,
+  initialAppStyle,
+}: {
+  initialUser: PublicUser | null;
+  initialAppStyle: AppStyle;
+}) {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("feed");
   const [avatarUrl, setAvatarUrl] = useState(initialUser?.image ?? null);
-  const [appStyle, setAppStyle] = useState<AppStyle>({ ...DEFAULT_APP_STYLE });
-
-  useEffect(() => {
-    if (!initialUser) return;
-    api
-      .get<{ appStyle: AppStyle }>("/api/app-style")
-      .then((response) => setAppStyle(response.appStyle))
-      // A theme should never prevent the signed-in shell from loading. The
-      // product defaults remain in place if this optional request fails.
-      .catch(() => undefined);
-  }, [initialUser]);
+  const [appStyle, setAppStyle] = useState<AppStyle>(initialAppStyle);
 
   if (!initialUser) {
     return (
@@ -155,6 +150,8 @@ export function AppShell({ initialUser }: { initialUser: PublicUser | null }) {
         {
           "--app-background-color": appStyle.appBackgroundColor,
           "--app-secondary-background-color": appStyle.appSecondaryBackgroundColor,
+          "--app-accent-color": appStyle.appAccentColor,
+          "--app-secondary-accent-color": appStyle.appSecondaryAccentColor,
           "--app-border-color": appStyle.appBorderStyle,
           "--app-border-radius": appStyle.appBorderRadius,
           "--app-border-line-style": appStyle.appBorderLineStyle,
@@ -165,11 +162,11 @@ export function AppShell({ initialUser }: { initialUser: PublicUser | null }) {
         } as CSSProperties
       }
     >
-      <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_10%_4%,rgba(99,102,241,0.18),transparent_26%),radial-gradient(circle_at_88%_32%,rgba(244,114,182,0.1),transparent_22%)]" />
+      <div className="app-accent-gradient pointer-events-none absolute inset-0 -z-10" />
       <div className="mx-auto max-w-6xl px-5 py-5 sm:px-10 sm:py-7 lg:px-14">
         <header className="app-secondary-background sticky top-4 z-10 mb-7 flex flex-wrap items-center gap-3 rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 shadow-xl shadow-black/20 backdrop-blur-xl sm:flex-nowrap sm:px-5">
           <a href="/" className="flex items-center gap-2.5 font-semibold tracking-tight">
-            <span className="grid size-8 place-items-center rounded-xl bg-indigo-300 text-sm font-black text-slate-950 shadow-[0_0_24px_rgba(165,180,252,0.3)]">
+            <span className="app-primary-background grid size-8 place-items-center rounded-xl text-sm font-black text-slate-100 shadow-[0_0_24px_rgba(165,180,252,0.3)]">
               s
             </span>
             <span className="text-lg">shome</span>
@@ -181,9 +178,10 @@ export function AppShell({ initialUser }: { initialUser: PublicUser | null }) {
                 type="button"
                 className={`cursor-pointer rounded-lg px-3 py-2 text-sm font-medium transition ${
                   tab === t.id
-                    ? "bg-white text-slate-950 shadow-sm"
+                    ? "text-slate-950 shadow-sm"
                     : "text-slate-400 hover:text-white"
                 }`}
+                style={tab === t.id ? { backgroundColor: appStyle.appAccentBackgroundColor } : undefined}
                 onClick={() => setTab(t.id)}
               >
                 {t.label}
@@ -205,7 +203,7 @@ export function AppShell({ initialUser }: { initialUser: PublicUser | null }) {
             {initialUser.handle ? (
               <button
                 type="button"
-                className="hidden cursor-pointer text-sm text-indigo-200 hover:text-indigo-100 hover:underline sm:inline"
+                className="app-secondary-text hidden cursor-pointer text-sm hover:underline sm:inline"
                 onClick={() => setTab("profile")}
                 aria-label="Edit your page"
               >
@@ -228,8 +226,8 @@ export function AppShell({ initialUser }: { initialUser: PublicUser | null }) {
         </header>
         <main className="pb-16">
           {tab === "feed" && <FeedView appStyle={appStyle} />}
-          {tab === "discover" && <DiscoverView />}
-          {tab === "sources" && <SourcesView />}
+          {tab === "discover" && <DiscoverView appStyle={appStyle} />}
+          {tab === "sources" && <SourcesView appStyle={appStyle} />}
           {tab === "profile" && (
             <ProfileView
               handle={initialUser.handle}

@@ -30,6 +30,17 @@ describe("member app style", () => {
       }).success,
     ).toBe(false);
     expect(
+      appStyleSchema.safeParse({ ...DEFAULT_APP_STYLE, appAccentColor: "currentColor" }).success,
+    ).toBe(false);
+    expect(
+      appStyleSchema.safeParse({ ...DEFAULT_APP_STYLE, appAccentBackgroundColor: "inherit" })
+        .success,
+    ).toBe(false);
+    expect(
+      appStyleSchema.safeParse({ ...DEFAULT_APP_STYLE, appAccentFontColor: "currentColor" })
+        .success,
+    ).toBe(false);
+    expect(
       appStyleSchema.safeParse({ ...DEFAULT_APP_STYLE, appBorderRadius: "999px" }).success,
     ).toBe(false);
     expect(appStyleSchema.safeParse({ ...DEFAULT_APP_STYLE, appFont: "fantasy" }).success).toBe(

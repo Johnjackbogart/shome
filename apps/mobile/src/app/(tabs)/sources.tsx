@@ -206,6 +206,7 @@ function SourceRow({
       <View className={`mb-3 gap-3 px-4 py-4 ${UI.card}`} style={appSurfaceAppearance(appStyle)}>
         <TextInput
           className={UI.input}
+          style={{ backgroundColor: appStyle.appAccentBackgroundColor }}
           value={draft}
           onChangeText={setDraft}
           placeholder={original}
@@ -256,7 +257,7 @@ function SourceRow({
         >
           {source.kind}
         </Text>
-        <Text className="shrink font-semibold text-white" numberOfLines={1}>
+        <Text className="shrink font-semibold" style={appPrimaryText(appStyle)} numberOfLines={1}>
           {sourceLabel(source)}
         </Text>
       </View>
@@ -276,19 +277,26 @@ function SourceRow({
           onPress={startEditing}
           className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 active:opacity-70"
         >
-          <Text className="text-xs font-medium text-indigo-200">Rename</Text>
+              <Text className="text-xs font-medium" style={appSecondaryText(appStyle)}>
+                Rename
+              </Text>
         </Pressable>
         <Pressable
           onPress={onRefresh}
           className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 active:opacity-70"
         >
-          <Text className="text-xs font-medium text-indigo-200">Refresh</Text>
+              <Text className="text-xs font-medium" style={appSecondaryText(appStyle)}>
+                Refresh
+              </Text>
         </Pressable>
         <Pressable
           onPress={onRemove}
-          className="rounded-xl border border-rose-300/15 bg-rose-300/5 px-3 py-2 active:opacity-70"
+          className="rounded-xl border border-rose-300/15 px-3 py-2 active:opacity-70"
+          style={{ backgroundColor: appStyle.appBackgroundColor }}
         >
-          <Text className="text-xs font-medium text-rose-300">Remove</Text>
+          <Text className="text-xs font-medium" style={appSecondaryText(appStyle)}>
+            Remove
+          </Text>
         </Pressable>
       </View>
     </View>
@@ -346,6 +354,7 @@ function AddSourceForm({
   }
 
   const inputClass = UI.input;
+  const inputStyle = { backgroundColor: appStyle.appAccentBackgroundColor };
 
   return (
     <View className={`mb-4 gap-3 ${UI.card}`} style={appSurfaceAppearance(appStyle)}>
@@ -355,13 +364,13 @@ function AddSourceForm({
             key={k}
             onPress={() => setKind(k)}
             className={`rounded-xl px-3 py-2 ${
-              kind === k ? "bg-white" : "border border-white/10 bg-white/5"
+              kind === k ? "" : "border border-white/10 bg-white/5"
             }`}
+            style={kind === k ? { backgroundColor: appStyle.appAccentBackgroundColor } : undefined}
           >
             <Text
-              className={
-                kind === k ? "text-sm font-semibold text-slate-950" : "text-sm text-slate-400"
-              }
+              className="text-sm font-semibold"
+              style={appSecondaryText(appStyle)}
             >
               {KIND_LABELS[k]}
             </Text>
@@ -372,6 +381,7 @@ function AddSourceForm({
       {kind === "rss" && (
         <TextInput
           className={inputClass}
+          style={inputStyle}
           placeholder="https://example.com/feed.xml"
           placeholderTextColor="#64748b"
           autoCapitalize="none"
@@ -385,6 +395,7 @@ function AddSourceForm({
       {kind === "bluesky" && (
         <TextInput
           className={inputClass}
+          style={inputStyle}
           placeholder="alice.bsky.social"
           placeholderTextColor="#64748b"
           autoCapitalize="none"
@@ -398,6 +409,7 @@ function AddSourceForm({
         <>
           <TextInput
             className={inputClass}
+            style={inputStyle}
             placeholder="mastodon.social"
             placeholderTextColor="#64748b"
             autoCapitalize="none"
@@ -411,15 +423,17 @@ function AddSourceForm({
                 key={m}
                 onPress={() => setMastodonMode(m)}
                 className={`rounded-xl px-3 py-2 ${
-                  mastodonMode === m ? "bg-white" : "border border-white/10 bg-white/5"
+                  mastodonMode === m ? "" : "border border-white/10 bg-white/5"
                 }`}
+                style={
+                  mastodonMode === m
+                    ? { backgroundColor: appStyle.appAccentBackgroundColor }
+                    : undefined
+                }
               >
                 <Text
-                  className={
-                    mastodonMode === m
-                      ? "text-sm font-semibold text-slate-950"
-                      : "text-sm text-slate-400"
-                  }
+                  className="text-sm font-semibold"
+                  style={appSecondaryText(appStyle)}
                 >
                   {m === "hashtag" ? "hashtag" : "public timeline"}
                 </Text>
@@ -429,6 +443,7 @@ function AddSourceForm({
           {mastodonMode === "hashtag" && (
             <TextInput
               className={inputClass}
+              style={inputStyle}
               placeholder="photography"
               placeholderTextColor="#64748b"
               autoCapitalize="none"
@@ -443,6 +458,7 @@ function AddSourceForm({
       {kind === "youtube" && (
         <TextInput
           className={inputClass}
+          style={inputStyle}
           placeholder="@channelhandle or UC… channel id"
           placeholderTextColor="#64748b"
           autoCapitalize="none"
@@ -452,11 +468,18 @@ function AddSourceForm({
         />
       )}
 
-      <Pressable onPress={submit} disabled={busy} className={`mt-1 self-start ${UI.primaryButton}`}>
+      <Pressable
+        onPress={submit}
+        disabled={busy}
+        className={`mt-1 self-start ${UI.primaryButton}`}
+        style={{ backgroundColor: appStyle.appAccentBackgroundColor }}
+      >
         {busy ? (
           <ActivityIndicator size="small" color={COLORS.background} />
         ) : (
-          <Text className="text-sm font-semibold text-slate-950">Add source</Text>
+          <Text className="text-sm font-semibold" style={appSecondaryText(appStyle)}>
+            Add source
+          </Text>
         )}
       </Pressable>
 

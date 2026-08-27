@@ -1,6 +1,7 @@
 "use client";
 
-import { type FormEvent, useCallback, useEffect, useState } from "react";
+import type { AppStyle } from "@shome/core";
+import { type CSSProperties, type FormEvent, useCallback, useEffect, useState } from "react";
 import { api } from "#/lib/api";
 import { originalSourceLabel, SOURCE_FETCH_ERROR, sourceLabel, timeAgo } from "#/lib/format";
 import type { ConnectionView, SourceView } from "#/lib/types";
@@ -14,11 +15,23 @@ const KIND_COLORS: Record<string, string> = {
   youtube: "text-red-300",
 };
 
-export function SourcesView() {
+export function SourcesView({ appStyle }: { appStyle: AppStyle }) {
   const [sources, setSources] = useState<SourceView[] | null>(null);
   const [connections, setConnections] = useState<ConnectionView[]>([]);
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const inputStyle: CSSProperties = {
+    backgroundColor: appStyle.appAccentBackgroundColor,
+  };
+  const pickerStyle: CSSProperties = {
+    ...inputStyle,
+    color: appStyle.appSecondaryTextColor,
+    fontFamily: appStyle.appFont,
+  };
+  const primaryTextStyle: CSSProperties = {
+    color: appStyle.appFontColor,
+    fontFamily: appStyle.appFont,
+  };
 
   const load = useCallback(async () => {
     try {
@@ -90,6 +103,9 @@ export function SourcesView() {
         </p>
         <AddSourceForm
           connections={connections}
+          inputStyle={inputStyle}
+          pickerStyle={pickerStyle}
+          accentBackgroundColor={appStyle.appAccentBackgroundColor}
           onAdded={(msg) => {
             setNotice(msg);
             setError(null);
@@ -113,6 +129,10 @@ export function SourcesView() {
               <SourceRow
                 key={source.id}
                 source={source}
+                inputStyle={inputStyle}
+                secondaryTextStyle={pickerStyle}
+                primaryTextStyle={primaryTextStyle}
+                primaryBackgroundColor={appStyle.appBackgroundColor}
                 onRename={(title) => renameSource(source.id, title)}
                 onRefresh={() => void refreshSource(source.id)}
                 onRemove={() => void removeSource(source.id)}
@@ -128,6 +148,9 @@ export function SourcesView() {
           Linked credentials, for sources that need them — and for posting to Bluesky or Mastodon.
         </p>
         <AddConnectionForm
+          inputStyle={inputStyle}
+          pickerStyle={pickerStyle}
+          accentBackgroundColor={appStyle.appAccentBackgroundColor}
           onAdded={(message) => {
             setError(null);
             setNotice(message);
@@ -146,7 +169,7 @@ export function SourcesView() {
                   <span className={`badge ${KIND_COLORS[connection.provider] ?? ""}`}>
                     {connection.provider}
                   </span>
-                  <span className="font-semibold [overflow-wrap:anywhere]">
+                  <span className="font-semibold [overflow-wrap:anywhere]" style={primaryTextStyle}>
                     {connection.account ?? connection.label}
                   </span>
                   {connection.account && connection.label !== "default" && (
@@ -156,7 +179,12 @@ export function SourcesView() {
                 <div className="flex shrink-0 gap-1.5">
                   <button
                     type="button"
-                    className="btn-ghost text-red-400"
+                    className="btn-ghost"
+                    style={{
+                      backgroundColor: appStyle.appBackgroundColor,
+                      color: appStyle.appSecondaryTextColor,
+                      fontFamily: appStyle.appFont,
+                    }}
                     onClick={() => void removeConnection(connection.id)}
                   >
                     remove
@@ -173,11 +201,19 @@ export function SourcesView() {
 
 function SourceRow({
   source,
+  inputStyle,
+  secondaryTextStyle,
+  primaryTextStyle,
+  primaryBackgroundColor,
   onRename,
   onRefresh,
   onRemove,
 }: {
   source: SourceView;
+  inputStyle: CSSProperties;
+  secondaryTextStyle: CSSProperties;
+  primaryTextStyle: CSSProperties;
+  primaryBackgroundColor: string;
   onRename: (customTitle: string | null) => Promise<void>;
   onRefresh: () => void;
   onRemove: () => void;
@@ -215,6 +251,7 @@ function SourceRow({
         <form className="flex min-w-0 flex-1 flex-wrap items-center gap-2" onSubmit={save}>
           <input
             className="input min-w-40 flex-1"
+            style={inputStyle}
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             placeholder={original}
@@ -223,10 +260,15 @@ function SourceRow({
             // biome-ignore lint/a11y/noAutofocus: the input replaces the button just clicked.
             autoFocus
           />
-          <button type="submit" className="btn" disabled={busy}>
+          <button type="submit" className="btn" style={secondaryTextStyle} disabled={busy}>
             {busy ? "saving…" : "save"}
           </button>
-          <button type="button" className="btn-ghost" onClick={() => setEditing(false)}>
+          <button
+            type="button"
+            className="btn-ghost"
+            style={secondaryTextStyle}
+            onClick={() => setEditing(false)}
+          >
             cancel
           </button>
           <p className="w-full text-xs text-slate-500">
@@ -240,7 +282,9 @@ function SourceRow({
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           <div className="flex min-w-0 flex-wrap items-center gap-2.5">
             <span className={`badge ${KIND_COLORS[source.kind] ?? ""}`}>{source.kind}</span>
-            <span className="font-semibold [overflow-wrap:anywhere]">{sourceLabel(source)}</span>
+            <span className="font-semibold [overflow-wrap:anywhere]" style={primaryTextStyle}>
+              {sourceLabel(source)}
+            </span>
             <span className="text-xs text-slate-400">
               {source.lastFetchedAt ? `fetched ${timeAgo(source.lastFetchedAt)}` : "never fetched"}
             </span>
@@ -255,14 +299,33 @@ function SourceRow({
       )}
       <div className="flex shrink-0 gap-1.5">
         {!editing && (
-          <button type="button" className="btn-ghost" onClick={startEditing}>
+          <button
+            type="button"
+            className="btn-ghost"
+            style={secondaryTextStyle}
+            onClick={startEditing}
+          >
             rename
           </button>
         )}
-        <button type="button" className="btn-ghost" onClick={onRefresh}>
+        <button
+          type="button"
+          className="btn-ghost"
+          style={secondaryTextStyle}
+          onClick={onRefresh}
+        >
           refresh
         </button>
-        <button type="button" className="btn-ghost text-red-400" onClick={onRemove}>
+        <button
+          type="button"
+          className="btn-ghost"
+          style={{
+            backgroundColor: primaryBackgroundColor,
+            color: secondaryTextStyle.color,
+            fontFamily: secondaryTextStyle.fontFamily,
+          }}
+          onClick={onRemove}
+        >
           remove
         </button>
       </div>
@@ -272,10 +335,16 @@ function SourceRow({
 
 function AddSourceForm({
   connections,
+  inputStyle,
+  pickerStyle,
+  accentBackgroundColor,
   onAdded,
   onError,
 }: {
   connections: ConnectionView[];
+  inputStyle: CSSProperties;
+  pickerStyle: CSSProperties;
+  accentBackgroundColor: string;
   onAdded: (message: string) => void;
   onError: (message: string) => void;
 }) {
@@ -342,7 +411,12 @@ function AddSourceForm({
   return (
     <form className="card mb-3 flex flex-col gap-2.5" onSubmit={submit}>
       <div className="flex flex-wrap gap-2">
-        <select className="input" value={kind} onChange={(e) => setKind(e.target.value as Kind)}>
+        <select
+          className="input"
+          style={pickerStyle}
+          value={kind}
+          onChange={(e) => setKind(e.target.value as Kind)}
+        >
           <option value="rss">RSS / Atom</option>
           <option value="bluesky">Bluesky</option>
           <option value="mastodon">Mastodon</option>
@@ -352,6 +426,7 @@ function AddSourceForm({
         {kind === "rss" && (
           <input
             className="input min-w-36 flex-1"
+            style={inputStyle}
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             placeholder="https://example.com/feed.xml"
@@ -363,6 +438,7 @@ function AddSourceForm({
           <>
             <select
               className="input"
+              style={pickerStyle}
               value={blueskyMode}
               onChange={(e) => setBlueskyMode(e.target.value as "author" | "timeline")}
             >
@@ -371,6 +447,7 @@ function AddSourceForm({
             </select>
             <input
               className="input min-w-36 flex-1"
+              style={inputStyle}
               value={actor}
               onChange={(e) => setActor(e.target.value)}
               placeholder={blueskyMode === "author" ? "alice.bsky.social" : "you.bsky.social"}
@@ -383,6 +460,7 @@ function AddSourceForm({
           <>
             <input
               className="input min-w-36 flex-1"
+              style={inputStyle}
               value={server}
               onChange={(e) => setServer(e.target.value)}
               placeholder="mastodon.social"
@@ -390,6 +468,7 @@ function AddSourceForm({
             />
             <select
               className="input"
+              style={pickerStyle}
               value={mastodonMode}
               onChange={(e) => setMastodonMode(e.target.value as "public" | "hashtag" | "home")}
             >
@@ -400,6 +479,7 @@ function AddSourceForm({
             {mastodonMode === "hashtag" && (
               <input
                 className="input min-w-36 flex-1"
+                style={inputStyle}
                 value={hashtag}
                 onChange={(e) => setHashtag(e.target.value)}
                 placeholder="photography"
@@ -409,6 +489,7 @@ function AddSourceForm({
             {mastodonMode === "home" && (
               <input
                 className="input min-w-36 flex-1"
+                style={inputStyle}
                 value={account}
                 onChange={(e) => setAccount(e.target.value)}
                 placeholder="you@mastodon.social"
@@ -421,6 +502,7 @@ function AddSourceForm({
         {kind === "youtube" && (
           <input
             className="input min-w-36 flex-1"
+            style={pickerStyle}
             value={channel}
             onChange={(e) => setChannel(e.target.value)}
             placeholder="@channelhandle or UC… channel id"
@@ -433,6 +515,7 @@ function AddSourceForm({
         <div className="flex flex-wrap items-center gap-2">
           <select
             className="input"
+            style={pickerStyle}
             value={connectionId}
             onChange={(e) => setConnectionId(e.target.value)}
           >
@@ -451,7 +534,16 @@ function AddSourceForm({
         </div>
       )}
 
-      <button type="submit" className="btn self-start" disabled={busy}>
+      <button
+        type="submit"
+        className="btn self-start"
+        style={{
+          backgroundColor: accentBackgroundColor,
+          color: pickerStyle.color,
+          fontFamily: pickerStyle.fontFamily,
+        }}
+        disabled={busy}
+      >
         {busy ? "adding…" : "add source"}
       </button>
     </form>
@@ -459,9 +551,15 @@ function AddSourceForm({
 }
 
 function AddConnectionForm({
+  inputStyle,
+  pickerStyle,
+  accentBackgroundColor,
   onAdded,
   onError,
 }: {
+  inputStyle: CSSProperties;
+  pickerStyle: CSSProperties;
+  accentBackgroundColor: string;
   onAdded: (message: string | null) => void;
   onError: (message: string) => void;
 }) {
@@ -524,6 +622,7 @@ function AddConnectionForm({
       <div className="flex flex-wrap gap-2">
         <select
           className="input"
+          style={pickerStyle}
           value={provider}
           onChange={(e) => setProvider(e.target.value as "bluesky" | "mastodon" | "youtube")}
         >
@@ -533,6 +632,7 @@ function AddConnectionForm({
         </select>
         <input
           className="input min-w-36 flex-1"
+          style={inputStyle}
           value={label}
           onChange={(e) => setLabel(e.target.value)}
           placeholder="label (optional)"
@@ -543,6 +643,7 @@ function AddConnectionForm({
         <div className="flex flex-wrap gap-2">
           <input
             className="input min-w-36 flex-1"
+            style={inputStyle}
             value={identifier}
             onChange={(e) => setIdentifier(e.target.value)}
             placeholder="you.bsky.social"
@@ -550,6 +651,7 @@ function AddConnectionForm({
           />
           <input
             className="input min-w-36 flex-1"
+            style={inputStyle}
             type="password"
             value={appPassword}
             onChange={(e) => setAppPassword(e.target.value)}
@@ -562,6 +664,7 @@ function AddConnectionForm({
         <div className="flex flex-wrap gap-2">
           <input
             className="input min-w-36 flex-1"
+            style={inputStyle}
             value={mastodonServer}
             onChange={(e) => setMastodonServer(e.target.value)}
             placeholder="https://mastodon.social"
@@ -569,6 +672,7 @@ function AddConnectionForm({
           />
           <input
             className="input min-w-36 flex-1"
+            style={inputStyle}
             type="password"
             value={accessToken}
             onChange={(e) => setAccessToken(e.target.value)}
@@ -580,6 +684,7 @@ function AddConnectionForm({
       {provider === "youtube" && (
         <input
           className="input"
+          style={inputStyle}
           type="password"
           value={apiKey}
           onChange={(e) => setApiKey(e.target.value)}
@@ -588,7 +693,16 @@ function AddConnectionForm({
         />
       )}
 
-      <button type="submit" className="btn self-start" disabled={busy}>
+      <button
+        type="submit"
+        className="btn self-start"
+        style={{
+          backgroundColor: accentBackgroundColor,
+          color: pickerStyle.color,
+          fontFamily: pickerStyle.fontFamily,
+        }}
+        disabled={busy}
+      >
         {busy ? "linking…" : "link connection"}
       </button>
     </form>

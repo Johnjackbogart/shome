@@ -1,6 +1,7 @@
 "use client";
 
 import type {
+  AppStyle,
   PeopleSearchResult,
   PopularRssFeed,
   PopularRssResponse,
@@ -15,7 +16,7 @@ import type { SourceView } from "#/lib/types";
 
 const FOLLOW_LIST_LIMIT = 50;
 
-export function DiscoverView() {
+export function DiscoverView({ appStyle }: { appStyle: AppStyle }) {
   const [sources, setSources] = useState<SourceView[] | null>(null);
   const [shomeFeeds, setShomeFeeds] = useState<PopularRssFeed[]>([]);
   const [webFeeds, setWebFeeds] = useState<PopularRssFeed[]>([]);
@@ -163,14 +164,20 @@ export function DiscoverView() {
             </label>
             <input
               id="people-search"
-              className="input min-w-0 flex-1"
+              className="input app-secondary-text min-w-0 flex-1"
+              style={{ backgroundColor: appStyle.appAccentBackgroundColor }}
               type="search"
               value={personQuery}
               onChange={(event) => setPersonQuery(event.target.value)}
               placeholder="Name or @handle"
               autoComplete="off"
             />
-            <button type="submit" className="btn shrink-0" disabled={searchingPeople}>
+            <button
+              type="submit"
+              className="btn shrink-0"
+              style={{ backgroundColor: appStyle.appAccentBackgroundColor }}
+              disabled={searchingPeople}
+            >
               {searchingPeople ? "searching…" : "find people"}
             </button>
           </form>
@@ -223,6 +230,7 @@ export function DiscoverView() {
             <h2 className="text-xl font-bold">Publications, blogs, and podcasts</h2>
           </div>
           <RssDiscovery
+            appStyle={appStyle}
             shomeFeeds={shomeFeeds}
             webFeeds={webFeeds}
             subscribedFeedUrls={subscribedFeedUrls}

@@ -1,5 +1,7 @@
+import { DEFAULT_APP_STYLE } from "@shome/core";
 import { AppShell } from "#/components/AppShell";
 import type { PublicUser } from "#/lib/types";
+import { getAppStyleForUser } from "#/server/app-style-data";
 import { getSessionOrNull } from "#/server/auth";
 
 export const dynamic = "force-dynamic";
@@ -15,5 +17,9 @@ export default async function Home() {
         image: (session.user as { image?: string | null }).image ?? null,
       }
     : null;
-  return <AppShell initialUser={initialUser} />;
+  const initialAppStyle = session
+    ? await getAppStyleForUser(session.user.id)
+    : { ...DEFAULT_APP_STYLE };
+
+  return <AppShell initialUser={initialUser} initialAppStyle={initialAppStyle} />;
 }

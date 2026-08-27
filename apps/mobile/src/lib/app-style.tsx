@@ -1,5 +1,13 @@
 import { type AppStyle, DEFAULT_APP_STYLE } from "@shome/core";
-import { createContext, type ReactNode, useCallback, useContext, useEffect, useState } from "react";
+import {
+  createContext,
+  type ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import type { TextStyle, ViewStyle } from "react-native";
 import { api } from "./api";
 
@@ -13,21 +21,28 @@ const AppStyleContext = createContext<AppStyleContextValue | null>(null);
 
 export function AppStyleProvider({ enabled, children }: { enabled: boolean; children: ReactNode }) {
   const [appStyle, setAppStyle] = useState<AppStyle>({ ...DEFAULT_APP_STYLE });
+  const latestRequest = useRef(0);
 
   const refreshAppStyle = useCallback(async () => {
     if (!enabled) return;
-    const response = await api.get<{ appStyle: AppStyle }>("/api/app-style");
-    setAppStyle(response.appStyle);
+    const requestId = ++latestRequest.current;
+    try {
+      const response = await api.get<{ appStyle: AppStyle }>("/api/app-style");
+      if (requestId !== latestRequest.current) return;
+      setAppStyle(response.appStyle);
+    } catch {
+      if (requestId !== latestRequest.current) return;
+      setAppStyle({ ...DEFAULT_APP_STYLE });
+    }
   }, [enabled]);
 
   useEffect(() => {
     if (!enabled) {
+      latestRequest.current += 1;
       setAppStyle({ ...DEFAULT_APP_STYLE });
       return;
     }
-    // The default app style remains usable while offline or before the first
-    // request returns, so this preference must not block navigation.
-    void refreshAppStyle().catch(() => undefined);
+    void refreshAppStyle();
   }, [enabled, refreshAppStyle]);
 
   return (

@@ -1,6 +1,7 @@
 "use client";
 
 import type {
+  AppStyle,
   DiscoveredRssFeed,
   PopularRssFeed,
   PopularRssResponse,
@@ -22,12 +23,14 @@ function subscribedMessage(
 }
 
 export function RssDiscovery({
+  appStyle,
   shomeFeeds,
   webFeeds,
   subscribedFeedUrls,
   onAdded,
   onError,
 }: {
+  appStyle: AppStyle;
   shomeFeeds: PopularRssResponse["shomeFeeds"];
   webFeeds: PopularRssResponse["webFeeds"];
   subscribedFeedUrls: Set<string>;
@@ -78,13 +81,19 @@ export function RssDiscovery({
       </p>
       <form className="mt-3 flex flex-wrap gap-2" onSubmit={discover}>
         <input
-          className="input min-w-44 flex-1"
+          className="input app-secondary-text min-w-44 flex-1"
+          style={{ backgroundColor: appStyle.appAccentBackgroundColor }}
           value={website}
           onChange={(event) => setWebsite(event.target.value)}
           placeholder="Ars Technica or arstechnica.com"
           required
         />
-        <button type="submit" className="btn" disabled={discovering}>
+        <button
+          type="submit"
+          className="btn"
+          style={{ backgroundColor: appStyle.appAccentBackgroundColor }}
+          disabled={discovering}
+        >
           {discovering ? "finding…" : "find feeds"}
         </button>
       </form>
@@ -101,6 +110,7 @@ export function RssDiscovery({
                 <SearchResult
                   key={feed.url}
                   feed={feed}
+                  appStyle={appStyle}
                   subscribed={subscribedFeedUrls.has(feed.url)}
                   subscribing={subscribingUrl === feed.url}
                   onAdd={() => void subscribe(feed.url, feed.title ?? feed.siteName ?? feed.url)}
@@ -124,6 +134,7 @@ export function RssDiscovery({
             subscriberLabel="Shome subscribers"
             subscribedFeedUrls={subscribedFeedUrls}
             subscribingUrl={subscribingUrl}
+            appStyle={appStyle}
             onAdd={subscribe}
           />
         )}
@@ -142,6 +153,7 @@ export function RssDiscovery({
             subscriberLabel="Feedly subscribers"
             subscribedFeedUrls={subscribedFeedUrls}
             subscribingUrl={subscribingUrl}
+            appStyle={appStyle}
             onAdd={subscribe}
           />
         )}
@@ -177,12 +189,14 @@ function PopularFeedList({
   subscriberLabel,
   subscribedFeedUrls,
   subscribingUrl,
+  appStyle,
   onAdd,
 }: {
   feeds: PopularRssFeed[];
   subscriberLabel: string;
   subscribedFeedUrls: Set<string>;
   subscribingUrl: string | null;
+  appStyle: AppStyle;
   onAdd: (url: string, fallback: string) => Promise<void>;
 }) {
   return (
@@ -211,6 +225,7 @@ function PopularFeedList({
               className="btn-ghost shrink-0"
               disabled={subscribed || subscribing}
               onClick={() => void onAdd(feed.url, feed.title ?? feed.siteName ?? feed.url)}
+              style={{ color: appStyle.appSecondaryTextColor, fontFamily: appStyle.appFont }}
             >
               {subscribed ? "added" : subscribing ? "adding…" : "add"}
             </button>
@@ -223,11 +238,13 @@ function PopularFeedList({
 
 function SearchResult({
   feed,
+  appStyle,
   subscribed,
   subscribing,
   onAdd,
 }: {
   feed: DiscoveredRssFeed;
+  appStyle: AppStyle;
   subscribed: boolean;
   subscribing: boolean;
   onAdd: () => void;
@@ -248,6 +265,7 @@ function SearchResult({
           className="btn-ghost shrink-0"
           disabled={subscribed || subscribing}
           onClick={onAdd}
+          style={{ color: appStyle.appSecondaryTextColor, fontFamily: appStyle.appFont }}
         >
           {subscribed ? "added" : subscribing ? "adding…" : "add"}
         </button>
