@@ -93,7 +93,7 @@ export function RssDiscovery({
         />
         <button
           type="submit"
-          className="btn"
+          className="btn font-normal"
           style={{ backgroundColor: appStyle.appAccentBackgroundColor }}
           disabled={discovering}
         >

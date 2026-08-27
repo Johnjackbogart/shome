@@ -105,7 +105,7 @@ export function PeopleDiscovery() {
           <ActivityIndicator size="small" color={appStyle.appAccentFontColor} />
         ) : (
           <Text
-            className="text-sm font-semibold"
+            className="text-sm font-normal"
             style={{ color: appStyle.appAccentFontColor, fontFamily: appStyle.appFont }}
           >
             Find people

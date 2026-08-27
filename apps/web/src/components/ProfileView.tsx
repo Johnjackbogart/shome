@@ -943,23 +943,6 @@ export function ProfileView({
 
   return (
     <section>
-      <div className="mb-3 flex flex-wrap items-center gap-3">
-        <h2 className="text-xl font-bold">My page</h2>
-        <div className="flex-1" />
-        {handle && (
-          <a
-            className="text-accent hover:underline"
-            href={`/p/${handle}`}
-            target="_blank"
-            rel="noreferrer"
-          >
-            view public page ↗
-          </a>
-        )}
-      </div>
-      <p className="mb-4 text-sm text-slate-400">
-        Build visually or write HTML + CSS. Everything stays in the same no-script sandbox.
-      </p>
       {error && <p className="mb-2 text-sm text-red-400">{error}</p>}
 
       <div className="card mb-4 flex flex-wrap items-center gap-4">

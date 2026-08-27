@@ -177,7 +177,7 @@ export function DiscoverView({ appStyle }: { appStyle: AppStyle }) {
             />
             <button
               type="submit"
-              className="btn shrink-0"
+              className="btn shrink-0 font-normal"
               style={{ backgroundColor: appStyle.appAccentBackgroundColor }}
               disabled={searchingPeople}
             >
