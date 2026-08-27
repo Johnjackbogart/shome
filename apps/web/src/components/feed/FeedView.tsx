@@ -229,10 +229,13 @@ export function FeedView({ appStyle }: { appStyle: AppStyle }) {
 
       <button
         type="button"
-        className="btn fixed right-5 bottom-5 z-40 inline-flex items-center gap-2 rounded-full px-5 py-3 shadow-lg shadow-black/40 sm:right-6 sm:bottom-6"
+        className="btn fixed right-5 bottom-5 z-40 inline-flex items-center gap-2 border px-5 py-3 shadow-lg shadow-black/40 sm:right-6 sm:bottom-6"
         style={{
           backgroundColor: appStyle.appAccentBackgroundColor,
           color: appStyle.appFontColor,
+          borderColor: appStyle.appBorderStyle,
+          borderRadius: appStyle.appBorderRadius,
+          borderStyle: appStyle.appBorderLineStyle,
         }}
         onClick={() => setComposerVisible(true)}
         aria-haspopup="dialog"

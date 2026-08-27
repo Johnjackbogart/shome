@@ -1,15 +1,7 @@
 import type { AppStyle } from "@shome/core";
+import { KindBadge } from "#/components/KindBadge";
 import { timeAgo, truncate } from "#/lib/format";
 import type { FeedItemView } from "#/lib/types";
-
-// Static map so Tailwind's scanner sees every class (no template-built names).
-const KIND_COLORS: Record<string, string> = {
-  post: "text-emerald-300",
-  rss: "text-orange-300",
-  bluesky: "text-sky-300",
-  mastodon: "text-violet-300",
-  youtube: "text-red-300",
-};
 
 function MediaState({ status, type }: { status: string; type: "photo" | "video" }) {
   const message =
@@ -93,12 +85,7 @@ export default function FeedItem({ item, appStyle }: { item: FeedItemView; appSt
             )}
           </span>
           <span className="flex flex-wrap items-center gap-1.5 text-xs text-slate-400">
-            <span
-              className={`badge ${KIND_COLORS[item.sourceKind] ?? ""}`}
-              style={secondaryTextStyle}
-            >
-              {item.sourceKind}
-            </span>
+            <KindBadge kind={item.sourceKind} style={secondaryTextStyle} />
             {item.sourceTitle ? <span style={secondaryTextStyle}>{item.sourceTitle} ·</span> : null}
             <span style={secondaryTextStyle}>{timeAgo(item.publishedAt ?? item.fetchedAt)}</span>
           </span>

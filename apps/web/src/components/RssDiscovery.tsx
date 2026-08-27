@@ -10,6 +10,15 @@ import type {
 import { type FormEvent, useState } from "react";
 import { api } from "#/lib/api";
 
+/** Inline so the member's border tokens win regardless of cascade layer order. */
+function appBorder(appStyle: AppStyle) {
+  return {
+    borderColor: appStyle.appBorderStyle,
+    borderRadius: appStyle.appBorderRadius,
+    borderStyle: appStyle.appBorderLineStyle,
+  };
+}
+
 function subscribedMessage(
   source: SourceView,
   fallback: string,
@@ -74,7 +83,10 @@ export function RssDiscovery({
   }
 
   return (
-    <section className="card flex flex-col px-3.5 py-3" style={{ gap: appStyle.appSpacing }}>
+    <section
+      className="card flex flex-col px-3.5 py-3"
+      style={{ gap: appStyle.appSpacing, ...appBorder(appStyle) }}
+    >
       <div>
         <h3 className="font-semibold">Discover RSS</h3>
         <p className="mt-1 text-sm text-slate-400">
@@ -210,7 +222,8 @@ function PopularFeedList({
         return (
           <li
             key={feed.url}
-            className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-white/10 px-3 py-2.5"
+            className="flex flex-wrap items-center justify-between gap-2 border border-white/10 px-3 py-2.5"
+            style={appBorder(appStyle)}
           >
             <div className="min-w-0">
               <p className="font-medium [overflow-wrap:anywhere]">
@@ -253,7 +266,7 @@ function SearchResult({
   onAdd: () => void;
 }) {
   return (
-    <li className="rounded-lg border border-white/10 px-3 py-2.5">
+    <li className="border border-white/10 px-3 py-2.5" style={appBorder(appStyle)}>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="min-w-0">
           <p className="font-medium [overflow-wrap:anywhere]">

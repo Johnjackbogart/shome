@@ -9,6 +9,7 @@ import { useState } from "react";
 import { ActivityIndicator, Linking, Pressable, Text, TextInput, View } from "react-native";
 import { api } from "@/lib/api";
 import {
+  appBorderAppearance,
   appPrimaryText,
   appSecondaryText,
   appSurfaceAppearance,
@@ -140,7 +141,8 @@ export function RssDiscovery({
               return (
                 <View
                   key={feed.url}
-                  className="rounded-2xl border border-white/10 bg-white/[0.025] p-3"
+                  className="border border-white/10 bg-white/[0.025] p-3"
+                  style={appBorderAppearance(appStyle)}
                 >
                   <Text className="font-semibold" style={appPrimaryText(appStyle)}>
                     {feed.title ?? feed.siteName ?? feed.url}
@@ -249,7 +251,11 @@ function PopularFeedList({
         const subscribed = subscribedFeedUrls.has(feed.url);
         const subscribing = subscribingUrl === feed.url;
         return (
-          <View key={feed.url} className="rounded-2xl border border-white/10 bg-white/[0.025] p-3">
+          <View
+            key={feed.url}
+            className="border border-white/10 bg-white/[0.025] p-3"
+            style={appBorderAppearance(appStyle)}
+          >
             <Text className="font-semibold" style={appPrimaryText(appStyle)}>
               {feed.title ?? feed.siteName ?? feed.url}
             </Text>

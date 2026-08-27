@@ -174,7 +174,14 @@ export function AppShell({
             </span>
             <span className="text-lg">shome</span>
           </a>
-          <nav className="order-3 flex w-full justify-center gap-1 rounded-xl bg-white/[0.035] p-1 sm:order-none sm:w-auto">
+          <nav
+            className="order-3 flex w-full justify-center gap-1 border border-white/10 bg-white/[0.035] p-1 sm:order-none sm:w-auto"
+            style={{
+              borderColor: appStyle.appBorderStyle,
+              borderRadius: appStyle.appBorderRadius,
+              borderStyle: appStyle.appBorderLineStyle,
+            }}
+          >
             {TABS.map((t) => (
               <button
                 key={t.id}

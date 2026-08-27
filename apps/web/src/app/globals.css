@@ -23,6 +23,7 @@
 
 .app-theme
   :where(
+    .badge,
     .card,
     .input,
     .input_color,
@@ -30,6 +31,7 @@
     .btn-ghost:not(.rounded-full),
     button:not(.rounded-full),
     header,
+    nav,
     article,
     fieldset,
     select,

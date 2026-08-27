@@ -17,6 +17,7 @@ import { FeedItemCard } from "@/components/feed-item-card";
 import { PostComposer } from "@/components/post-composer";
 import { api } from "@/lib/api";
 import {
+  appBorderAppearance,
   appPrimaryText,
   appSecondaryText,
   appSurfaceAppearance,
@@ -279,8 +280,11 @@ export default function FeedScreen() {
 
       <Pressable
         onPress={() => setComposerVisible(true)}
-        className="absolute right-5 bottom-5 flex-row items-center gap-2 rounded-full bg-indigo-300 px-5 py-4 shadow-lg shadow-black/40 active:opacity-80"
-        style={{ backgroundColor: appStyle.appAccentBackgroundColor }}
+        className="absolute right-5 bottom-5 flex-row items-center gap-2 border bg-indigo-300 px-5 py-4 shadow-lg shadow-black/40 active:opacity-80"
+        style={[
+          appBorderAppearance(appStyle),
+          { backgroundColor: appStyle.appAccentBackgroundColor },
+        ]}
         accessibilityRole="button"
         accessibilityLabel="Create post"
       >

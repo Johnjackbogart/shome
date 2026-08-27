@@ -10,8 +10,10 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { KindBadge } from "@/components/kind-badge";
 import { api } from "@/lib/api";
 import {
+  appBorderAppearance,
   appPrimaryText,
   appSecondaryText,
   appSurfaceAppearance,
@@ -27,13 +29,6 @@ const KIND_LABELS: Record<Kind, string> = {
   bluesky: "Bluesky",
   mastodon: "Mastodon",
   youtube: "YouTube",
-};
-
-const KIND_COLORS: Record<string, string> = {
-  rss: "text-orange-300",
-  bluesky: "text-sky-300",
-  mastodon: "text-violet-300",
-  youtube: "text-red-300",
 };
 
 export default function SourcesScreen() {
@@ -235,13 +230,7 @@ function SourceRow({
   return (
     <View className={`px-4 py-4 ${UI.card}`} style={appSurfaceAppearance(appStyle)}>
       <View className="flex-row flex-wrap items-center gap-2">
-        <Text
-          className={`rounded-full bg-indigo-300/10 px-2 py-1 text-xs font-semibold uppercase ${
-            KIND_COLORS[source.kind] ?? "text-slate-400"
-          }`}
-        >
-          {source.kind}
-        </Text>
+        <KindBadge kind={source.kind} />
         <Text className="shrink font-semibold" style={appPrimaryText(appStyle)} numberOfLines={1}>
           {sourceLabel(source)}
         </Text>
@@ -348,10 +337,11 @@ function AddSourceForm({
           <Pressable
             key={k}
             onPress={() => setKind(k)}
-            className={`rounded-xl px-3 py-2 ${
-              kind === k ? "" : "border border-white/10 bg-white/5"
-            }`}
-            style={kind === k ? { backgroundColor: appStyle.appAccentBackgroundColor } : undefined}
+            className={`border px-3 py-2 ${kind === k ? "" : "border-white/10 bg-white/5"}`}
+            style={[
+              appBorderAppearance(appStyle),
+              kind === k ? { backgroundColor: appStyle.appAccentBackgroundColor } : null,
+            ]}
           >
             <Text
               className="text-sm font-semibold"
@@ -407,14 +397,15 @@ function AddSourceForm({
               <Pressable
                 key={m}
                 onPress={() => setMastodonMode(m)}
-                className={`rounded-xl px-3 py-2 ${
-                  mastodonMode === m ? "" : "border border-white/10 bg-white/5"
+                className={`border px-3 py-2 ${
+                  mastodonMode === m ? "" : "border-white/10 bg-white/5"
                 }`}
-                style={
+                style={[
+                  appBorderAppearance(appStyle),
                   mastodonMode === m
                     ? { backgroundColor: appStyle.appAccentBackgroundColor }
-                    : undefined
-                }
+                    : null,
+                ]}
               >
                 <Text
                   className="text-sm font-semibold"
