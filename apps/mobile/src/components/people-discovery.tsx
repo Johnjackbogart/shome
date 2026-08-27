@@ -12,7 +12,7 @@ import {
 import { API_URL, apiUrl } from "@/lib/config";
 import { UI } from "@/lib/ui";
 
-export function PeopleDiscovery({ onError }: { onError: (message: string) => void }) {
+export function PeopleDiscovery() {
   const { appStyle } = useAppStyle();
   const [query, setQuery] = useState("");
   const [people, setPeople] = useState<PeopleSearchResult[] | null>(null);
@@ -69,10 +69,7 @@ export function PeopleDiscovery({ onError }: { onError: (message: string) => voi
   }
 
   return (
-    <View
-      className={UI.card}
-      style={[appSurfaceAppearance(appStyle), { gap: 12 }]}
-    >
+    <View className={UI.card} style={[appSurfaceAppearance(appStyle), { gap: 12 }]}>
       <View>
         <Text className="text-lg font-semibold text-white" style={appPrimaryText(appStyle)}>
           Find your people on shome
@@ -129,7 +126,9 @@ export function PeopleDiscovery({ onError }: { onError: (message: string) => voi
                 <View key={person.id} className="flex-row items-center gap-3">
                   <Pressable
                     className="min-w-0 flex-1 flex-row items-center gap-3"
-                    onPress={() => void Linking.openURL(`${API_URL}/p/${encodeURIComponent(person.handle)}`)}
+                    onPress={() =>
+                      void Linking.openURL(`${API_URL}/p/${encodeURIComponent(person.handle)}`)
+                    }
                     accessibilityRole="link"
                     accessibilityLabel={`Open @${person.handle}'s profile`}
                   >
@@ -148,10 +147,18 @@ export function PeopleDiscovery({ onError }: { onError: (message: string) => voi
                       </View>
                     )}
                     <View className="min-w-0 flex-1">
-                      <Text className="font-medium" style={appPrimaryText(appStyle)} numberOfLines={1}>
+                      <Text
+                        className="font-medium"
+                        style={appPrimaryText(appStyle)}
+                        numberOfLines={1}
+                      >
                         {person.displayName || `@${person.handle}`}
                       </Text>
-                      <Text className="text-sm" style={appSecondaryText(appStyle)} numberOfLines={1}>
+                      <Text
+                        className="text-sm"
+                        style={appSecondaryText(appStyle)}
+                        numberOfLines={1}
+                      >
                         @{person.handle}
                       </Text>
                     </View>
@@ -160,7 +167,11 @@ export function PeopleDiscovery({ onError }: { onError: (message: string) => voi
                     onPress={() => void toggleFollow(person)}
                     disabled={updating}
                     className={person.isFollowing ? UI.ghostButton : UI.primaryButton}
-                    style={person.isFollowing ? undefined : { backgroundColor: appStyle.appAccentBackgroundColor }}
+                    style={
+                      person.isFollowing
+                        ? undefined
+                        : { backgroundColor: appStyle.appAccentBackgroundColor }
+                    }
                     accessibilityRole="button"
                     accessibilityLabel={`${person.isFollowing ? "Unfollow" : "Follow"} @${person.handle}`}
                   >

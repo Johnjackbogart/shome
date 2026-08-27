@@ -10,12 +10,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { PeopleDiscovery } from "@/components/people-discovery";
 import { RssDiscovery } from "@/components/rss-discovery";
 import { api } from "@/lib/api";
-import {
-  appPrimaryText,
-  appSecondaryText,
-  appSurfaceAppearance,
-  useAppStyle,
-} from "@/lib/app-style";
+import { appPrimaryText, useAppStyle } from "@/lib/app-style";
 import { UI } from "@/lib/ui";
 
 export default function DiscoverScreen() {
@@ -76,7 +71,7 @@ export default function DiscoverScreen() {
           />
         }
       >
-        <PeopleDiscovery onError={(message) => setError(message)} />
+        <PeopleDiscovery />
         <View className="flex-row items-center gap-2">
           <Text
             className="rounded-full bg-indigo-300/10 px-2 py-1 text-xs font-semibold uppercase"
@@ -104,22 +99,6 @@ export default function DiscoverScreen() {
         />
         {notice && <Text className="text-sm text-emerald-300">{notice}</Text>}
         {error && <Text className="text-sm text-rose-300">{error}</Text>}
-
-        <View className={`gap-2 ${UI.card}`} style={appSurfaceAppearance(appStyle)}>
-          <Text
-            className="self-start rounded-full bg-indigo-300/10 px-2 py-1 text-xs font-semibold uppercase"
-            style={{ color: appStyle.appAccentFontColor, fontFamily: appStyle.appFont }}
-          >
-            Mastodon
-          </Text>
-          <Text className="text-lg font-semibold text-white" style={appPrimaryText(appStyle)}>
-            Search within an instance
-          </Text>
-          <Text className="text-sm leading-5 text-slate-400" style={appSecondaryText(appStyle)}>
-            Mastodon discovery will begin with an instance, so results always make their local scope
-            clear.
-          </Text>
-        </View>
       </ScrollView>
     </SafeAreaView>
   );
