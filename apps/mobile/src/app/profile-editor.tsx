@@ -262,18 +262,6 @@ export default function ProfileEditorScreen() {
               Edit profile
             </Text>
           </View>
-          <Pressable
-            onPress={() => void save()}
-            disabled={loading || saving || generating || !pageChanged}
-            className="rounded-xl bg-indigo-300 px-4 py-3 active:opacity-80 disabled:opacity-50"
-            accessibilityRole="button"
-          >
-            {saving ? (
-              <ActivityIndicator size="small" color={COLORS.background} />
-            ) : (
-              <Text className="font-semibold text-slate-950">Save</Text>
-            )}
-          </Pressable>
         </View>
 
         {loading ? (
@@ -366,14 +354,35 @@ export default function ProfileEditorScreen() {
                   setSource(splitProfileSource(nextSource));
                   setNotice(null);
                 }}
+                onSave={() => void save()}
+                saving={saving}
+                saved={!pageChanged}
+                disabled={loading || saving || generating || !pageChanged}
               />
             ) : (
               <View className={`${UI.card} gap-3`} style={appSurfaceAppearance(appStyle)}>
-                <View className="flex-row items-center justify-between gap-3">
-                  <Text className="text-base font-semibold text-white">Page source</Text>
-                  <Text className="text-xs text-slate-500">
-                    {characterCount.toLocaleString()} / {MAX_PROFILE_CHARS.toLocaleString()}
-                  </Text>
+                <View className="flex-row items-start justify-between gap-3">
+                  <View className="flex-1">
+                    <Text className="text-base font-semibold text-white">Page source</Text>
+                    <Text className="mt-1 text-xs text-slate-500">
+                      {characterCount.toLocaleString()} / {MAX_PROFILE_CHARS.toLocaleString()}
+                    </Text>
+                  </View>
+                  <Pressable
+                    onPress={() => void save()}
+                    disabled={loading || saving || generating || !pageChanged}
+                    className="rounded-xl bg-indigo-300 px-3 py-2 active:opacity-80 disabled:opacity-50"
+                    accessibilityRole="button"
+                    accessibilityLabel="Save page"
+                  >
+                    {saving ? (
+                      <ActivityIndicator size="small" color={COLORS.background} />
+                    ) : (
+                      <Text className="text-sm font-semibold text-slate-950">
+                        {!pageChanged ? "Saved ✓" : "Save"}
+                      </Text>
+                    )}
+                  </Pressable>
                 </View>
 
                 <View className="flex-row rounded-xl border border-white/10 bg-slate-950/60 p-1">
@@ -545,7 +554,9 @@ function AppStyleEditor({
               borderStyle: value.appBorderLineStyle,
             }}
           >
-            <Text style={{ color: value.appFontColor, fontFamily: value.appFont, fontWeight: "600" }}>
+            <Text
+              style={{ color: value.appFontColor, fontFamily: value.appFont, fontWeight: "600" }}
+            >
               {title}
             </Text>
             <Text style={{ color: value.appSecondaryTextColor, fontFamily: value.appFont }}>
@@ -762,15 +773,10 @@ function DefaultPostStyleEditor({
           backgroundColor: value.postBackgroundColor,
         }}
       >
-        <Text
-          style={{ color: value.postFontColor, fontFamily: value.postFont, fontWeight: "600" }}
-        >
+        <Text style={{ color: value.postFontColor, fontFamily: value.postFont, fontWeight: "600" }}>
           Your next post
         </Text>
-        <Text
-          className="mt-1"
-          style={{ color: value.postFontColor, fontFamily: value.postFont }}
-        >
+        <Text className="mt-1" style={{ color: value.postFontColor, fontFamily: value.postFont }}>
           This preview updates as you edit your default style.
         </Text>
         <Text

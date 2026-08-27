@@ -1,14 +1,18 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Text, View } from "react-native";
+import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import { builderDocument } from "@/components/visual-profile-builder-document";
 import { appSurfaceAppearance, useAppStyle } from "@/lib/app-style";
-import { UI } from "@/lib/ui";
+import { COLORS, UI } from "@/lib/ui";
 
 type Props = {
   source: string;
   previewDoc: string | null;
   previewError: string | null;
   onChange: (source: string) => void;
+  onSave?: () => void;
+  saving?: boolean;
+  saved?: boolean;
+  disabled?: boolean;
 };
 
 type BuilderMessage = {
@@ -17,7 +21,16 @@ type BuilderMessage = {
   html?: unknown;
 };
 
-export function VisualProfileBuilder({ source, previewDoc, previewError, onChange }: Props) {
+export function VisualProfileBuilder({
+  source,
+  previewDoc,
+  previewError,
+  onChange,
+  onSave,
+  saving,
+  saved,
+  disabled,
+}: Props) {
   const { appStyle } = useAppStyle();
   const frame = useRef<HTMLIFrameElement>(null);
   const [document] = useState(() => builderDocument({ source, previewDoc, previewError }));
@@ -67,11 +80,30 @@ export function VisualProfileBuilder({ source, previewDoc, previewError, onChang
 
   return (
     <View className={`${UI.card} gap-3`} style={appSurfaceAppearance(appStyle)}>
-      <View>
-        <Text className="text-base font-semibold text-white">Visual builder</Text>
-        <Text className={`mt-1 ${UI.body}`}>
-          Compose with blocks, or work directly on the overlaid page preview.
-        </Text>
+      <View className="flex-row items-start justify-between gap-3">
+        <View className="flex-1">
+          <Text className="text-base font-semibold text-white">Visual builder</Text>
+          <Text className={`mt-1 ${UI.body}`}>
+            Compose with blocks, or work directly on the overlaid page preview.
+          </Text>
+        </View>
+        {onSave ? (
+          <Pressable
+            onPress={onSave}
+            disabled={saving || saved || disabled}
+            className="rounded-xl bg-indigo-300 px-3 py-2 active:opacity-80 disabled:opacity-50"
+            accessibilityRole="button"
+            accessibilityLabel="Save page"
+          >
+            {saving ? (
+              <ActivityIndicator size="small" color={COLORS.background} />
+            ) : (
+              <Text className="text-sm font-semibold text-slate-950">
+                {saved ? "Saved ✓" : "Save"}
+              </Text>
+            )}
+          </Pressable>
+        ) : null}
       </View>
       {previewError ? <Text className="text-sm text-rose-300">{previewError}</Text> : null}
       <iframe

@@ -174,7 +174,9 @@ function AppStyleEditor({
             <select
               className="input flex-1 py-1.5 text-sm"
               value={value.appSpacing}
-              onChange={(event) => update("appSpacing", event.target.value as AppStyle["appSpacing"])}
+              onChange={(event) =>
+                update("appSpacing", event.target.value as AppStyle["appSpacing"])
+              }
             >
               {APP_SPACING_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -334,10 +336,7 @@ function DefaultPostStyleEditor({
               className="input flex-1 py-1.5 text-sm"
               value={value.postBorderRadius}
               onChange={(event) =>
-                update(
-                  "postBorderRadius",
-                  event.target.value as PostStyle["postBorderRadius"],
-                )
+                update("postBorderRadius", event.target.value as PostStyle["postBorderRadius"])
               }
             >
               {POST_BORDER_RADIUS_OPTIONS.map((option) => (
@@ -398,9 +397,7 @@ function DefaultPostStyleEditor({
             <select
               className="input flex-1 py-1.5 text-sm"
               value={value.postFont}
-              onChange={(event) =>
-                update("postFont", event.target.value as PostStyle["postFont"])
-              }
+              onChange={(event) => update("postFont", event.target.value as PostStyle["postFont"])}
             >
               {POST_FONT_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -848,7 +845,6 @@ export function ProfileView({
       <div className="mb-3 flex flex-wrap items-center gap-3">
         <h2 className="text-xl font-bold">My page</h2>
         <div className="flex-1" />
-        {saved && <span className="text-sm text-emerald-400">saved ✓</span>}
         {handle && (
           <a
             className="text-accent hover:underline"
@@ -859,14 +855,6 @@ export function ProfileView({
             view public page ↗
           </a>
         )}
-        <button
-          type="button"
-          className="btn"
-          onClick={save}
-          disabled={busy || generating || html === null}
-        >
-          {busy ? "saving…" : "save"}
-        </button>
       </div>
       <p className="mb-4 text-sm text-slate-400">
         Build visually or write HTML + CSS. Everything stays in the same no-script sandbox.
@@ -995,6 +983,10 @@ export function ProfileView({
         }}
         previewDoc={previewDoc}
         previewError={previewError}
+        onSave={() => void save()}
+        saving={busy}
+        saved={saved}
+        disabled={busy || generating || html === null}
       />
 
       <section className="mt-10">
