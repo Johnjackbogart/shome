@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import type { FeedItemView, SourceView } from "@shome/core";
+import { appSpacingPixels, type FeedItemView, type SourceView } from "@shome/core";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -130,6 +130,10 @@ export default function FeedScreen() {
   const filtered = Boolean(appliedQ || sourceId || kind);
   const activeCount = (sourceId ? 1 : 0) + (kind ? 1 : 0);
   const selectedSource = sources.find((source) => source.id === sourceId);
+  const renderFeedSeparator = useCallback(
+    () => <View style={{ height: appSpacingPixels(appStyle.appSpacing) }} />,
+    [appStyle.appSpacing],
+  );
 
   return (
     <SafeAreaView
@@ -137,134 +141,141 @@ export default function FeedScreen() {
       style={{ backgroundColor: appStyle.appBackgroundColor }}
       edges={["top"]}
     >
-      <View className="flex-row items-end justify-between px-5 pt-2 pb-3">
-        <View>
-          <Text className={UI.eyebrow} style={appSecondaryText(appStyle)}>
-            Your daily mix
-          </Text>
-          <Text className="mt-2 text-3xl font-semibold text-white" style={appPrimaryText(appStyle)}>
-            Your feed
-          </Text>
-        </View>
-        <Pressable
-          onPress={fetchNew}
-          disabled={fetching}
-          className="rounded-xl border border-white/10 bg-white/5 px-3.5 py-2.5 active:opacity-70"
-        >
-          {fetching ? (
-            <ActivityIndicator size="small" color={appStyle.appAccentFontColor} />
-          ) : (
+      <View className="flex-1" style={{ gap: appSpacingPixels(appStyle.appSpacing) }}>
+        <View className="flex-row items-end justify-between px-5 pt-2">
+          <View>
+            <Text className={UI.eyebrow} style={appSecondaryText(appStyle)}>
+              Your daily mix
+            </Text>
             <Text
-              className="text-sm font-medium text-indigo-200"
-              style={{ color: appStyle.appAccentFontColor, fontFamily: appStyle.appFont }}
+              className="mt-2 text-3xl font-semibold text-white"
+              style={appPrimaryText(appStyle)}
             >
-              Fetch new
+              Your feed
             </Text>
-          )}
-        </Pressable>
-      </View>
-
-      <View className="flex-row items-center gap-2 px-5 pb-3">
-        <TextInput
-          className={`flex-1 ${UI.input}`}
-          style={{
-            backgroundColor: appStyle.appAccentBackgroundColor,
-            color: appStyle.appSecondaryTextColor,
-          }}
-          value={q}
-          onChangeText={setQ}
-          placeholder="search your feed…"
-          placeholderTextColor={appStyle.appSecondaryTextColor}
-          autoCapitalize="none"
-          autoCorrect={false}
-          returnKeyType="search"
-          clearButtonMode="while-editing"
-          onSubmitEditing={() => setAppliedQ(q.trim())}
-          accessibilityLabel="Search your feed"
-        />
-        <Pressable
-          onPress={() => setAppliedQ(q.trim())}
-          className="rounded-xl bg-indigo-300 px-4 py-3 active:opacity-80"
-          style={{ backgroundColor: appStyle.appBackgroundColor }}
-          accessibilityRole="button"
-          accessibilityLabel="Search"
-        >
-          <Ionicons name="search" size={18} color={appStyle.appFontColor} />
-        </Pressable>
-        <Pressable
-          onPress={() => setFiltersVisible(true)}
-          className="flex-row items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 active:opacity-70"
-          accessibilityRole="button"
-          accessibilityLabel="Filters"
-        >
-          <Ionicons name="options-outline" size={18} color={appStyle.appAccentFontColor} />
-          {activeCount > 0 && (
-            <Text className="rounded-full bg-indigo-300 px-1.5 text-xs font-semibold text-slate-950">
-              {activeCount}
-            </Text>
-          )}
-        </Pressable>
-      </View>
-
-      {filtered && (
-        <View className="flex-row items-center gap-3 px-5 pb-3">
-          <Text
-            className="shrink text-sm text-slate-400"
-            style={appSecondaryText(appStyle)}
-            numberOfLines={1}
+          </View>
+          <Pressable
+            onPress={fetchNew}
+            disabled={fetching}
+            className="rounded-xl border border-white/10 bg-white/5 px-3.5 py-2.5 active:opacity-70"
           >
-            {items === null
-              ? "searching"
-              : `${items.length} ${items.length === 1 ? "item" : "items"}`}
-            {appliedQ && ` matching “${appliedQ}”`}
-            {selectedSource && ` from ${sourceLabel(selectedSource)}`}
-            {kind && ` in ${kind}`}
-          </Text>
-          <Pressable onPress={clearFilters} accessibilityRole="button">
-            <Text className="text-sm font-medium text-indigo-200">Clear</Text>
+            {fetching ? (
+              <ActivityIndicator size="small" color={appStyle.appAccentFontColor} />
+            ) : (
+              <Text
+                className="text-sm font-medium text-indigo-200"
+                style={{
+                  color: appStyle.appAccentFontColor,
+                  fontFamily: appStyle.appFont,
+                }}
+              >
+                Fetch new
+              </Text>
+            )}
           </Pressable>
         </View>
-      )}
 
-      {error && <Text className="px-5 pb-2 text-sm text-rose-300">{error}</Text>}
-
-      {items === null ? (
-        <View className="flex-1 items-center justify-center">
-          <ActivityIndicator color={COLORS.accent} />
+        <View className="flex-row items-center gap-2 px-5">
+          <TextInput
+            className={`flex-1 ${UI.input}`}
+            style={{
+              backgroundColor: appStyle.appAccentBackgroundColor,
+              color: appStyle.appSecondaryTextColor,
+            }}
+            value={q}
+            onChangeText={setQ}
+            placeholder="search your feed…"
+            placeholderTextColor={appStyle.appSecondaryTextColor}
+            autoCapitalize="none"
+            autoCorrect={false}
+            returnKeyType="search"
+            clearButtonMode="while-editing"
+            onSubmitEditing={() => setAppliedQ(q.trim())}
+            accessibilityLabel="Search your feed"
+          />
+          <Pressable
+            onPress={() => setAppliedQ(q.trim())}
+            className="rounded-xl bg-indigo-300 px-4 py-3 active:opacity-80"
+            style={{ backgroundColor: appStyle.appBackgroundColor }}
+            accessibilityRole="button"
+            accessibilityLabel="Search"
+          >
+            <Ionicons name="search" size={18} color={appStyle.appFontColor} />
+          </Pressable>
+          <Pressable
+            onPress={() => setFiltersVisible(true)}
+            className="flex-row items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 active:opacity-70"
+            accessibilityRole="button"
+            accessibilityLabel="Filters"
+          >
+            <Ionicons name="options-outline" size={18} color={appStyle.appAccentFontColor} />
+            {activeCount > 0 && (
+              <Text className="rounded-full bg-indigo-300 px-1.5 text-xs font-semibold text-slate-950">
+                {activeCount}
+              </Text>
+            )}
+          </Pressable>
         </View>
-      ) : (
-        <FlatList
-          data={items}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => <FeedItemCard item={item} />}
-          contentContainerClassName="px-5 pb-28"
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onPullRefresh}
-              tintColor={COLORS.accent}
-            />
-          }
-          ListEmptyComponent={
-            <View
-              className={`${UI.card} mt-12 items-center`}
-              style={appSurfaceAppearance(appStyle)}
+
+        {filtered && (
+          <View className="flex-row items-center gap-3 px-5">
+            <Text
+              className="shrink text-sm text-slate-400"
+              style={appSecondaryText(appStyle)}
+              numberOfLines={1}
             >
-              <Text className="text-base font-medium text-white" style={appPrimaryText(appStyle)}>
-                {filtered ? "No items match these filters." : "Nothing here yet."}
-              </Text>
-              <Text
-                className="mt-2 text-center text-sm leading-5 text-slate-400"
-                style={appSecondaryText(appStyle)}
-              >
-                {filtered
-                  ? "Try a different search, or clear the filters above."
-                  : "Add a source in the Sources tab to make this space yours."}
-              </Text>
-            </View>
-          }
-        />
-      )}
+              {items === null
+                ? "searching"
+                : `${items.length} ${items.length === 1 ? "item" : "items"}`}
+              {appliedQ && ` matching “${appliedQ}”`}
+              {selectedSource && ` from ${sourceLabel(selectedSource)}`}
+              {kind && ` in ${kind}`}
+            </Text>
+            <Pressable onPress={clearFilters} accessibilityRole="button">
+              <Text className="text-sm font-medium text-indigo-200">Clear</Text>
+            </Pressable>
+          </View>
+        )}
+
+        {error && <Text className="px-5 text-sm text-rose-300">{error}</Text>}
+
+        {items === null ? (
+          <View className="flex-1 items-center justify-center">
+            <ActivityIndicator color={COLORS.accent} />
+          </View>
+        ) : (
+          <FlatList
+            className="flex-1"
+            data={items}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => <FeedItemCard item={item} />}
+            ItemSeparatorComponent={renderFeedSeparator}
+            contentContainerClassName="px-5 pb-28"
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onPullRefresh}
+                tintColor={COLORS.accent}
+              />
+            }
+            ListEmptyComponent={
+              <View className={`${UI.card} items-center`} style={appSurfaceAppearance(appStyle)}>
+                <Text className="text-base font-medium text-white" style={appPrimaryText(appStyle)}>
+                  {filtered ? "No items match these filters." : "Nothing here yet."}
+                </Text>
+                <Text
+                  className="mt-2 text-center text-sm leading-5 text-slate-400"
+                  style={appSecondaryText(appStyle)}
+                >
+                  {filtered
+                    ? "Try a different search, or clear the filters above."
+                    : "Add a source in the Sources tab to make this space yours."}
+                </Text>
+              </View>
+            }
+          />
+        )}
+      </View>
 
       <Pressable
         onPress={() => setComposerVisible(true)}
@@ -355,7 +366,10 @@ export default function FeedScreen() {
             >
               <Text
                 className="text-sm font-medium text-indigo-200"
-                style={{ color: appStyle.appAccentFontColor, fontFamily: appStyle.appFont }}
+                style={{
+                  color: appStyle.appAccentFontColor,
+                  fontFamily: appStyle.appFont,
+                }}
               >
                 Clear all filters
               </Text>

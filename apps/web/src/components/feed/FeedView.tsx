@@ -1,13 +1,7 @@
 "use client";
 
 import type { AppStyle } from "@shome/core";
-import {
-  type SubmitEvent,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { type SubmitEvent, useCallback, useEffect, useRef, useState } from "react";
 import { api } from "#/lib/api";
 import { sourceLabel } from "#/lib/format";
 import type { FeedItemView, SourceView } from "#/lib/types";
@@ -44,9 +38,7 @@ export function FeedView({ appStyle }: { appStyle: AppStyle }) {
       if (appliedQ) params.set("q", appliedQ);
       if (kind) params.set("kind", kind);
       if (sourceId) params.set("sourceId", sourceId);
-      const res = await api.get<{ items: FeedItemView[] }>(
-        `/api/feed?${params}`,
-      );
+      const res = await api.get<{ items: FeedItemView[] }>(`/api/feed?${params}`);
       if (requestId === latestRequest.current) setItems(res.items);
     } catch (err) {
       if (requestId === latestRequest.current) {
@@ -119,121 +111,121 @@ export function FeedView({ appStyle }: { appStyle: AppStyle }) {
 
   return (
     <section>
-      <div
-        className={`flex flex-wrap items-center gap-2 ${filtered ? "mb-3" : "mb-5"}`}
-      >
-        <form className="flex min-w-64 flex-1 gap-2" onSubmit={search}>
-          <div className="relative flex-1">
-            <input
-              // The native WebKit clear affordance is hidden in favour of the
-              // themed one below it.
-              className="input app-secondary-text w-full pr-9 [&::-webkit-search-cancel-button]:hidden"
-              style={{ backgroundColor: appStyle.appAccentBackgroundColor }}
-              type="search"
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="search your feed…"
-              aria-label="Search your feed"
-            />
-            {q && (
-              <button
-                type="button"
-                className="absolute inset-y-0 right-0 cursor-pointer px-3 text-slate-400 hover:text-white"
-                onClick={() => {
-                  setQ("");
-                  setAppliedQ("");
-                }}
-                aria-label="Clear search"
-              >
-                ×
-              </button>
-            )}
-          </div>
-          <button
-            type="submit"
-            className="btn app-primary-background text-slate-100 hover:opacity-90"
-            disabled={searching}
-          >
-            {searching ? "searching…" : "search"}
-          </button>
-        </form>
-        <FilterMenu
-          sources={sources}
-          sourceId={sourceId}
-          kind={kind}
-          onSourceChange={setSourceId}
-          onKindChange={setKind}
-          onClear={clearFilters}
-          accentFontColor={appStyle.appAccentFontColor}
-        />
-        <button
-          type="button"
-          className="btn-ghost"
-          style={{ color: appStyle.appAccentFontColor }}
-          onClick={refreshAll}
-          disabled={busy}
-        >
-          {busy ? "refreshing…" : "refresh"}
-        </button>
-      </div>
-
-      {filtered && (
-        <p className="mb-5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-400">
-          <span>
-            {items === null
-              ? "searching"
-              : `${items.length} ${items.length === 1 ? "item" : "items"}`}
-            {appliedQ && ` matching “${appliedQ}”`}
-            {selectedSource && ` from ${sourceLabel(selectedSource)}`}
-            {kind && ` in ${kind}`}
-          </span>
-          <button
-            type="button"
-            className="cursor-pointer text-indigo-200 underline hover:text-indigo-100"
-            onClick={clearFilters}
-          >
-            clear filters
-          </button>
-        </p>
-      )}
-
-      {error && <p className="mb-3 text-sm text-red-400">{error}</p>}
-
-      {items === null ? (
-        <p className="text-slate-400">loading…</p>
-      ) : items.length === 0 ? (
-        <div className="card py-12 text-center">
-          {filtered ? (
-            <>
-              <p>No items match these filters.</p>
-              <p className="text-slate-400">
-                Try a different search, or{" "}
+      <div className="flex flex-col" style={{ gap: appStyle.appSpacing }}>
+        <div className="flex flex-wrap items-center gap-2">
+          <form className="flex min-w-64 flex-1 gap-2" onSubmit={search}>
+            <div className="relative flex-1">
+              <input
+                // The native WebKit clear affordance is hidden in favour of the
+                // themed one below it.
+                className="input app-secondary-text w-full pr-9 [&::-webkit-search-cancel-button]:hidden"
+                style={{ backgroundColor: appStyle.appAccentBackgroundColor }}
+                type="search"
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder="search your feed…"
+                aria-label="Search your feed"
+              />
+              {q && (
                 <button
                   type="button"
-                  className="cursor-pointer text-indigo-200 underline hover:text-indigo-100"
-                  onClick={clearFilters}
+                  className="absolute inset-y-0 right-0 cursor-pointer px-3 text-slate-400 hover:text-white"
+                  onClick={() => {
+                    setQ("");
+                    setAppliedQ("");
+                  }}
+                  aria-label="Clear search"
                 >
-                  clear them
+                  ×
                 </button>
-                .
-              </p>
-            </>
-          ) : (
-            <>
-              <p>Nothing here yet.</p>
-              <p className="text-slate-400">
-                Create your first post, or add a source in the Sources tab.
-              </p>
-            </>
-          )}
+              )}
+            </div>
+            <button
+              type="submit"
+              className="btn app-primary-background text-slate-100 hover:opacity-90"
+              disabled={searching}
+            >
+              {searching ? "searching…" : "search"}
+            </button>
+          </form>
+          <FilterMenu
+            sources={sources}
+            sourceId={sourceId}
+            kind={kind}
+            onSourceChange={setSourceId}
+            onKindChange={setKind}
+            onClear={clearFilters}
+            accentFontColor={appStyle.appAccentFontColor}
+          />
+          <button
+            type="button"
+            className="btn-ghost"
+            style={{ color: appStyle.appAccentFontColor }}
+            onClick={refreshAll}
+            disabled={busy}
+          >
+            {busy ? "refreshing…" : "refresh"}
+          </button>
         </div>
-      ) : (
-        <div className="flex flex-col" style={{ gap: appStyle.appSpacing }}>
-          {items.map((item) => (
-            <FeedItem key={item.id} item={item} appStyle={appStyle} />
-          ))}
-        </div>
-      )}
+
+        {filtered && (
+          <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-400">
+            <span>
+              {items === null
+                ? "searching"
+                : `${items.length} ${items.length === 1 ? "item" : "items"}`}
+              {appliedQ && ` matching “${appliedQ}”`}
+              {selectedSource && ` from ${sourceLabel(selectedSource)}`}
+              {kind && ` in ${kind}`}
+            </span>
+            <button
+              type="button"
+              className="cursor-pointer text-indigo-200 underline hover:text-indigo-100"
+              onClick={clearFilters}
+            >
+              clear filters
+            </button>
+          </p>
+        )}
+
+        {error && <p className="text-sm text-red-400">{error}</p>}
+
+        {items === null ? (
+          <p className="text-slate-400">loading…</p>
+        ) : items.length === 0 ? (
+          <div className="card py-12 text-center">
+            {filtered ? (
+              <>
+                <p>No items match these filters.</p>
+                <p className="text-slate-400">
+                  Try a different search, or{" "}
+                  <button
+                    type="button"
+                    className="cursor-pointer text-indigo-200 underline hover:text-indigo-100"
+                    onClick={clearFilters}
+                  >
+                    clear them
+                  </button>
+                  .
+                </p>
+              </>
+            ) : (
+              <>
+                <p>Nothing here yet.</p>
+                <p className="text-slate-400">
+                  Create your first post, or add a source in the Sources tab.
+                </p>
+              </>
+            )}
+          </div>
+        ) : (
+          <div className="flex flex-col" style={{ gap: appStyle.appSpacing }}>
+            {items.map((item) => (
+              <FeedItem key={item.id} item={item} appStyle={appStyle} />
+            ))}
+          </div>
+        )}
+      </div>
 
       <button
         type="button"
