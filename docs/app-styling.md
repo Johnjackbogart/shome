@@ -36,8 +36,12 @@ the member's public profile page.
   treatment.
 - Spacing controls the gap below the signed-in navigation and the vertical gaps
   between feed sections (including the search controls, status rows, and post
-  list) and between individual posts. It is allow-listed from no gap through
-  32px.
+  list) and between individual posts. It applies the same way on Sources and
+  Discover: between the columns, between the stacked sections within each
+  column, and between the rows of the source, connection, and discovered-feed
+  lists. Spacing governs gaps between sections and list rows only — padding
+  inside a card and the spacing of a heading against its own description stay
+  fixed. It is allow-listed from no gap through 32px.
 - "Override post styles" affects first-party shome posts only. It replaces the
   post's complete saved look with the app secondary background, border, radius,
   line, font, and text settings. Imported feed items use the app surface,

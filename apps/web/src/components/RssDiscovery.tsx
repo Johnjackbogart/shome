@@ -74,12 +74,15 @@ export function RssDiscovery({
   }
 
   return (
-    <section className="card mb-3 px-3.5 py-3">
-      <h3 className="font-semibold">Discover RSS</h3>
-      <p className="mt-1 text-sm text-slate-400">
-        Search by name or paste a publication, blog, or podcast website—we’ll find its public feeds.
-      </p>
-      <form className="mt-3 flex flex-wrap gap-2" onSubmit={discover}>
+    <section className="card flex flex-col px-3.5 py-3" style={{ gap: appStyle.appSpacing }}>
+      <div>
+        <h3 className="font-semibold">Discover RSS</h3>
+        <p className="mt-1 text-sm text-slate-400">
+          Search by name or paste a publication, blog, or podcast website—we’ll find its public
+          feeds.
+        </p>
+      </div>
+      <form className="flex flex-wrap gap-2" onSubmit={discover}>
         <input
           className="input app-secondary-text min-w-44 flex-1"
           style={{ backgroundColor: appStyle.appAccentBackgroundColor }}
@@ -99,13 +102,13 @@ export function RssDiscovery({
       </form>
 
       {feeds && (
-        <div className="mt-3">
+        <div>
           {feeds.length === 0 ? (
             <p className="text-sm text-slate-400">
               No public RSS or Atom feed found for that site.
             </p>
           ) : (
-            <ul className="flex flex-col gap-2">
+            <ul className="flex flex-col" style={{ gap: appStyle.appSpacing }}>
               {feeds.map((feed) => (
                 <SearchResult
                   key={feed.url}
@@ -121,7 +124,7 @@ export function RssDiscovery({
         </div>
       )}
 
-      <div className="mt-4 border-t border-white/10 pt-3">
+      <div className="border-t border-white/10 pt-3">
         <h4 className="font-medium">Popular on Shome</h4>
         <p className="mt-1 text-sm text-slate-400">Ranked by aggregate Shome subscriptions.</p>
         {shomeFeeds.length === 0 ? (
@@ -140,7 +143,7 @@ export function RssDiscovery({
         )}
       </div>
 
-      <div className="mt-4 border-t border-white/10 pt-3">
+      <div className="border-t border-white/10 pt-3">
         <h4 className="font-medium">Popular across the web</h4>
         <p className="mt-1 text-sm text-slate-400">From Feedly’s public source directory.</p>
         {webFeeds.length === 0 ? (
@@ -200,7 +203,7 @@ function PopularFeedList({
   onAdd: (url: string, fallback: string) => Promise<void>;
 }) {
   return (
-    <ul className="mt-2 flex flex-col gap-2">
+    <ul className="mt-2 flex flex-col" style={{ gap: appStyle.appSpacing }}>
       {feeds.map((feed) => {
         const subscribed = subscribedFeedUrls.has(feed.url);
         const subscribing = subscribingUrl === feed.url;

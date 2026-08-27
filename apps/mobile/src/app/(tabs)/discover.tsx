@@ -1,4 +1,9 @@
-import type { PopularRssFeed, PopularRssResponse, SourceView } from "@shome/core";
+import {
+  appSpacingPixels,
+  type PopularRssFeed,
+  type PopularRssResponse,
+  type SourceView,
+} from "@shome/core";
 import { useCallback, useEffect, useState } from "react";
 import { RefreshControl, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -60,6 +65,7 @@ export default function DiscoverScreen() {
       <ScrollView
         className="flex-1"
         contentContainerClassName="px-5 pb-8"
+        contentContainerStyle={{ gap: appSpacingPixels(appStyle.appSpacing) }}
         keyboardShouldPersistTaps="handled"
         refreshControl={
           <RefreshControl
@@ -69,20 +75,19 @@ export default function DiscoverScreen() {
           />
         }
       >
-        <Text className={`pb-2 pt-2 ${UI.eyebrow}`} style={appSecondaryText(appStyle)}>
-          Find your next source
-        </Text>
-        <Text className="pb-2 text-3xl font-semibold text-white" style={appPrimaryText(appStyle)}>
-          Discover
-        </Text>
-        <Text
-          className="pb-5 text-base leading-6 text-slate-400"
-          style={appSecondaryText(appStyle)}
-        >
+        <View>
+          <Text className={`pt-2 ${UI.eyebrow}`} style={appSecondaryText(appStyle)}>
+            Find your next source
+          </Text>
+          <Text className="mt-2 text-3xl font-semibold text-white" style={appPrimaryText(appStyle)}>
+            Discover
+          </Text>
+        </View>
+        <Text className="text-base leading-6 text-slate-400" style={appSecondaryText(appStyle)}>
           Search for worthwhile publications and add the ones you want to keep up with.
         </Text>
 
-        <View className="mb-3 flex-row items-center gap-2">
+        <View className="flex-row items-center gap-2">
           <Text
             className="rounded-full bg-indigo-300/10 px-2 py-1 text-xs font-semibold uppercase"
             style={{ color: appStyle.appAccentFontColor, fontFamily: appStyle.appFont }}
@@ -107,10 +112,10 @@ export default function DiscoverScreen() {
             setError(message);
           }}
         />
-        {notice && <Text className="pb-3 text-sm text-emerald-300">{notice}</Text>}
-        {error && <Text className="pb-3 text-sm text-rose-300">{error}</Text>}
+        {notice && <Text className="text-sm text-emerald-300">{notice}</Text>}
+        {error && <Text className="text-sm text-rose-300">{error}</Text>}
 
-        <View className={`mb-3 gap-2 ${UI.card}`} style={appSurfaceAppearance(appStyle)}>
+        <View className={`gap-2 ${UI.card}`} style={appSurfaceAppearance(appStyle)}>
           <Text
             className="self-start rounded-full bg-indigo-300/10 px-2 py-1 text-xs font-semibold uppercase"
             style={{ color: appStyle.appAccentFontColor, fontFamily: appStyle.appFont }}

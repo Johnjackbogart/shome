@@ -1,8 +1,9 @@
-import type {
-  DiscoveredRssFeed,
-  PopularRssFeed,
-  PopularRssResponse,
-  SourceView,
+import {
+  appSpacingPixels,
+  type DiscoveredRssFeed,
+  type PopularRssFeed,
+  type PopularRssResponse,
+  type SourceView,
 } from "@shome/core";
 import { useState } from "react";
 import { ActivityIndicator, Linking, Pressable, Text, TextInput, View } from "react-native";
@@ -77,7 +78,10 @@ export function RssDiscovery({
   }
 
   return (
-    <View className={`mb-4 gap-3 ${UI.card}`} style={appSurfaceAppearance(appStyle)}>
+    <View
+      className={UI.card}
+      style={[appSurfaceAppearance(appStyle), { gap: appSpacingPixels(appStyle.appSpacing) }]}
+    >
       <View>
         <Text className="text-lg font-semibold text-white" style={appPrimaryText(appStyle)}>
           Discover RSS
@@ -121,7 +125,10 @@ export function RssDiscovery({
       </Pressable>
 
       {feeds && (
-        <View className="gap-2 border-t border-white/10 pt-3">
+        <View
+          className="border-t border-white/10 pt-3"
+          style={{ gap: appSpacingPixels(appStyle.appSpacing) }}
+        >
           {feeds.length === 0 ? (
             <Text className="text-sm" style={appSecondaryText(appStyle)}>
               No public RSS or Atom feed found for that site.
@@ -237,7 +244,7 @@ function PopularFeedList({
   const { appStyle } = useAppStyle();
 
   return (
-    <View className="gap-2">
+    <View style={{ gap: appSpacingPixels(appStyle.appSpacing) }}>
       {feeds.map((feed) => {
         const subscribed = subscribedFeedUrls.has(feed.url);
         const subscribing = subscribingUrl === feed.url;
