@@ -95,10 +95,13 @@ export function SourcesView({ appStyle }: { appStyle: AppStyle }) {
   }
 
   return (
-    <section className="grid grid-cols-1 items-start gap-8 md:grid-cols-[3fr_2fr]">
-      <div>
-        <h2 className="mb-3 text-xl font-bold">Sources</h2>
-        <p className="mb-3 text-sm text-slate-400">
+    <section
+      className="grid grid-cols-1 items-start md:grid-cols-[3fr_2fr]"
+      style={{ gap: appStyle.appSpacing }}
+    >
+      <div className="flex flex-col" style={{ gap: appStyle.appSpacing }}>
+        <h2 className="text-xl font-bold">Sources</h2>
+        <p className="text-sm text-slate-400">
           Review, refresh, or remove the sources already in your feed. Find new ones in Discover.
         </p>
         <AddSourceForm
@@ -116,15 +119,15 @@ export function SourcesView({ appStyle }: { appStyle: AppStyle }) {
             setError(msg);
           }}
         />
-        {notice && <p className="mb-2 text-sm text-emerald-400">{notice}</p>}
-        {error && <p className="mb-2 text-sm text-red-400">{error}</p>}
+        {notice && <p className="text-sm text-emerald-400">{notice}</p>}
+        {error && <p className="text-sm text-red-400">{error}</p>}
 
         {sources === null ? (
           <p className="text-slate-400">loading…</p>
         ) : sources.length === 0 ? (
           <p className="text-slate-400">No sources yet — add one above.</p>
         ) : (
-          <ul className="mt-3 flex flex-col gap-2">
+          <ul className="flex flex-col" style={{ gap: appStyle.appSpacing }}>
             {sources.map((source) => (
               <SourceRow
                 key={source.id}
@@ -142,9 +145,9 @@ export function SourcesView({ appStyle }: { appStyle: AppStyle }) {
         )}
       </div>
 
-      <div>
-        <h2 className="mb-3 text-xl font-bold">Connections</h2>
-        <p className="mb-3 text-sm text-slate-400">
+      <div className="flex flex-col" style={{ gap: appStyle.appSpacing }}>
+        <h2 className="text-xl font-bold">Connections</h2>
+        <p className="text-sm text-slate-400">
           Linked credentials, for sources that need them — and for posting to Bluesky or Mastodon.
         </p>
         <AddConnectionForm
@@ -159,7 +162,7 @@ export function SourcesView({ appStyle }: { appStyle: AppStyle }) {
           onError={setError}
         />
         {connections.length > 0 && (
-          <ul className="mt-3 flex flex-col gap-2">
+          <ul className="flex flex-col" style={{ gap: appStyle.appSpacing }}>
             {connections.map((connection) => (
               <li
                 key={connection.id}
@@ -409,7 +412,7 @@ function AddSourceForm({
   }
 
   return (
-    <form className="card mb-3 flex flex-col gap-2.5" onSubmit={submit}>
+    <form className="card flex flex-col gap-2.5" onSubmit={submit}>
       <div className="flex flex-wrap gap-2">
         <select
           className="input"

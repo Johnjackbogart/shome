@@ -146,9 +146,12 @@ export function DiscoverView({ appStyle }: { appStyle: AppStyle }) {
   }
 
   return (
-    <section className="grid items-start gap-8 lg:grid-cols-[minmax(0,3fr)_minmax(16rem,2fr)]">
-      <div className="space-y-8">
-        <section className="card">
+    <section
+      className="grid items-start lg:grid-cols-[minmax(0,3fr)_minmax(16rem,2fr)]"
+      style={{ gap: appStyle.appSpacing }}
+    >
+      <div className="flex flex-col" style={{ gap: appStyle.appSpacing }}>
+        <section className="card flex flex-col" style={{ gap: appStyle.appSpacing }}>
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <span className="badge text-indigo-200">People</span>
@@ -158,7 +161,7 @@ export function DiscoverView({ appStyle }: { appStyle: AppStyle }) {
               </p>
             </div>
           </div>
-          <form className="mt-4 flex flex-col gap-2 sm:flex-row" onSubmit={findPeople}>
+          <form className="flex flex-col gap-2 sm:flex-row" onSubmit={findPeople}>
             <label className="sr-only" htmlFor="people-search">
               Search shome users
             </label>
@@ -183,7 +186,7 @@ export function DiscoverView({ appStyle }: { appStyle: AppStyle }) {
           </form>
 
           {people && (
-            <div className="mt-5 border-t border-white/10 pt-3" aria-live="polite">
+            <div className="border-t border-white/10 pt-3" aria-live="polite">
               {people.length === 0 ? (
                 <p className="py-2 text-sm text-slate-400">
                   No shome members match that search yet.
@@ -221,11 +224,11 @@ export function DiscoverView({ appStyle }: { appStyle: AppStyle }) {
               )}
             </div>
           )}
-          {peopleError && <p className="mt-3 text-sm text-red-400">{peopleError}</p>}
+          {peopleError && <p className="text-sm text-red-400">{peopleError}</p>}
         </section>
 
-        <section>
-          <div className="mb-3 flex items-center gap-2">
+        <section className="flex flex-col" style={{ gap: appStyle.appSpacing }}>
+          <div className="flex items-center gap-2">
             <span className="badge text-orange-300">RSS</span>
             <h2 className="text-xl font-bold">Publications, blogs, and podcasts</h2>
           </div>
@@ -249,13 +252,13 @@ export function DiscoverView({ appStyle }: { appStyle: AppStyle }) {
         </section>
       </div>
 
-      <aside className="space-y-3">
-        <section className="card">
-          <span className="badge text-emerald-300">Your community</span>
-          <h2 className="mt-3 font-semibold text-white">People following you</h2>
+      <aside className="flex flex-col" style={{ gap: appStyle.appSpacing }}>
+        <section className="card flex flex-col" style={{ gap: appStyle.appSpacing }}>
+          <span className="badge self-start text-emerald-300">Your community</span>
+          <h2 className="font-semibold text-white">People following you</h2>
           {community ? (
             <>
-              <div className="mt-4 grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 <div className="rounded-xl bg-white/[0.04] p-3">
                   <p className="text-2xl font-semibold text-white">{community.followerCount}</p>
                   <p className="text-xs text-slate-400">followers</p>

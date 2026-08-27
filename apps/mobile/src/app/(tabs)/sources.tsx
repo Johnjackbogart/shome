@@ -1,4 +1,4 @@
-import type { SourceView } from "@shome/core";
+import { appSpacingPixels, type SourceView } from "@shome/core";
 import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -106,6 +106,7 @@ export default function SourcesScreen() {
         data={sources ?? []}
         keyExtractor={(source) => source.id}
         contentContainerClassName="px-5 pb-8"
+        contentContainerStyle={{ gap: appSpacingPixels(appStyle.appSpacing) }}
         keyboardShouldPersistTaps="handled"
         refreshControl={
           <RefreshControl
@@ -115,20 +116,19 @@ export default function SourcesScreen() {
           />
         }
         ListHeaderComponent={
-          <View>
-            <Text className={`pb-2 pt-2 ${UI.eyebrow}`} style={appSecondaryText(appStyle)}>
-              Shape your feed
-            </Text>
-            <Text
-              className="pb-5 text-3xl font-semibold text-white"
-              style={appPrimaryText(appStyle)}
-            >
-              Sources
-            </Text>
-            <Text
-              className="pb-4 text-base leading-6 text-slate-400"
-              style={appSecondaryText(appStyle)}
-            >
+          <View style={{ gap: appSpacingPixels(appStyle.appSpacing) }}>
+            <View>
+              <Text className={`pt-2 ${UI.eyebrow}`} style={appSecondaryText(appStyle)}>
+                Shape your feed
+              </Text>
+              <Text
+                className="mt-2 text-3xl font-semibold text-white"
+                style={appPrimaryText(appStyle)}
+              >
+                Sources
+              </Text>
+            </View>
+            <Text className="text-base leading-6 text-slate-400" style={appSecondaryText(appStyle)}>
               Review, refresh, or remove the sources already in your feed. Find new ones in
               Discover.
             </Text>
@@ -143,10 +143,10 @@ export default function SourcesScreen() {
                 setError(msg);
               }}
             />
-            {notice && <Text className="pb-2 text-sm text-emerald-300">{notice}</Text>}
-            {error && <Text className="pb-2 text-sm text-rose-300">{error}</Text>}
+            {notice && <Text className="text-sm text-emerald-300">{notice}</Text>}
+            {error && <Text className="text-sm text-rose-300">{error}</Text>}
             {sources !== null && sources.length === 0 && (
-              <Text className="mt-4 text-slate-400">No sources yet — add one above.</Text>
+              <Text className="text-slate-400">No sources yet — add one above.</Text>
             )}
           </View>
         }
@@ -203,7 +203,7 @@ function SourceRow({
 
   if (editing) {
     return (
-      <View className={`mb-3 gap-3 px-4 py-4 ${UI.card}`} style={appSurfaceAppearance(appStyle)}>
+      <View className={`gap-3 px-4 py-4 ${UI.card}`} style={appSurfaceAppearance(appStyle)}>
         <TextInput
           className={UI.input}
           style={{ backgroundColor: appStyle.appAccentBackgroundColor }}
@@ -248,7 +248,7 @@ function SourceRow({
   }
 
   return (
-    <View className={`mb-3 px-4 py-4 ${UI.card}`} style={appSurfaceAppearance(appStyle)}>
+    <View className={`px-4 py-4 ${UI.card}`} style={appSurfaceAppearance(appStyle)}>
       <View className="flex-row flex-wrap items-center gap-2">
         <Text
           className={`rounded-full bg-indigo-300/10 px-2 py-1 text-xs font-semibold uppercase ${
@@ -357,7 +357,7 @@ function AddSourceForm({
   const inputStyle = { backgroundColor: appStyle.appAccentBackgroundColor };
 
   return (
-    <View className={`mb-4 gap-3 ${UI.card}`} style={appSurfaceAppearance(appStyle)}>
+    <View className={`gap-3 ${UI.card}`} style={appSurfaceAppearance(appStyle)}>
       <View className="flex-row flex-wrap gap-2">
         {(Object.keys(KIND_LABELS) as Kind[]).map((k) => (
           <Pressable
