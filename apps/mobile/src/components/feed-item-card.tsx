@@ -72,7 +72,7 @@ export function FeedItemCard({ item }: { item: FeedItemView }) {
     <Pressable
       onPress={item.url ? () => WebBrowser.openBrowserAsync(item.url as string) : undefined}
       className={`${UI.card} active:opacity-80`}
-      style={[postCardStyle, { marginBottom: Number.parseInt(appStyle.appSpacing, 10) }]}
+      style={postCardStyle}
     >
       <View className="mb-1.5 flex-row flex-wrap items-center gap-2">
         <Text

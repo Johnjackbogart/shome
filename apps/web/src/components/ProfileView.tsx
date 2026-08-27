@@ -58,8 +58,7 @@ function AppStyleEditor({
         <div>
           <h3 className="font-semibold">App style</h3>
           <p className="mt-1 text-sm text-slate-400">
-            Choose the colors, type, borders, and shape that follow you across
-            the signed-in app.
+            Choose the colors, type, borders, and shape that follow you across the signed-in app.
           </p>
         </div>
         <div className="ml-auto flex gap-2">
@@ -85,17 +84,13 @@ function AppStyleEditor({
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(16rem,0.7fr)]">
         <fieldset className="grid gap-3 rounded-xl border bg-white/[0.02] p-3 sm:grid-cols-2">
-          <legend className="px-1 text-sm font-medium text-slate-100">
-            Style controls
-          </legend>
+          <legend className="px-1 text-sm font-medium text-slate-100">Style controls</legend>
           <label className="flex items-center gap-2 text-xs text-slate-200">
             <input
               type="color"
               className="input_color size-9 p-1"
               value={value.appBackgroundColor}
-              onChange={(event) =>
-                update("appBackgroundColor", event.target.value)
-              }
+              onChange={(event) => update("appBackgroundColor", event.target.value)}
             />
             Background color
           </label>
@@ -104,9 +99,7 @@ function AppStyleEditor({
               type="color"
               className="input_color size-9 p-1"
               value={value.appSecondaryBackgroundColor}
-              onChange={(event) =>
-                update("appSecondaryBackgroundColor", event.target.value)
-              }
+              onChange={(event) => update("appSecondaryBackgroundColor", event.target.value)}
             />
             Secondary background
           </label>
@@ -115,9 +108,7 @@ function AppStyleEditor({
               type="color"
               className="input_color size-9 p-1"
               value={value.appAccentBackgroundColor}
-              onChange={(event) =>
-                update("appAccentBackgroundColor", event.target.value)
-              }
+              onChange={(event) => update("appAccentBackgroundColor", event.target.value)}
             />
             Accent background
           </label>
@@ -135,9 +126,7 @@ function AppStyleEditor({
               type="color"
               className="input_color size-9 p-1"
               value={value.appSecondaryAccentColor}
-              onChange={(event) =>
-                update("appSecondaryAccentColor", event.target.value)
-              }
+              onChange={(event) => update("appSecondaryAccentColor", event.target.value)}
             />
             Secondary accent
           </label>
@@ -156,10 +145,7 @@ function AppStyleEditor({
               className="input flex-1 py-1.5 text-sm"
               value={value.appBorderRadius}
               onChange={(event) =>
-                update(
-                  "appBorderRadius",
-                  event.target.value as AppStyle["appBorderRadius"],
-                )
+                update("appBorderRadius", event.target.value as AppStyle["appBorderRadius"])
               }
             >
               {POST_BORDER_RADIUS_OPTIONS.map((option) => (
@@ -175,10 +161,7 @@ function AppStyleEditor({
               className="input flex-1 py-1.5 text-sm"
               value={value.appBorderLineStyle}
               onChange={(event) =>
-                update(
-                  "appBorderLineStyle",
-                  event.target.value as AppStyle["appBorderLineStyle"],
-                )
+                update("appBorderLineStyle", event.target.value as AppStyle["appBorderLineStyle"])
               }
             >
               {POST_BORDER_LINE_STYLE_OPTIONS.map((option) => (
@@ -202,9 +185,7 @@ function AppStyleEditor({
               type="color"
               className="input_color size-9 p-1"
               value={value.appAccentFontColor}
-              onChange={(event) =>
-                update("appAccentFontColor", event.target.value)
-              }
+              onChange={(event) => update("appAccentFontColor", event.target.value)}
             />
             Accent font
           </label>
@@ -213,9 +194,7 @@ function AppStyleEditor({
               type="color"
               className="input_color size-9 p-1"
               value={value.appSecondaryTextColor}
-              onChange={(event) =>
-                update("appSecondaryTextColor", event.target.value)
-              }
+              onChange={(event) => update("appSecondaryTextColor", event.target.value)}
             />
             Secondary text
           </label>
@@ -224,9 +203,7 @@ function AppStyleEditor({
             <select
               className="input flex-1 py-1.5 text-sm"
               value={value.appFont}
-              onChange={(event) =>
-                update("appFont", event.target.value as AppStyle["appFont"])
-              }
+              onChange={(event) => update("appFont", event.target.value as AppStyle["appFont"])}
             >
               {POST_FONT_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -236,15 +213,12 @@ function AppStyleEditor({
             </select>
           </label>
           <label className="flex items-center gap-2 text-xs text-slate-200">
-            Post spacing
+            App spacing
             <select
               className="input flex-1 py-1.5 text-sm"
               value={value.appSpacing}
               onChange={(event) =>
-                update(
-                  "appSpacing",
-                  event.target.value as AppStyle["appSpacing"],
-                )
+                update("appSpacing", event.target.value as AppStyle["appSpacing"])
               }
             >
               {APP_SPACING_OPTIONS.map((option) => (
@@ -259,15 +233,12 @@ function AppStyleEditor({
               type="checkbox"
               className="mt-0.5 size-4 accent-indigo-300"
               checked={value.appOverridePostStyles}
-              onChange={(event) =>
-                update("appOverridePostStyles", event.target.checked)
-              }
+              onChange={(event) => update("appOverridePostStyles", event.target.checked)}
             />
             <span>
               Override post styles
               <span className="mt-0.5 block text-xs leading-5 text-slate-400">
-                Use this complete app style on first-party posts instead of each
-                post’s saved look.
+                Use this complete app style on first-party posts instead of each post’s saved look.
               </span>
             </span>
           </label>
@@ -285,10 +256,7 @@ function AppStyleEditor({
             fontFamily: value.appFont,
           }}
         >
-          <div
-            className="flex w-full flex-col"
-            style={{ gap: value.appSpacing }}
-          >
+          <div className="flex w-full flex-col" style={{ gap: value.appSpacing }}>
             <div
               className="w-full border px-3 py-2 text-sm"
               style={{
@@ -320,33 +288,29 @@ function AppStyleEditor({
                 </span>
               ))}
             </div>
-            {["Your shome", "Another post"].map((title) => (
-              <div
-                key={title}
-                className="w-full rounded-xl border bg-white/[0.035] p-4 text-slate-100"
-                style={{
-                  borderColor: value.appBorderStyle,
-                  borderRadius: value.appBorderRadius,
-                  borderStyle: value.appBorderLineStyle,
-                  backgroundColor: value.appSecondaryBackgroundColor,
-                  color: value.appFontColor,
-                  fontFamily: value.appFont,
-                }}
-              >
-                <p
-                  className="font-semibold"
-                  style={{ color: value.appFontColor }}
+            <div className="flex flex-col" style={{ gap: value.appSpacing }}>
+              {["Your shome", "Another post"].map((title) => (
+                <div
+                  key={title}
+                  className="w-full rounded-xl border bg-white/[0.035] p-4 text-slate-100"
+                  style={{
+                    borderColor: value.appBorderStyle,
+                    borderRadius: value.appBorderRadius,
+                    borderStyle: value.appBorderLineStyle,
+                    backgroundColor: value.appSecondaryBackgroundColor,
+                    color: value.appFontColor,
+                    fontFamily: value.appFont,
+                  }}
                 >
-                  {title}
-                </p>
-                <p
-                  className="mt-2 text-sm"
-                  style={{ color: value.appSecondaryTextColor }}
-                >
-                  Previewing the space between feed posts.
-                </p>
-              </div>
-            ))}
+                  <p className="font-semibold" style={{ color: value.appFontColor }}>
+                    {title}
+                  </p>
+                  <p className="mt-2 text-sm" style={{ color: value.appSecondaryTextColor }}>
+                    Previewing the space between feed posts.
+                  </p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -415,15 +379,18 @@ function DefaultPostStyleEditor({
         <div>
           <h3 className="font-semibold">Default post style</h3>
           <p className="mt-1 text-sm text-slate-400">
-            New posts start with this look. You can still customize an
-            individual post before publishing it.
+            New posts start with this look. You can still customize an individual post before
+            publishing it.
           </p>
         </div>
         <div className="ml-auto flex gap-2">
           <button
             type="button"
             className="btn-ghost"
-            style={{ color: appStyle.appFontColor, fontFamily: appStyle.appFont }}
+            style={{
+              color: appStyle.appFontColor,
+              fontFamily: appStyle.appFont,
+            }}
             onClick={() => onChange({ ...DEFAULT_POST_STYLE })}
           >
             reset
@@ -442,17 +409,13 @@ function DefaultPostStyleEditor({
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(16rem,0.7fr)]">
         <fieldset className="grid gap-3 rounded-xl border border-white/10 bg-white/[0.02] p-3 sm:grid-cols-2">
-          <legend className="px-1 text-sm font-medium text-slate-100">
-            Style controls
-          </legend>
+          <legend className="px-1 text-sm font-medium text-slate-100">Style controls</legend>
           <label className="flex items-center gap-2 text-xs text-slate-200">
             <input
               type="color"
               className="input_color size-9 p-1"
               value={value.postBorderStyle}
-              onChange={(event) =>
-                update("postBorderStyle", event.target.value)
-              }
+              onChange={(event) => update("postBorderStyle", event.target.value)}
             />
             Border color
           </label>
@@ -462,10 +425,7 @@ function DefaultPostStyleEditor({
               className="input flex-1 py-1.5 text-sm"
               value={value.postBorderRadius}
               onChange={(event) =>
-                update(
-                  "postBorderRadius",
-                  event.target.value as PostStyle["postBorderRadius"],
-                )
+                update("postBorderRadius", event.target.value as PostStyle["postBorderRadius"])
               }
             >
               {POST_BORDER_RADIUS_OPTIONS.map((option) => (
@@ -499,9 +459,7 @@ function DefaultPostStyleEditor({
               type="color"
               className="input_color size-9 p-1"
               value={value.postBackgroundColor}
-              onChange={(event) =>
-                update("postBackgroundColor", event.target.value)
-              }
+              onChange={(event) => update("postBackgroundColor", event.target.value)}
             />
             Background color
           </label>
@@ -519,9 +477,7 @@ function DefaultPostStyleEditor({
               type="color"
               className="input_color size-9 p-1"
               value={value.postSecondaryTextColor}
-              onChange={(event) =>
-                update("postSecondaryTextColor", event.target.value)
-              }
+              onChange={(event) => update("postSecondaryTextColor", event.target.value)}
             />
             Secondary text
           </label>
@@ -530,9 +486,7 @@ function DefaultPostStyleEditor({
             <select
               className="input flex-1 py-1.5 text-sm"
               value={value.postFont}
-              onChange={(event) =>
-                update("postFont", event.target.value as PostStyle["postFont"])
-              }
+              onChange={(event) => update("postFont", event.target.value as PostStyle["postFont"])}
             >
               {POST_FONT_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -555,13 +509,8 @@ function DefaultPostStyleEditor({
           }}
         >
           <p className="font-semibold">Your next post</p>
-          <p className="mt-2">
-            This preview updates as you edit your default style.
-          </p>
-          <p
-            className="mt-3 text-xs"
-            style={{ color: value.postSecondaryTextColor }}
-          >
+          <p className="mt-2">This preview updates as you edit your default style.</p>
+          <p className="mt-3 text-xs" style={{ color: value.postSecondaryTextColor }}>
             @you · just now
           </p>
         </article>
@@ -588,10 +537,7 @@ function ProductEditor({
   const [error, setError] = useState<string | null>(null);
   const isNew = !product;
 
-  function update<K extends keyof ProductDraft>(
-    key: K,
-    value: ProductDraft[K],
-  ) {
+  function update<K extends keyof ProductDraft>(key: K, value: ProductDraft[K]) {
     setDraft((current) => ({ ...current, [key]: value }));
   }
 
@@ -600,10 +546,7 @@ function ProductEditor({
     setError(null);
     try {
       const response = isNew
-        ? await api.post<{ product: ProductView }>(
-            "/api/products",
-            productPayload(draft),
-          )
+        ? await api.post<{ product: ProductView }>("/api/products", productPayload(draft))
         : await api.put<{ product: ProductView }>(
             `/api/products/${product.id}`,
             productPayload(draft),
@@ -752,9 +695,7 @@ export function ProfileView({
     ...DEFAULT_POST_STYLE,
   });
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [pendingAvatarUploadId, setPendingAvatarUploadId] = useState<
-    string | null
-  >(null);
+  const [pendingAvatarUploadId, setPendingAvatarUploadId] = useState<string | null>(null);
   const [avatarBusy, setAvatarBusy] = useState(false);
   const [avatarNotice, setAvatarNotice] = useState<string | null>(null);
   const [products, setProducts] = useState<ProductView[] | null>(null);
@@ -791,9 +732,7 @@ export function ProfileView({
         onAvatarChange(profile.image);
         setProducts(catalog.products);
       })
-      .catch((err) =>
-        setError(err instanceof Error ? err.message : String(err)),
-      );
+      .catch((err) => setError(err instanceof Error ? err.message : String(err)));
   }, [onAvatarChange, onAppStyleChange]);
 
   // The preview renders the current draft through the same server-side
@@ -829,10 +768,7 @@ export function ProfileView({
 
   function onProductSaved(product: ProductView) {
     setProducts((current) => {
-      const next = [
-        ...(current ?? []).filter((item) => item.id !== product.id),
-        product,
-      ];
+      const next = [...(current ?? []).filter((item) => item.id !== product.id), product];
       return next.sort((a, b) => a.sortOrder - b.sortOrder);
     });
     setAddingProduct(false);
@@ -840,9 +776,7 @@ export function ProfileView({
   }
 
   function onProductDeleted(id: string) {
-    setProducts((current) =>
-      (current ?? []).filter((product) => product.id !== id),
-    );
+    setProducts((current) => (current ?? []).filter((product) => product.id !== id));
     refreshPreview();
   }
 
@@ -858,17 +792,12 @@ export function ProfileView({
       }
       if (completed.status !== "ready") {
         setPendingAvatarUploadId(uploadId);
-        setAvatarNotice(
-          "Your profile picture is still processing. Check again in a moment.",
-        );
+        setAvatarNotice("Your profile picture is still processing. Check again in a moment.");
         return;
       }
-      const savedAvatar = await api.put<{ image: string | null }>(
-        "/api/profile",
-        {
-          avatarUploadId: uploadId,
-        },
-      );
+      const savedAvatar = await api.put<{ image: string | null }>("/api/profile", {
+        avatarUploadId: uploadId,
+      });
       setAvatarUrl(savedAvatar.image);
       onAvatarChange(savedAvatar.image);
       setPendingAvatarUploadId(null);
@@ -918,9 +847,7 @@ export function ProfileView({
         const payload = (await response.json().catch(() => null)) as {
           error?: string;
         } | null;
-        throw new Error(
-          payload?.error ?? "could not upload your profile picture",
-        );
+        throw new Error(payload?.error ?? "could not upload your profile picture");
       }
       setAvatarBusy(false);
       await finishAvatarUpload(upload.id);
@@ -941,12 +868,9 @@ export function ProfileView({
     setAvatarNotice(null);
     setError(null);
     try {
-      const savedAvatar = await api.put<{ image: string | null }>(
-        "/api/profile",
-        {
-          avatarUploadId: null,
-        },
-      );
+      const savedAvatar = await api.put<{ image: string | null }>("/api/profile", {
+        avatarUploadId: null,
+      });
       setAvatarUrl(savedAvatar.image);
       onAvatarChange(savedAvatar.image);
       setPendingAvatarUploadId(null);
@@ -1034,18 +958,13 @@ export function ProfileView({
         )}
       </div>
       <p className="mb-4 text-sm text-slate-400">
-        Build visually or write HTML + CSS. Everything stays in the same
-        no-script sandbox.
+        Build visually or write HTML + CSS. Everything stays in the same no-script sandbox.
       </p>
       {error && <p className="mb-2 text-sm text-red-400">{error}</p>}
 
       <div className="card mb-4 flex flex-wrap items-center gap-4">
         {avatarUrl ? (
-          <img
-            className="size-20 rounded-full bg-slate-800 object-cover"
-            src={avatarUrl}
-            alt=""
-          />
+          <img className="size-20 rounded-full bg-slate-800 object-cover" src={avatarUrl} alt="" />
         ) : (
           <div
             className="grid size-20 place-items-center rounded-full bg-indigo-300 text-2xl font-bold text-slate-950"
@@ -1057,12 +976,9 @@ export function ProfileView({
         <div className="min-w-48 flex-1">
           <h3 className="font-semibold">Profile picture</h3>
           <p className="mt-1 text-sm text-slate-400">
-            Use a square image for the best result. JPEG, PNG, GIF, WebP, or
-            AVIF up to 20 MB.
+            Use a square image for the best result. JPEG, PNG, GIF, WebP, or AVIF up to 20 MB.
           </p>
-          {avatarNotice && (
-            <p className="mt-2 text-sm text-emerald-400">{avatarNotice}</p>
-          )}
+          {avatarNotice && <p className="mt-2 text-sm text-emerald-400">{avatarNotice}</p>}
         </div>
         <input
           ref={avatarInput}
@@ -1075,15 +991,14 @@ export function ProfileView({
           <button
             type="button"
             className="btn-ghost"
-            style={{ color: appStyle.appFontColor, fontFamily: appStyle.appFont }}
+            style={{
+              color: appStyle.appFontColor,
+              fontFamily: appStyle.appFont,
+            }}
             onClick={() => avatarInput.current?.click()}
             disabled={avatarBusy}
           >
-            {avatarBusy
-              ? "uploading…"
-              : avatarUrl
-                ? "change photo"
-                : "add photo"}
+            {avatarBusy ? "uploading…" : avatarUrl ? "change photo" : "add photo"}
           </button>
           {pendingAvatarUploadId && (
             <button
@@ -1133,15 +1048,12 @@ export function ProfileView({
       />
 
       <div className="card mb-4">
-        <label
-          className="mb-1.5 block font-semibold"
-          htmlFor="portfolio-prompt"
-        >
+        <label className="mb-1.5 block font-semibold" htmlFor="portfolio-prompt">
           Vibe-code your page
         </label>
         <p className="mb-2 text-sm text-slate-400">
-          Describe the look and content you want. OpenAI creates an editable
-          HTML + CSS draft that can include shome blocks.
+          Describe the look and content you want. OpenAI creates an editable HTML + CSS draft that
+          can include shome blocks.
         </p>
         <div className="flex flex-col gap-2 sm:flex-row">
           <input
@@ -1229,9 +1141,7 @@ export function ProfileView({
                 <summary className="cursor-pointer px-4 py-3 font-medium">
                   {product.title}{" "}
                   {!product.visible && (
-                    <span className="text-sm font-normal text-slate-500">
-                      (hidden)
-                    </span>
+                    <span className="text-sm font-normal text-slate-500">(hidden)</span>
                   )}
                 </summary>
                 <div className="px-3 pb-3">

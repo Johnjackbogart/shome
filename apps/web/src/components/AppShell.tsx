@@ -163,8 +163,11 @@ export function AppShell({
       }
     >
       <div className="app-accent-gradient pointer-events-none absolute inset-0 -z-10" />
-      <div className="mx-auto max-w-6xl px-5 py-5 sm:px-10 sm:py-7 lg:px-14">
-        <header className="app-secondary-background sticky top-4 z-10 mb-7 flex flex-wrap items-center gap-3 rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 shadow-xl shadow-black/20 backdrop-blur-xl sm:flex-nowrap sm:px-5">
+      <div
+        className="mx-auto flex max-w-6xl flex-col px-5 py-5 sm:px-10 sm:py-7 lg:px-14"
+        style={{ gap: appStyle.appSpacing }}
+      >
+        <header className="app-secondary-background sticky top-4 z-10 flex flex-wrap items-center gap-3 rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 shadow-xl shadow-black/20 backdrop-blur-xl sm:flex-nowrap sm:px-5">
           <a href="/" className="flex items-center gap-2.5 font-semibold tracking-tight">
             <span className="app-primary-background grid size-8 place-items-center rounded-xl text-sm font-black text-slate-100 shadow-[0_0_24px_rgba(165,180,252,0.3)]">
               s
@@ -177,11 +180,11 @@ export function AppShell({
                 key={t.id}
                 type="button"
                 className={`cursor-pointer rounded-lg px-3 py-2 text-sm font-medium transition ${
-                  tab === t.id
-                    ? "text-slate-950 shadow-sm"
-                    : "text-slate-400 hover:text-white"
+                  tab === t.id ? "text-slate-950 shadow-sm" : "text-slate-400 hover:text-white"
                 }`}
-                style={tab === t.id ? { backgroundColor: appStyle.appAccentBackgroundColor } : undefined}
+                style={
+                  tab === t.id ? { backgroundColor: appStyle.appAccentBackgroundColor } : undefined
+                }
                 onClick={() => setTab(t.id)}
               >
                 {t.label}

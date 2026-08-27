@@ -13,6 +13,11 @@ export const APP_SPACING_OPTIONS: readonly { label: string; value: AppSpacing }[
   { label: "Airy", value: "32px" },
 ];
 
+/** Converts the shared CSS-shaped spacing token for native layout APIs. */
+export function appSpacingPixels(value: AppSpacing): number {
+  return Number.parseInt(value, 10);
+}
+
 /**
  * A member's private application chrome. Unlike post styles, this changes the
  * signed-in experience only; it is never applied to their public profile.

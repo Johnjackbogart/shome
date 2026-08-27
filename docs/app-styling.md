@@ -4,7 +4,7 @@ Status: implemented as an ungated product capability (2026-08). The initial
 release lets a signed-in member choose primary, secondary, and accent app
 backgrounds; primary and secondary accent colors; border, primary text, accent
 text, and secondary text colors; border radius and line style; font family;
-feed-post spacing; and whether the complete app style overrides the style saved
+app spacing; and whether the complete app style overrides the style saved
 on first-party posts.
 The preference follows the account across web and mobile and does not change
 the member's public profile page.
@@ -34,8 +34,10 @@ the member's public profile page.
 - The primary and secondary accents tint the two radial gradients over the
   signed-in web canvas. Their defaults preserve the original indigo and pink
   treatment.
-- Spacing controls the vertical gap between feed posts. It is allow-listed from
-  no gap through 32px, with 12px retaining the original layout.
+- Spacing controls the gap below the signed-in navigation and the vertical gaps
+  between feed sections (including the search controls, status rows, and post
+  list) and between individual posts. It is allow-listed from no gap through
+  32px.
 - "Override post styles" affects first-party shome posts only. It replaces the
   post's complete saved look with the app secondary background, border, radius,
   line, font, and text settings. Imported feed items use the app surface,
