@@ -10,9 +10,10 @@ import {
   POST_FONT_OPTIONS,
   type PostStyle,
 } from "@shome/core";
-import { type ChangeEvent, useEffect, useRef, useState } from "react";
+import { type ChangeEvent, type CSSProperties, useEffect, useRef, useState } from "react";
 import { ProfilePageEditor } from "#/components/ProfilePageEditor";
 import { api } from "#/lib/api";
+import { appSelectStyle } from "#/lib/select-style";
 
 type ProductView = {
   id: string;
@@ -52,6 +53,10 @@ function AppStyleEditor({
     onChange({ ...value, [key]: next });
   }
 
+  // These controls sit inside the style they edit, so they follow the unsaved
+  // draft the way this component's color fields and preview already do.
+  const selectStyle = appSelectStyle(value);
+
   return (
     <div className="card mb-4">
       <div className="mb-4 flex flex-wrap items-start gap-3">
@@ -83,7 +88,19 @@ function AppStyleEditor({
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(16rem,0.7fr)]">
-        <fieldset className="grid gap-3 rounded-xl border bg-white/[0.02] p-3 sm:grid-cols-2">
+        <fieldset
+          className="grid gap-3 border bg-white/[0.02] p-3 sm:grid-cols-2"
+          // Re-point the theme tokens at the unsaved draft for this subtree, so
+          // the color swatches and the fieldset preview the member's edits the
+          // way the selects and the sample pills already do.
+          style={
+            {
+              "--app-border-color": value.appBorderStyle,
+              "--app-border-radius": value.appBorderRadius,
+              "--app-border-line-style": value.appBorderLineStyle,
+            } as CSSProperties
+          }
+        >
           <legend className="px-1 text-sm font-medium text-slate-100">Style controls</legend>
           <label className="flex items-center gap-2 text-xs text-slate-200">
             <input
@@ -143,6 +160,7 @@ function AppStyleEditor({
             Border radius
             <select
               className="input flex-1 py-1.5 text-sm"
+              style={selectStyle}
               value={value.appBorderRadius}
               onChange={(event) =>
                 update("appBorderRadius", event.target.value as AppStyle["appBorderRadius"])
@@ -159,6 +177,7 @@ function AppStyleEditor({
             Border style
             <select
               className="input flex-1 py-1.5 text-sm"
+              style={selectStyle}
               value={value.appBorderLineStyle}
               onChange={(event) =>
                 update("appBorderLineStyle", event.target.value as AppStyle["appBorderLineStyle"])
@@ -202,6 +221,7 @@ function AppStyleEditor({
             Font
             <select
               className="input flex-1 py-1.5 text-sm"
+              style={selectStyle}
               value={value.appFont}
               onChange={(event) => update("appFont", event.target.value as AppStyle["appFont"])}
             >
@@ -216,6 +236,7 @@ function AppStyleEditor({
             App spacing
             <select
               className="input flex-1 py-1.5 text-sm"
+              style={selectStyle}
               value={value.appSpacing}
               onChange={(event) =>
                 update("appSpacing", event.target.value as AppStyle["appSpacing"])
@@ -277,10 +298,12 @@ function AppStyleEditor({
               ].map(([label, backgroundColor]) => (
                 <span
                   key={label}
-                  className="rounded-lg border px-3 py-1.5 text-xs font-semibold"
+                  className="border px-3 py-1.5 text-xs font-semibold"
                   style={{
                     backgroundColor,
                     borderColor: value.appBorderStyle,
+                    borderRadius: value.appBorderRadius,
+                    borderStyle: value.appBorderLineStyle,
                     color: value.appAccentFontColor,
                   }}
                 >
@@ -373,6 +396,10 @@ function DefaultPostStyleEditor({
     onChange({ ...value, [key]: next });
   }
 
+  // Chrome around the post draft, so these take the saved app style the way
+  // this component's reset and save buttons do.
+  const selectStyle = appSelectStyle(appStyle);
+
   return (
     <div className="card mb-4">
       <div className="mb-4 flex flex-wrap items-start gap-3">
@@ -423,6 +450,7 @@ function DefaultPostStyleEditor({
             Border radius
             <select
               className="input flex-1 py-1.5 text-sm"
+              style={selectStyle}
               value={value.postBorderRadius}
               onChange={(event) =>
                 update("postBorderRadius", event.target.value as PostStyle["postBorderRadius"])
@@ -439,6 +467,7 @@ function DefaultPostStyleEditor({
             Border style
             <select
               className="input flex-1 py-1.5 text-sm"
+              style={selectStyle}
               value={value.postBorderLineStyle}
               onChange={(event) =>
                 update(
@@ -485,6 +514,7 @@ function DefaultPostStyleEditor({
             Font
             <select
               className="input flex-1 py-1.5 text-sm"
+              style={selectStyle}
               value={value.postFont}
               onChange={(event) => update("postFont", event.target.value as PostStyle["postFont"])}
             >

@@ -10,7 +10,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { PeopleDiscovery } from "@/components/people-discovery";
 import { RssDiscovery } from "@/components/rss-discovery";
 import { api } from "@/lib/api";
-import { appPrimaryText, useAppStyle } from "@/lib/app-style";
+import { appBorderAppearance, appPrimaryText, useAppStyle } from "@/lib/app-style";
 import { UI } from "@/lib/ui";
 
 export default function DiscoverScreen() {
@@ -74,8 +74,11 @@ export default function DiscoverScreen() {
         <PeopleDiscovery />
         <View className="flex-row items-center gap-2">
           <Text
-            className="rounded-full bg-indigo-300/10 px-2 py-1 text-xs font-semibold uppercase"
-            style={{ color: appStyle.appAccentFontColor, fontFamily: appStyle.appFont }}
+            className="border bg-indigo-300/10 px-2 py-1 text-xs font-semibold uppercase"
+            style={[
+              appBorderAppearance(appStyle),
+              { color: appStyle.appAccentFontColor, fontFamily: appStyle.appFont },
+            ]}
           >
             RSS
           </Text>

@@ -10,8 +10,10 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { KindBadge } from "@/components/kind-badge";
 import { api } from "@/lib/api";
 import {
+  appBorderAppearance,
   appPrimaryText,
   appSecondaryText,
   appSurfaceAppearance,
@@ -27,13 +29,6 @@ const KIND_LABELS: Record<Kind, string> = {
   bluesky: "Bluesky",
   mastodon: "Mastodon",
   youtube: "YouTube",
-};
-
-const KIND_COLORS: Record<string, string> = {
-  rss: "text-orange-300",
-  bluesky: "text-sky-300",
-  mastodon: "text-violet-300",
-  youtube: "text-red-300",
 };
 
 export default function SourcesScreen() {
@@ -191,11 +186,17 @@ function SourceRow({
       <View className={`gap-3 px-4 py-4 ${UI.card}`} style={appSurfaceAppearance(appStyle)}>
         <TextInput
           className={UI.input}
-          style={{ backgroundColor: appStyle.appAccentBackgroundColor }}
+          style={[
+            appBorderAppearance(appStyle),
+            {
+              backgroundColor: appStyle.appAccentBackgroundColor,
+              color: appStyle.appSecondaryTextColor,
+            },
+          ]}
           value={draft}
           onChangeText={setDraft}
           placeholder={original}
-          placeholderTextColor="#64748b"
+          placeholderTextColor={appStyle.appSecondaryTextColor}
           maxLength={200}
           autoFocus
           autoCorrect={false}
@@ -213,7 +214,8 @@ function SourceRow({
           <Pressable
             onPress={() => void save()}
             disabled={busy}
-            className="rounded-xl bg-indigo-300 px-3 py-2 active:opacity-80"
+            className="border bg-indigo-300 px-3 py-2 active:opacity-80"
+            style={appBorderAppearance(appStyle)}
           >
             {busy ? (
               <ActivityIndicator size="small" color={COLORS.background} />
@@ -223,7 +225,8 @@ function SourceRow({
           </Pressable>
           <Pressable
             onPress={() => setEditing(false)}
-            className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 active:opacity-70"
+            className="border border-white/10 bg-white/5 px-3 py-2 active:opacity-70"
+            style={appBorderAppearance(appStyle)}
           >
             <Text className="text-xs font-medium text-slate-300">Cancel</Text>
           </Pressable>
@@ -235,13 +238,7 @@ function SourceRow({
   return (
     <View className={`px-4 py-4 ${UI.card}`} style={appSurfaceAppearance(appStyle)}>
       <View className="flex-row flex-wrap items-center gap-2">
-        <Text
-          className={`rounded-full bg-indigo-300/10 px-2 py-1 text-xs font-semibold uppercase ${
-            KIND_COLORS[source.kind] ?? "text-slate-400"
-          }`}
-        >
-          {source.kind}
-        </Text>
+        <KindBadge kind={source.kind} />
         <Text className="shrink font-semibold" style={appPrimaryText(appStyle)} numberOfLines={1}>
           {sourceLabel(source)}
         </Text>
@@ -260,24 +257,26 @@ function SourceRow({
       <View className="mt-3 flex-row gap-2">
         <Pressable
           onPress={startEditing}
-          className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 active:opacity-70"
+          className="border border-white/10 bg-white/5 px-3 py-2 active:opacity-70"
+          style={appBorderAppearance(appStyle)}
         >
-              <Text className="text-xs font-medium" style={appSecondaryText(appStyle)}>
-                Rename
-              </Text>
+          <Text className="text-xs font-medium" style={appSecondaryText(appStyle)}>
+            Rename
+          </Text>
         </Pressable>
         <Pressable
           onPress={onRefresh}
-          className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 active:opacity-70"
+          className="border border-white/10 bg-white/5 px-3 py-2 active:opacity-70"
+          style={appBorderAppearance(appStyle)}
         >
-              <Text className="text-xs font-medium" style={appSecondaryText(appStyle)}>
-                Refresh
-              </Text>
+          <Text className="text-xs font-medium" style={appSecondaryText(appStyle)}>
+            Refresh
+          </Text>
         </Pressable>
         <Pressable
           onPress={onRemove}
-          className="rounded-xl border border-rose-300/15 px-3 py-2 active:opacity-70"
-          style={{ backgroundColor: appStyle.appBackgroundColor }}
+          className="border border-rose-300/15 px-3 py-2 active:opacity-70"
+          style={[appBorderAppearance(appStyle), { backgroundColor: appStyle.appBackgroundColor }]}
         >
           <Text className="text-xs font-medium" style={appSecondaryText(appStyle)}>
             Remove
@@ -339,7 +338,13 @@ function AddSourceForm({
   }
 
   const inputClass = UI.input;
-  const inputStyle = { backgroundColor: appStyle.appAccentBackgroundColor };
+  const inputStyle = [
+    appBorderAppearance(appStyle),
+    {
+      backgroundColor: appStyle.appAccentBackgroundColor,
+      color: appStyle.appSecondaryTextColor,
+    },
+  ];
 
   return (
     <View className={`gap-3 ${UI.card}`} style={appSurfaceAppearance(appStyle)}>
@@ -348,10 +353,11 @@ function AddSourceForm({
           <Pressable
             key={k}
             onPress={() => setKind(k)}
-            className={`rounded-xl px-3 py-2 ${
-              kind === k ? "" : "border border-white/10 bg-white/5"
-            }`}
-            style={kind === k ? { backgroundColor: appStyle.appAccentBackgroundColor } : undefined}
+            className={`border px-3 py-2 ${kind === k ? "" : "border-white/10 bg-white/5"}`}
+            style={[
+              appBorderAppearance(appStyle),
+              kind === k ? { backgroundColor: appStyle.appAccentBackgroundColor } : null,
+            ]}
           >
             <Text
               className="text-sm font-semibold"
@@ -368,7 +374,7 @@ function AddSourceForm({
           className={inputClass}
           style={inputStyle}
           placeholder="https://example.com/feed.xml"
-          placeholderTextColor="#64748b"
+          placeholderTextColor={appStyle.appSecondaryTextColor}
           autoCapitalize="none"
           autoCorrect={false}
           keyboardType="url"
@@ -382,7 +388,7 @@ function AddSourceForm({
           className={inputClass}
           style={inputStyle}
           placeholder="alice.bsky.social"
-          placeholderTextColor="#64748b"
+          placeholderTextColor={appStyle.appSecondaryTextColor}
           autoCapitalize="none"
           autoCorrect={false}
           value={actor}
@@ -396,7 +402,7 @@ function AddSourceForm({
             className={inputClass}
             style={inputStyle}
             placeholder="mastodon.social"
-            placeholderTextColor="#64748b"
+            placeholderTextColor={appStyle.appSecondaryTextColor}
             autoCapitalize="none"
             autoCorrect={false}
             value={server}
@@ -407,14 +413,15 @@ function AddSourceForm({
               <Pressable
                 key={m}
                 onPress={() => setMastodonMode(m)}
-                className={`rounded-xl px-3 py-2 ${
-                  mastodonMode === m ? "" : "border border-white/10 bg-white/5"
+                className={`border px-3 py-2 ${
+                  mastodonMode === m ? "" : "border-white/10 bg-white/5"
                 }`}
-                style={
+                style={[
+                  appBorderAppearance(appStyle),
                   mastodonMode === m
                     ? { backgroundColor: appStyle.appAccentBackgroundColor }
-                    : undefined
-                }
+                    : null,
+                ]}
               >
                 <Text
                   className="text-sm font-semibold"
@@ -430,7 +437,7 @@ function AddSourceForm({
               className={inputClass}
               style={inputStyle}
               placeholder="photography"
-              placeholderTextColor="#64748b"
+              placeholderTextColor={appStyle.appSecondaryTextColor}
               autoCapitalize="none"
               autoCorrect={false}
               value={hashtag}
@@ -445,7 +452,7 @@ function AddSourceForm({
           className={inputClass}
           style={inputStyle}
           placeholder="@channelhandle or UC… channel id"
-          placeholderTextColor="#64748b"
+          placeholderTextColor={appStyle.appSecondaryTextColor}
           autoCapitalize="none"
           autoCorrect={false}
           value={channel}
@@ -456,8 +463,11 @@ function AddSourceForm({
       <Pressable
         onPress={submit}
         disabled={busy}
-        className={`mt-1 self-start ${UI.primaryButton}`}
-        style={{ backgroundColor: appStyle.appAccentBackgroundColor }}
+        className={`mt-1 self-start border ${UI.primaryButton}`}
+        style={[
+          appBorderAppearance(appStyle),
+          { backgroundColor: appStyle.appAccentBackgroundColor },
+        ]}
       >
         {busy ? (
           <ActivityIndicator size="small" color={COLORS.background} />

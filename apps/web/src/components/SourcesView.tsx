@@ -2,18 +2,13 @@
 
 import type { AppStyle } from "@shome/core";
 import { type CSSProperties, type FormEvent, useCallback, useEffect, useState } from "react";
+import { KindBadge } from "#/components/Badge";
 import { api } from "#/lib/api";
 import { originalSourceLabel, SOURCE_FETCH_ERROR, sourceLabel, timeAgo } from "#/lib/format";
+import { selectChevron } from "#/lib/select-style";
 import type { ConnectionView, SourceView } from "#/lib/types";
 
 type Kind = "rss" | "bluesky" | "mastodon" | "youtube";
-
-const KIND_COLORS: Record<string, string> = {
-  rss: "text-orange-300",
-  bluesky: "text-sky-300",
-  mastodon: "text-violet-300",
-  youtube: "text-red-300",
-};
 
 export function SourcesView({ appStyle }: { appStyle: AppStyle }) {
   const [sources, setSources] = useState<SourceView[] | null>(null);
@@ -27,6 +22,14 @@ export function SourcesView({ appStyle }: { appStyle: AppStyle }) {
     ...inputStyle,
     color: appStyle.appSecondaryTextColor,
     fontFamily: appStyle.appFont,
+    // Inline so the member's border tokens win regardless of cascade layer order.
+    borderColor: appStyle.appBorderStyle,
+    borderRadius: appStyle.appBorderRadius,
+    borderStyle: appStyle.appBorderLineStyle,
+  };
+  const selectStyle: CSSProperties = {
+    ...pickerStyle,
+    ...selectChevron(appStyle.appSecondaryTextColor),
   };
   const primaryTextStyle: CSSProperties = {
     color: appStyle.appFontColor,
@@ -108,6 +111,7 @@ export function SourcesView({ appStyle }: { appStyle: AppStyle }) {
           connections={connections}
           inputStyle={inputStyle}
           pickerStyle={pickerStyle}
+          selectStyle={selectStyle}
           accentBackgroundColor={appStyle.appAccentBackgroundColor}
           onAdded={(msg) => {
             setNotice(msg);
@@ -153,6 +157,7 @@ export function SourcesView({ appStyle }: { appStyle: AppStyle }) {
         <AddConnectionForm
           inputStyle={inputStyle}
           pickerStyle={pickerStyle}
+          selectStyle={selectStyle}
           accentBackgroundColor={appStyle.appAccentBackgroundColor}
           onAdded={(message) => {
             setError(null);
@@ -169,9 +174,7 @@ export function SourcesView({ appStyle }: { appStyle: AppStyle }) {
                 className="card flex items-center justify-between gap-3 px-3.5 py-3"
               >
                 <div className="flex min-w-0 flex-wrap items-center gap-2.5">
-                  <span className={`badge ${KIND_COLORS[connection.provider] ?? ""}`}>
-                    {connection.provider}
-                  </span>
+                  <KindBadge kind={connection.provider} />
                   <span className="font-semibold [overflow-wrap:anywhere]" style={primaryTextStyle}>
                     {connection.account ?? connection.label}
                   </span>
@@ -284,7 +287,7 @@ function SourceRow({
       ) : (
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           <div className="flex min-w-0 flex-wrap items-center gap-2.5">
-            <span className={`badge ${KIND_COLORS[source.kind] ?? ""}`}>{source.kind}</span>
+            <KindBadge kind={source.kind} />
             <span className="font-semibold [overflow-wrap:anywhere]" style={primaryTextStyle}>
               {sourceLabel(source)}
             </span>
@@ -340,6 +343,7 @@ function AddSourceForm({
   connections,
   inputStyle,
   pickerStyle,
+  selectStyle,
   accentBackgroundColor,
   onAdded,
   onError,
@@ -347,6 +351,7 @@ function AddSourceForm({
   connections: ConnectionView[];
   inputStyle: CSSProperties;
   pickerStyle: CSSProperties;
+  selectStyle: CSSProperties;
   accentBackgroundColor: string;
   onAdded: (message: string) => void;
   onError: (message: string) => void;
@@ -416,7 +421,7 @@ function AddSourceForm({
       <div className="flex flex-wrap gap-2">
         <select
           className="input"
-          style={pickerStyle}
+          style={selectStyle}
           value={kind}
           onChange={(e) => setKind(e.target.value as Kind)}
         >
@@ -441,7 +446,7 @@ function AddSourceForm({
           <>
             <select
               className="input"
-              style={pickerStyle}
+              style={selectStyle}
               value={blueskyMode}
               onChange={(e) => setBlueskyMode(e.target.value as "author" | "timeline")}
             >
@@ -471,7 +476,7 @@ function AddSourceForm({
             />
             <select
               className="input"
-              style={pickerStyle}
+              style={selectStyle}
               value={mastodonMode}
               onChange={(e) => setMastodonMode(e.target.value as "public" | "hashtag" | "home")}
             >
@@ -518,7 +523,7 @@ function AddSourceForm({
         <div className="flex flex-wrap items-center gap-2">
           <select
             className="input"
-            style={pickerStyle}
+            style={selectStyle}
             value={connectionId}
             onChange={(e) => setConnectionId(e.target.value)}
           >
@@ -556,12 +561,14 @@ function AddSourceForm({
 function AddConnectionForm({
   inputStyle,
   pickerStyle,
+  selectStyle,
   accentBackgroundColor,
   onAdded,
   onError,
 }: {
   inputStyle: CSSProperties;
   pickerStyle: CSSProperties;
+  selectStyle: CSSProperties;
   accentBackgroundColor: string;
   onAdded: (message: string | null) => void;
   onError: (message: string) => void;
@@ -625,7 +632,7 @@ function AddConnectionForm({
       <div className="flex flex-wrap gap-2">
         <select
           className="input"
-          style={pickerStyle}
+          style={selectStyle}
           value={provider}
           onChange={(e) => setProvider(e.target.value as "bluesky" | "mastodon" | "youtube")}
         >

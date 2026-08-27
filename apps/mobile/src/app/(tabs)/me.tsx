@@ -224,8 +224,11 @@ export default function MeScreen() {
           <View className="mt-3 gap-2">
             <Pressable
               onPress={() => router.push("/profile-editor")}
-              className={UI.primaryButton}
-              style={{ backgroundColor: appStyle.appAccentBackgroundColor }}
+              className={`border ${UI.primaryButton}`}
+              style={[
+                appBorderAppearance(appStyle),
+                { backgroundColor: appStyle.appAccentBackgroundColor },
+              ]}
               accessibilityRole="button"
             >
               <Text className="font-medium text-slate-950">Edit page, app &amp; post styles</Text>
@@ -243,7 +246,8 @@ export default function MeScreen() {
 
         <Pressable
           onPress={() => void authClient.signOut()}
-          className="mt-3 items-center rounded-xl border border-rose-300/15 bg-rose-300/5 px-4 py-3 active:opacity-70"
+          className="mt-3 items-center border border-rose-300/15 bg-rose-300/5 px-4 py-3 active:opacity-70"
+          style={appBorderAppearance(appStyle)}
         >
           <Text className="font-medium" style={appPrimaryText(appStyle)}>
             Sign out

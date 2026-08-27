@@ -11,6 +11,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { Badge } from "#/components/Badge";
 
 type EditorMode = "visual" | "code" | "preview";
 type CodePane = "html" | "css";
@@ -986,6 +987,13 @@ export function ProfilePageEditor({
     { id: "preview", label: "Preview", hint: "Published view" },
   ];
 
+  // Inline so the member's border tokens win regardless of cascade layer order.
+  const appBorder = {
+    borderColor: appStyle.appBorderStyle,
+    borderRadius: appStyle.appBorderRadius,
+    borderStyle: appStyle.appBorderLineStyle,
+  };
+
   return (
     <div className="card">
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-4">
@@ -997,7 +1005,8 @@ export function ProfilePageEditor({
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <div
-            className="flex rounded-xl border border-white/10 bg-black/20 p-1"
+            className="flex border border-white/10 bg-black/20 p-1"
+            style={appBorder}
             role="tablist"
             aria-label="Page editor mode"
           >
@@ -1044,7 +1053,8 @@ export function ProfilePageEditor({
       {mode === "visual" && (
         <div role="tabpanel" aria-label="Visual editor" className="grid gap-4">
           <div
-            className="flex w-fit rounded-xl border border-white/10 bg-black/20 p-1"
+            className="flex w-fit border border-white/10 bg-black/20 p-1"
+            style={appBorder}
             role="tablist"
             aria-label="Visual editor workspace"
           >
@@ -1078,7 +1088,7 @@ export function ProfilePageEditor({
 
           {visualPane === "blocks" && (
             <div className="grid gap-4 xl:grid-cols-[13rem_minmax(0,1fr)]">
-              <aside className="rounded-xl border border-white/10 bg-black/10 p-3">
+              <aside className="border border-white/10 bg-black/10 p-3" style={appBorder}>
                 <p className="text-xs font-semibold tracking-[0.12em] text-slate-400 uppercase">
                   Add a block
                 </p>
@@ -1254,7 +1264,7 @@ export function ProfilePageEditor({
                     Drag a section to move it, or click it to edit its text.
                   </p>
                 </div>
-                <span className="badge text-indigo-200">overlay on</span>
+                <Badge label="overlay on" tone="text-indigo-200" />
               </div>
               {visualPreviewDoc === null ? (
                 <div className="grid min-h-[26rem] place-items-center px-6 text-center text-sm text-slate-400">
@@ -1472,7 +1482,7 @@ export function ProfilePageEditor({
             <p className="text-slate-400">
               Your draft, rendered with the same safety rules as the public page.
             </p>
-            <span className="badge text-emerald-300">live draft</span>
+            <Badge label="live draft" tone="text-emerald-300" />
           </div>
           {previewDoc === null ? (
             <div className="card flex min-h-[28rem] items-center justify-center">

@@ -3,17 +3,11 @@ import { Image } from "expo-image";
 import { useVideoPlayer, VideoView } from "expo-video";
 import * as WebBrowser from "expo-web-browser";
 import { Pressable, Text, View } from "react-native";
+import { KindBadge } from "@/components/kind-badge";
 import { useAppStyle } from "@/lib/app-style";
 import { apiUrl } from "@/lib/config";
 import { timeAgo } from "@/lib/format";
 import { UI } from "@/lib/ui";
-
-const KIND_COLORS: Record<string, string> = {
-  rss: "text-orange-300",
-  bluesky: "text-sky-300",
-  mastodon: "text-violet-300",
-  youtube: "text-red-300",
-};
 
 export function FeedItemCard({ item }: { item: FeedItemView }) {
   const { appStyle } = useAppStyle();
@@ -75,14 +69,7 @@ export function FeedItemCard({ item }: { item: FeedItemView }) {
       style={postCardStyle}
     >
       <View className="mb-1.5 flex-row flex-wrap items-center gap-2">
-        <Text
-          className={`rounded-full bg-indigo-300/10 px-2 py-1 text-xs font-semibold uppercase ${
-            KIND_COLORS[item.sourceKind] ?? "text-slate-400"
-          }`}
-          style={postSecondaryTextStyle}
-        >
-          {item.sourceKind}
-        </Text>
+        <KindBadge kind={item.sourceKind} textStyle={postSecondaryTextStyle} />
         {item.sourceTitle ? (
           <Text
             className="shrink text-xs text-slate-400"

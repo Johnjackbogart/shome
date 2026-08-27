@@ -10,6 +10,7 @@ import type {
 } from "@shome/core";
 import Link from "next/link";
 import { type FormEvent, useCallback, useEffect, useState } from "react";
+import { Badge } from "#/components/Badge";
 import { RssDiscovery } from "#/components/RssDiscovery";
 import { api } from "#/lib/api";
 import type { SourceView } from "#/lib/types";
@@ -145,6 +146,13 @@ export function DiscoverView({ appStyle }: { appStyle: AppStyle }) {
     }
   }
 
+  // Inline so the member's border tokens win regardless of cascade layer order.
+  const appBorder = {
+    borderColor: appStyle.appBorderStyle,
+    borderRadius: appStyle.appBorderRadius,
+    borderStyle: appStyle.appBorderLineStyle,
+  };
+
   return (
     <section
       className="grid items-start lg:grid-cols-[minmax(0,3fr)_minmax(16rem,2fr)]"
@@ -154,7 +162,7 @@ export function DiscoverView({ appStyle }: { appStyle: AppStyle }) {
         <section className="card flex flex-col" style={{ gap: appStyle.appSpacing }}>
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <span className="badge text-indigo-200">People</span>
+              <Badge label="People" tone="text-indigo-200" style={appBorder} />
               <h2 className="mt-3 text-xl font-bold text-white">Find your people on shome</h2>
               <p className="mt-1 text-sm leading-6 text-slate-400">
                 Search a name or @handle, visit their page, then decide whether to follow.
@@ -232,7 +240,7 @@ export function DiscoverView({ appStyle }: { appStyle: AppStyle }) {
 
         <section className="flex flex-col" style={{ gap: appStyle.appSpacing }}>
           <div className="flex items-center gap-2">
-            <span className="badge text-orange-300">RSS</span>
+            <Badge label="RSS" tone="text-orange-300" style={appBorder} />
             <h2 className="text-xl font-bold">Publications, blogs, and podcasts</h2>
           </div>
           <RssDiscovery
@@ -256,17 +264,22 @@ export function DiscoverView({ appStyle }: { appStyle: AppStyle }) {
       </div>
 
       <aside className="flex flex-col" style={{ gap: appStyle.appSpacing }}>
-        <section className="card flex flex-col" style={{ gap: appStyle.appSpacing }}>
-          <span className="badge self-start text-emerald-300">Your community</span>
+        <section className="card flex flex-col" style={{ gap: appStyle.appSpacing, ...appBorder }}>
+          <Badge
+            label="Your community"
+            tone="text-emerald-300"
+            className="self-start"
+            style={appBorder}
+          />
           <h2 className="font-semibold text-white">People following you</h2>
           {community ? (
             <>
               <div className="grid grid-cols-2 gap-2">
-                <div className="rounded-xl bg-white/[0.04] p-3">
+                <div className="border bg-white/[0.04] p-3" style={appBorder}>
                   <p className="text-2xl font-semibold text-white">{community.followerCount}</p>
                   <p className="text-xs text-slate-400">followers</p>
                 </div>
-                <div className="rounded-xl bg-white/[0.04] p-3">
+                <div className="border bg-white/[0.04] p-3" style={appBorder}>
                   <p className="text-2xl font-semibold text-white">{community.followingCount}</p>
                   <p className="text-xs text-slate-400">following</p>
                 </div>

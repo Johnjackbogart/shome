@@ -29,6 +29,7 @@ import { ColorField } from "@/components/color-picker";
 import { VisualProfileBuilder } from "@/components/visual-profile-builder";
 import { api } from "@/lib/api";
 import {
+  appBorderAppearance,
   appPrimaryText,
   appSecondaryText,
   appSurfaceAppearance,
@@ -509,11 +510,7 @@ function AppStyleEditor({
         <Pressable
           onPress={() => onChange({ ...DEFAULT_APP_STYLE })}
           className={`${UI.ghostButton} px-3 py-2`}
-          style={{
-            borderColor: value.appBorderStyle,
-            borderRadius: Number.parseInt(value.appBorderRadius, 10),
-            borderStyle: value.appBorderLineStyle,
-          }}
+          style={appBorderAppearance(value)}
           accessibilityRole="button"
           accessibilityLabel="Reset app style"
         >
@@ -524,8 +521,8 @@ function AppStyleEditor({
         <Pressable
           onPress={onSave}
           disabled={saving || saved}
-          className="rounded-xl bg-indigo-300 px-3 py-2 active:opacity-80 disabled:opacity-50"
-          style={{ backgroundColor: value.appAccentBackgroundColor }}
+          className="border bg-indigo-300 px-3 py-2 active:opacity-80 disabled:opacity-50"
+          style={[appBorderAppearance(value), { backgroundColor: value.appAccentBackgroundColor }]}
           accessibilityRole="button"
           accessibilityLabel="Save app style"
         >
@@ -571,13 +568,11 @@ function AppStyleEditor({
           {["Filters", "Fetch new"].map((label) => (
             <View
               key={label}
-              className="rounded-lg border px-3 py-2"
-              style={{
-                backgroundColor: value.appSecondaryBackgroundColor,
-                borderColor: value.appBorderStyle,
-                borderRadius: Number.parseInt(value.appBorderRadius, 10),
-                borderStyle: value.appBorderLineStyle,
-              }}
+              className="border px-3 py-2"
+              style={[
+                appBorderAppearance(value),
+                { backgroundColor: value.appSecondaryBackgroundColor },
+              ]}
             >
               <Text
                 style={{
@@ -590,13 +585,11 @@ function AppStyleEditor({
             </View>
           ))}
           <View
-            className="rounded-lg border px-3 py-2"
-            style={{
-              backgroundColor: value.appAccentBackgroundColor,
-              borderColor: value.appBorderStyle,
-              borderRadius: Number.parseInt(value.appBorderRadius, 10),
-              borderStyle: value.appBorderLineStyle,
-            }}
+            className="border px-3 py-2"
+            style={[
+              appBorderAppearance(value),
+              { backgroundColor: value.appAccentBackgroundColor },
+            ]}
           >
             <Text style={{ color: value.appFontColor, fontFamily: value.appFont }}>
               Create post
@@ -643,14 +636,14 @@ function AppStyleEditor({
           label="Background color"
           value={value.appBackgroundColor}
           onChange={(next) => update("appBackgroundColor", next)}
-          borderColor={value.appBorderStyle}
+          appStyle={value}
         />
         <ColorField
           className="flex-1"
           label="Secondary background"
           value={value.appSecondaryBackgroundColor}
           onChange={(next) => update("appSecondaryBackgroundColor", next)}
-          borderColor={value.appBorderStyle}
+          appStyle={value}
         />
       </View>
 
@@ -658,7 +651,7 @@ function AppStyleEditor({
         label="Accent background"
         value={value.appAccentBackgroundColor}
         onChange={(next) => update("appAccentBackgroundColor", next)}
-        borderColor={value.appBorderStyle}
+        appStyle={value}
       />
 
       <View className="flex-row gap-2">
@@ -667,14 +660,14 @@ function AppStyleEditor({
           label="Accent color"
           value={value.appAccentColor}
           onChange={(next) => update("appAccentColor", next)}
-          borderColor={value.appBorderStyle}
+          appStyle={value}
         />
         <ColorField
           className="flex-1"
           label="Secondary accent"
           value={value.appSecondaryAccentColor}
           onChange={(next) => update("appSecondaryAccentColor", next)}
-          borderColor={value.appBorderStyle}
+          appStyle={value}
         />
       </View>
 
@@ -682,7 +675,7 @@ function AppStyleEditor({
         label="Border color"
         value={value.appBorderStyle}
         onChange={(next) => update("appBorderStyle", next)}
-        borderColor={value.appBorderStyle}
+        appStyle={value}
       />
 
       <Text className="text-xs text-slate-400">Border radius</Text>
@@ -715,14 +708,14 @@ function AppStyleEditor({
           label="Font color"
           value={value.appFontColor}
           onChange={(next) => update("appFontColor", next)}
-          borderColor={value.appBorderStyle}
+          appStyle={value}
         />
         <ColorField
           className="flex-1"
           label="Secondary text"
           value={value.appSecondaryTextColor}
           onChange={(next) => update("appSecondaryTextColor", next)}
-          borderColor={value.appBorderStyle}
+          appStyle={value}
         />
       </View>
 
@@ -730,7 +723,7 @@ function AppStyleEditor({
         label="Accent font color"
         value={value.appAccentFontColor}
         onChange={(next) => update("appAccentFontColor", next)}
-        borderColor={value.appBorderStyle}
+        appStyle={value}
       />
 
       <Text className="text-xs text-slate-400">Font</Text>
@@ -820,6 +813,7 @@ function DefaultPostStyleEditor({
         <Pressable
           onPress={() => onChange({ ...DEFAULT_POST_STYLE })}
           className={`${UI.ghostButton} px-3 py-2`}
+          style={appBorderAppearance(appStyle)}
           accessibilityRole="button"
           accessibilityLabel="Reset default post style"
         >
@@ -830,8 +824,11 @@ function DefaultPostStyleEditor({
         <Pressable
           onPress={onSave}
           disabled={saving || saved}
-          className="rounded-xl bg-indigo-300 px-3 py-2 active:opacity-80 disabled:opacity-50"
-          style={{ backgroundColor: appStyle.appAccentBackgroundColor }}
+          className="border bg-indigo-300 px-3 py-2 active:opacity-80 disabled:opacity-50"
+          style={[
+            appBorderAppearance(appStyle),
+            { backgroundColor: appStyle.appAccentBackgroundColor },
+          ]}
           accessibilityRole="button"
           accessibilityLabel="Save default post style"
         >
@@ -960,8 +957,11 @@ function StyleOption({
   return (
     <Pressable
       onPress={onPress}
-      className={`rounded-lg px-3 py-2 ${selected ? "" : "border border-white/10 bg-white/5"}`}
-      style={selected ? { backgroundColor: appStyle.appAccentBackgroundColor } : undefined}
+      className={`border px-3 py-2 ${selected ? "" : "border-white/10 bg-white/5"}`}
+      style={[
+        appBorderAppearance(appStyle),
+        selected ? { backgroundColor: appStyle.appAccentBackgroundColor } : null,
+      ]}
       accessibilityRole="radio"
       accessibilityLabel={label}
       accessibilityState={{ selected }}

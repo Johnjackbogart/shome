@@ -17,6 +17,7 @@ import { FeedItemCard } from "@/components/feed-item-card";
 import { PostComposer } from "@/components/post-composer";
 import { api } from "@/lib/api";
 import {
+  appBorderAppearance,
   appPrimaryText,
   appSecondaryText,
   appSurfaceAppearance,
@@ -157,7 +158,8 @@ export default function FeedScreen() {
           <Pressable
             onPress={fetchNew}
             disabled={fetching}
-            className="rounded-xl border border-white/10 bg-white/5 px-3.5 py-2.5 active:opacity-70"
+            className="border border-white/10 bg-white/5 px-3.5 py-2.5 active:opacity-70"
+            style={appBorderAppearance(appStyle)}
           >
             {fetching ? (
               <ActivityIndicator size="small" color={appStyle.appAccentFontColor} />
@@ -178,10 +180,13 @@ export default function FeedScreen() {
         <View className="flex-row items-center gap-2 px-5">
           <TextInput
             className={`flex-1 ${UI.input}`}
-            style={{
-              backgroundColor: appStyle.appAccentBackgroundColor,
-              color: appStyle.appSecondaryTextColor,
-            }}
+            style={[
+              appBorderAppearance(appStyle),
+              {
+                backgroundColor: appStyle.appAccentBackgroundColor,
+                color: appStyle.appSecondaryTextColor,
+              },
+            ]}
             value={q}
             onChangeText={setQ}
             placeholder="search your feed…"
@@ -195,8 +200,8 @@ export default function FeedScreen() {
           />
           <Pressable
             onPress={() => setAppliedQ(q.trim())}
-            className="rounded-xl bg-indigo-300 px-4 py-3 active:opacity-80"
-            style={{ backgroundColor: appStyle.appBackgroundColor }}
+            className="border bg-indigo-300 px-4 py-3 active:opacity-80"
+            style={[appBorderAppearance(appStyle), { backgroundColor: appStyle.appBackgroundColor }]}
             accessibilityRole="button"
             accessibilityLabel="Search"
           >
@@ -204,7 +209,8 @@ export default function FeedScreen() {
           </Pressable>
           <Pressable
             onPress={() => setFiltersVisible(true)}
-            className="flex-row items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 active:opacity-70"
+            className="flex-row items-center gap-1.5 border border-white/10 bg-white/5 px-3.5 py-3 active:opacity-70"
+            style={appBorderAppearance(appStyle)}
             accessibilityRole="button"
             accessibilityLabel="Filters"
           >
@@ -279,8 +285,11 @@ export default function FeedScreen() {
 
       <Pressable
         onPress={() => setComposerVisible(true)}
-        className="absolute right-5 bottom-5 flex-row items-center gap-2 rounded-full bg-indigo-300 px-5 py-4 shadow-lg shadow-black/40 active:opacity-80"
-        style={{ backgroundColor: appStyle.appAccentBackgroundColor }}
+        className="absolute right-5 bottom-5 flex-row items-center gap-2 border bg-indigo-300 px-5 py-4 shadow-lg shadow-black/40 active:opacity-80"
+        style={[
+          appBorderAppearance(appStyle),
+          { backgroundColor: appStyle.appAccentBackgroundColor },
+        ]}
         accessibilityRole="button"
         accessibilityLabel="Create post"
       >
