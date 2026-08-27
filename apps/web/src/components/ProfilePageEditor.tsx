@@ -662,12 +662,20 @@ export function ProfilePageEditor({
   onChange,
   previewDoc,
   previewError,
+  onSave,
+  saving,
+  saved,
+  disabled,
 }: {
   html: string;
   appStyle: AppStyle;
   onChange: (html: string) => void;
   previewDoc: string | null;
   previewError: string | null;
+  onSave?: () => void;
+  saving?: boolean;
+  saved?: boolean;
+  disabled?: boolean;
 }) {
   const [mode, setMode] = useState<EditorMode>("visual");
   const [visualPane, setVisualPane] = useState<VisualPane>("blocks");
@@ -987,37 +995,49 @@ export function ProfilePageEditor({
             Build visually, inspect the source, or check the live page.
           </p>
         </div>
-        <div
-          className="flex rounded-xl border border-white/10 bg-black/20 p-1"
-          role="tablist"
-          aria-label="Page editor mode"
-        >
-          {modes.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              role="tab"
-              aria-selected={mode === item.id}
-              className={`cursor-pointer rounded-lg px-3 py-2 text-left text-sm transition sm:px-4 ${
-                mode === item.id
-                  ? "text-slate-950 shadow-sm"
-                  : "text-slate-400 hover:bg-white/[0.06] hover:text-white"
-              }`}
-              style={
-                mode === item.id
-                  ? { backgroundColor: appStyle.appAccentBackgroundColor }
-                  : undefined
-              }
-              onClick={() => setMode(item.id)}
-            >
-              <span className="block font-semibold">{item.label}</span>
-              <span
-                className={`hidden text-[0.68rem] sm:block ${mode === item.id ? "text-slate-700" : "text-slate-500"}`}
+        <div className="flex flex-wrap items-center gap-2">
+          <div
+            className="flex rounded-xl border border-white/10 bg-black/20 p-1"
+            role="tablist"
+            aria-label="Page editor mode"
+          >
+            {modes.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                role="tab"
+                aria-selected={mode === item.id}
+                className={`cursor-pointer rounded-lg px-3 py-2 text-left text-sm transition sm:px-4 ${
+                  mode === item.id
+                    ? "text-slate-950 shadow-sm"
+                    : "text-slate-400 hover:bg-white/[0.06] hover:text-white"
+                }`}
+                style={
+                  mode === item.id
+                    ? { backgroundColor: appStyle.appAccentBackgroundColor }
+                    : undefined
+                }
+                onClick={() => setMode(item.id)}
               >
-                {item.hint}
-              </span>
+                <span className="block font-semibold">{item.label}</span>
+                <span
+                  className={`hidden text-[0.68rem] sm:block ${mode === item.id ? "text-slate-700" : "text-slate-500"}`}
+                >
+                  {item.hint}
+                </span>
+              </button>
+            ))}
+          </div>
+          {onSave && (
+            <button
+              type="button"
+              className="btn"
+              onClick={onSave}
+              disabled={saving || saved || disabled}
+            >
+              {saving ? "saving…" : saved ? "saved ✓" : "save"}
             </button>
-          ))}
+          )}
         </div>
       </div>
 
