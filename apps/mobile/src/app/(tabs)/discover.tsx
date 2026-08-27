@@ -7,6 +7,7 @@ import {
 import { useCallback, useEffect, useState } from "react";
 import { RefreshControl, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { PeopleDiscovery } from "@/components/people-discovery";
 import { RssDiscovery } from "@/components/rss-discovery";
 import { api } from "@/lib/api";
 import {
@@ -75,6 +76,7 @@ export default function DiscoverScreen() {
           />
         }
       >
+        <PeopleDiscovery onError={(message) => setError(message)} />
         <View className="flex-row items-center gap-2">
           <Text
             className="rounded-full bg-indigo-300/10 px-2 py-1 text-xs font-semibold uppercase"
@@ -103,20 +105,6 @@ export default function DiscoverScreen() {
         {notice && <Text className="text-sm text-emerald-300">{notice}</Text>}
         {error && <Text className="text-sm text-rose-300">{error}</Text>}
 
-        <View className={`gap-2 ${UI.card}`} style={appSurfaceAppearance(appStyle)}>
-          <Text
-            className="self-start rounded-full bg-indigo-300/10 px-2 py-1 text-xs font-semibold uppercase"
-            style={{ color: appStyle.appAccentFontColor, fontFamily: appStyle.appFont }}
-          >
-            Bluesky
-          </Text>
-          <Text className="text-lg font-semibold text-white" style={appPrimaryText(appStyle)}>
-            People search is next
-          </Text>
-          <Text className="text-sm leading-5 text-slate-400" style={appSecondaryText(appStyle)}>
-            Search public profiles by handle or display name, then follow an author in your feed.
-          </Text>
-        </View>
         <View className={`gap-2 ${UI.card}`} style={appSurfaceAppearance(appStyle)}>
           <Text
             className="self-start rounded-full bg-indigo-300/10 px-2 py-1 text-xs font-semibold uppercase"
